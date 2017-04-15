@@ -7,6 +7,7 @@ Code info:
 import numpy as np
 from scipy.interpolate import interp1d
 from scipy.integrate import quad
+from scipy.integrate import romberg
 from rate_UV import *
 from helpers import *
 import os
@@ -15,6 +16,55 @@ path = os.getcwd()
 
 b8nu = np.loadtxt(path + '/Nu_Flux/B8NeutrinoFlux.dat')
 b8nu_spectrum = interp1d(b8nu[:,0], b8nu[:,1], kind='cubic', fill_value=0., bounds_error=False)
+
+#note lines have linear interpolation in bin
+
+b7nul1 = np.loadtxt(path + '/Nu_Flux/B7NeutrinoLine1.dat')
+b7nul1_spectrum = interp1d(b7nul1[:,0], b7nul1[:,1], kind='linear', fill_value=0., bounds_error=False)
+
+b7nul2 = np.loadtxt(path + '/Nu_Flux/B7NeutrinoLine2.dat')
+b7nul2_spectrum = interp1d(b7nul2[:,0], b7nul2[:,1], kind='linear', fill_value=0., bounds_error=False)
+
+pepnul1 = np.loadtxt(path + '/Nu_Flux/PEPNeutrinoLine1.dat')
+pepnul1_spectrum = interp1d(pepnul1[:,0], pepnul1[:,1], kind='linear', fill_value=0., bounds_error=False)
+
+hepnu = np.loadtxt(path + '/Nu_Flux/HEPNeutrinoFlux.dat')
+hepnu_spectrum = interp1d(hepnu[:,0], hepnu[:,1], kind='cubic', fill_value=0., bounds_error=False)
+
+ppnu = np.loadtxt(path + '/Nu_Flux/PPNeutrinoFlux.dat')
+ppnu_spectrum = interp1d(ppnu[:,0], ppnu[:,1], kind='cubic', fill_value=0., bounds_error=False)
+
+o15nu = np.loadtxt(path + '/Nu_Flux/O15NeutrinoFlux.dat')
+o15nu_spectrum = interp1d(o15nu[:,0], o15nu[:,1], kind='cubic', fill_value=0., bounds_error=False)
+
+n13nu = np.loadtxt(path + '/Nu_Flux/N13NeutrinoFlux.dat')
+n13nu_spectrum = interp1d(n13nu[:,0], n13nu[:,1], kind='cubic', fill_value=0., bounds_error=False)
+
+f17nu = np.loadtxt(path + '/Nu_Flux/F17NeutrinoFlux.dat')
+f17nu_spectrum = interp1d(f17nu[:,0], f17nu[:,1], kind='cubic', fill_value=0., bounds_error=False)
+
+atmnue = np.loadtxt(path + '/Nu_Flux/atmnue_noosc_fluka_flux_norm.dat')
+atmnue_spectrum = interp1d(atmnue[:,0], atmnue[:,1], kind='cubic', fill_value=0., bounds_error=False)
+
+atmnuebar = np.loadtxt(path + '/Nu_Flux/atmnuebar_noosc_fluka_flux_norm.dat')
+atmnuebar_spectrum = interp1d(atmnuebar[:,0], atmnuebar[:,1], kind='cubic', fill_value=0., bounds_error=False)
+
+atmnumu = np.loadtxt(path + '/Nu_Flux/atmnumu_noosc_fluka_flux_norm.dat')
+atmnumu_spectrum = interp1d(atmnumu[:,0], atmnumu[:,1], kind='cubic', fill_value=0., bounds_error=False)
+
+atmnumubar = np.loadtxt(path + '/Nu_Flux/atmnumubar_noosc_fluka_flux_norm.dat')
+atmnumubar_spectrum = interp1d(atmnumubar[:,0], atmnumubar[:,1], kind='cubic', fill_value=0., bounds_error=False)
+
+dsnb3mevnu = np.loadtxt(path + '/Nu_Flux/dsnb_3mev_flux_norm.dat')
+dsnb3mevnu_spectrum = interp1d(dsnb3mevnu[:,0], dsnb3mevnu[:,1], kind='cubic', fill_value=0., bounds_error=False)
+
+dsnb5mevnu = np.loadtxt(path + '/Nu_Flux/dsnb_5mev_flux_norm.dat')
+dsnb5mevnu_spectrum = interp1d(dsnb5mevnu[:,0], dsnb5mevnu[:,1], kind='cubic', fill_value=0., bounds_error=False)
+
+dsnb8mevnu = np.loadtxt(path + '/Nu_Flux/dsnb_8mev_flux_norm.dat')
+dsnb8mevnu_spectrum = interp1d(dsnb8mevnu[:,0], dsnb8mevnu[:,1], kind='cubic', fill_value=0., bounds_error=False)
+
+
 
 gF = 1.16637 * 10. ** -5. # Gfermi in GeV^-2
 sw = 0.2312 # sin(theat_weak)^2
@@ -27,6 +77,11 @@ class Likelihood_analysis(object):
     def __init__(self, model, coupling, mass, dm_sigp, fnfp, exposure, element, isotopes,
                  energies, times, Qmin, Qmax, time_info=False, GF=False):
         
+        nu_resp = np.zeros(16,dtype=object)
+
+     	self.nu_resp = np.zeros(16,dtype=object)
+        self.nu_int_resp = np.zeros(16,dtype=object)
+		
         self.events = energies
         self.element = element
         self.mass = mass
@@ -55,49 +110,85 @@ class Likelihood_analysis(object):
         self.dm_integ = R(Qmin=self.Qmin, Qmax=self.Qmax, **like_params) * 10.**3. * s_to_yr
 
         eng_lge = np.logspace(np.log10(self.Qmin), np.log10(self.Qmax), 400)
-        b8_resp = np.zeros_like(eng_lge)
+ 
+        for i in range(16):
+            nu_resp[i] = np.zeros_like(eng_lge)
+  		
         for iso in isotopes:
             # isotope list [mT, Z, A, frac]
-            b8_resp += Nu_spec().nu_rate('B8', eng_lge, iso)
-        self.b8_resp = interp1d(eng_lge, b8_resp, kind='cubic', bounds_error=False, fill_value=0.)
-        self.b8_int_resp = np.trapz(self.b8_resp(eng_lge), eng_lge)
-
-    def like_multi_grad(self, norms):
+            nu_resp[0] += Nu_spec().nu_rate('b8', eng_lge, iso)
+            nu_resp[1] += Nu_spec().nu_rate('b7l1', eng_lge, iso)
+            nu_resp[2] += Nu_spec().nu_rate('b7l2', eng_lge, iso)
+            nu_resp[3] += Nu_spec().nu_rate('pepl1', eng_lge, iso)
+            nu_resp[4] += Nu_spec().nu_rate('hep', eng_lge, iso)
+            nu_resp[5] += Nu_spec().nu_rate('pp', eng_lge, iso)
+            nu_resp[6] += Nu_spec().nu_rate('o15', eng_lge, iso)
+            nu_resp[7] += Nu_spec().nu_rate('n13', eng_lge, iso)
+            nu_resp[8] += Nu_spec().nu_rate('f17', eng_lge, iso)
+            nu_resp[9] += Nu_spec().nu_rate('atmnue', eng_lge, iso)
+            nu_resp[10] += Nu_spec().nu_rate('atmnuebar', eng_lge, iso)
+            nu_resp[11] += Nu_spec().nu_rate('atmnumu', eng_lge, iso)
+            nu_resp[12] += Nu_spec().nu_rate('atmnumubar', eng_lge, iso)
+            nu_resp[13] += Nu_spec().nu_rate('dsnb3mev', eng_lge, iso)
+            nu_resp[14] += Nu_spec().nu_rate('dsnb5mev', eng_lge, iso)
+            nu_resp[15] += Nu_spec().nu_rate('dsnb8mev', eng_lge, iso)
+            
+        for i in range(16):
+            #linear interpolation for the 3 lines
+            if i == 1 or i == 2 or i == 3:
+                self.nu_resp[i] = interp1d(eng_lge, nu_resp[i], kind='linear', bounds_error=False, fill_value=0.)    		
+                self.nu_int_resp[i] = np.trapz(self.nu_resp[i](eng_lge), eng_lge)
+            else:
+                self.nu_resp[i] = interp1d(eng_lge, nu_resp[i], kind='cubic', bounds_error=False, fill_value=0.)
+                self.nu_int_resp[i] = np.trapz(self.nu_resp[i](eng_lge), eng_lge)
+        
+        #def like_multi_grad(self, norms):
         # Not used at moment
-        b8_norm = norms[0]
-        sig_dm = norms[1]
-        return self.likelihood(b8_norm, sig_dm, return_grad=True)
+        #nu_norm = norms[0]
+        #sig_dm = norms[1]
+        #return self.likelihood(nu_norm, sig_dm, return_grad=True)
 
     def like_multi_wrapper(self, norms):
-        b8_norm = norms[0]
-        sig_dm = norms[1]
-        return self.likelihood(b8_norm, sig_dm, return_grad=False)
+        nu_norm = np.zeros(16,dtype=object)
 
+        for i in range(16):
+            nu_norm[i] = norms[i]  
+ 		
+        sig_dm = norms[-1]
+        return self.likelihood(nu_norm, sig_dm, return_grad=False)
 
-    def likelihood(self, b8_norm, sig_dm, return_grad=False):
+    def likelihood(self, nu_norm, sig_dm, return_grad=False):
         # TODO: consider implimenting gradient if minimization has difficulties
         # - 2 log likelihood
-        # b8_norm in units of cm^-2 s^-1, sig_dm in units of cm^2
+        # nu_norm in units of cm^-2 s^-1, sig_dm in units of cm^2
         like = 0.
         grad_x = 0.
-        grad_nu = 0.
+        diff_nu = np.zeros(16,dtype=object)
+        grad_nu = np.zeros(16)
+        nu_events = np.zeros(16,dtype=object)
 
         n_obs = len(self.events)
         # total rate contribution
 
         dm_events = 10. ** sig_dm * self.dm_integ * self.exposure
-        b8_events = 10. ** b8_norm * self.exposure * self.b8_int_resp
-        like += 2. * (dm_events + b8_events)
+  
+        for i in range(16):
+            nu_events[i] = 10. ** nu_norm[i] * self.exposure * self.nu_int_resp[i]
+ 	
+        like += 2. * (dm_events + sum(nu_events))
 
-        grad_x += 2. * np.log(10.) * dm_events
-        grad_nu += 2. * np.log(10.) * b8_events
-        #print 'Nobs: , B8 events: , DM events: ',n_obs, b8_events, dm_events
+        #grad_x += 2. * np.log(10.) * dm_events
+        #grad_nu[1] += 2. * np.log(10.) * nu_events[1]
+        #grad_nu[2] += 2. * np.log(10.) * nu_events[2]
+        #print 'Nobs: , b8 events: , DM events: ',n_obs, b8_events, dm_events
         
         # Differential contribution
         diff_dm = self.dm_recoils * self.exposure
-        diff_b8 = self.b8_resp(self.events) * self.exposure
 
-        lg_vle = (10. ** sig_dm * diff_dm + 10. ** b8_norm * diff_b8)
+        for i in range(16):
+            diff_nu[i] = self.nu_resp[i](self.events) * self.exposure  
+ 		
+        lg_vle = (10. ** sig_dm * diff_dm + np.dot(list(map(lambda x:10**x,nu_norm)),diff_nu)) #nu norm array
         for i in range(len(lg_vle)):
             if lg_vle[i] > 0.:
                 like += -2. * np.log(lg_vle[i])
@@ -106,25 +197,124 @@ class Likelihood_analysis(object):
         #grad_nu += -2. * np.log(10.) * b8_events / lg_vle.sum()
 
         # nu normalization contribution
-        like += self.nu_gaussian(b8_norm)
-
+        like += self.nu_gaussian('b8',nu_norm[0])    \
+				+ self.nu_gaussian('b7l1',nu_norm[1]) \
+				+ self.nu_gaussian('b7l2',nu_norm[2]) \
+				+ self.nu_gaussian('pepl1',nu_norm[3]) \
+				+ self.nu_gaussian('hep',nu_norm[4]) \
+				+ self.nu_gaussian('pp',nu_norm[5]) \
+				+ self.nu_gaussian('o15',nu_norm[6]) \
+				+ self.nu_gaussian('n13',nu_norm[7]) \
+				+ self.nu_gaussian('f17',nu_norm[8]) \
+				+ self.nu_gaussian('atmnue',nu_norm[9]) \
+				+ self.nu_gaussian('atmnuebar',nu_norm[10]) \
+				+ self.nu_gaussian('atmnumu',nu_norm[11]) \
+				+ self.nu_gaussian('atmnumubar',nu_norm[12]) \
+				+ self.nu_gaussian('dsnb3mev',nu_norm[13]) \
+				+ self.nu_gaussian('dsnb5mev',nu_norm[14]) \
+				+ self.nu_gaussian('dsnb8mev',nu_norm[15]) 
+				
+        #+ self.nu_gaussian(nu_norm2) ...
+		
         #grad_nu += self.nu_gaussian(b8_norm, return_deriv=True)
 
-        if return_grad:
-            return [grad_nu, grad_x]
-        else:
-            return like
+        #if return_grad:
+        #    return [grad_nu, grad_x]
+        #else:
+        return like
 
 
-    def nu_gaussian(self, flux_n, return_deriv=False):
+    def nu_gaussian(self, nu_component, flux_n, return_deriv=False):
         # - 2 log of gaussian flux norm comp
         # TODO generalize this function to any nu component
-        b8_mean_f = 5.69 * 10. ** 6. # cm^-2 s^-1
-        b8_sig = 0.91 * 10. ** 6.
-        if not return_deriv:
+		
+        b8_mean_f = 5.58 * 10. ** 6. 		 # cm^-2 s^-1
+        b8_sig = b8_mean_f * (0.14)     	 # cm^-2 s^-1
+		
+        b7l1_mean_f = (0.1) * 5.00 * 10. ** 9. 		  
+        b7l1_sig = b7l1_mean_f * (0.07) 
+
+        b7l2_mean_f = (0.9) * 5.00 * 10. ** 9. 		  
+        b7l2_sig = b7l2_mean_f * (0.07)	
+
+        pepl1_mean_f = 1.44 * 10. ** 8. 		  
+        pepl1_sig = pepl1_mean_f * (0.012)			
+		
+        hep_mean_f = 8.04 * 10. ** 3.
+        hep_sig = hep_mean_f * (0.3)
+		
+        pp_mean_f = 5.98 * 10. ** 10. 
+        pp_sig = pp_mean_f * (0.006)
+		
+        o15_mean_f = 2.23 * 10. ** 8. 
+        o15_sig = o15_mean_f * (0.15)
+        
+        n13_mean_f = 2.96 * 10. ** 8. 
+        n13_sig = n13_mean_f * (0.14)
+		
+        f17_mean_f = 5.52 * 10. ** 6. 
+        f17_sig = f17_mean_f * (0.17)
+		
+        atmnue_mean_f = 1.27 * 10. ** 1 
+        atmnue_sig = atmnue_mean_f * (0.5)		 	# take 50% error
+		
+        atmnuebar_mean_f = 1.17 * 10. ** 1 
+        atmnuebar_sig = atmnuebar_mean_f * (0.5)		# take 50% error
+		
+        atmnumu_mean_f = 2.46 * 10. ** 1 
+        atmnumu_sig = atmnumu_mean_f * (0.5)    		# take 50% error
+		
+        atmnumubar_mean_f = 2.45 * 10. ** 1 
+        atmnumubar_sig = atmnumubar_mean_f * (0.5)    	# take 50% error
+		
+        dsnb3mev_mean_f = 4.55 * 10. ** 1 
+        dsnb3mev_sig = dsnb3mev_mean_f * (0.5) 			# take 50% error
+
+        dsnb5mev_mean_f = 2.73 * 10. ** 1 
+        dsnb5mev_sig = dsnb5mev_mean_f * (0.5)  		# take 50% error
+		
+        dsnb8mev_mean_f = 1.75 * 10. ** 1 
+        dsnb8mev_sig = dsnb8mev_mean_f * (0.5)			# take 50% error
+        
+        if nu_component == 'b8':
+            #if not return_deriv:
             return b8_mean_f**2. * (10. ** flux_n - 1.)**2. / b8_sig**2.
+            #else:
+            #    return b8_mean_f**2. * (10. ** flux_n - 1.) / b8_sig**2. * 2.*np.log(10.)
+
+        elif nu_component == 'b7l1':
+            return b7l1_mean_f**2. * (10. ** flux_n - 1.)**2. / b7l1_sig**2.
+        elif nu_component == 'b7l2':
+            return b7l2_mean_f**2. * (10. ** flux_n - 1.)**2. / b7l2_sig**2.
+        elif nu_component == 'pepl1':
+            return pepl1_mean_f**2. * (10. ** flux_n - 1.)**2. / pepl1_sig**2.
+        elif nu_component == 'hep':
+            return hep_mean_f**2. * (10. ** flux_n - 1.)**2. / hep_sig**2.
+        elif nu_component == 'pp':
+            return pp_mean_f**2. * (10. ** flux_n - 1.)**2. / pp_sig**2.
+        elif nu_component == 'o15':
+            return o15_mean_f**2. * (10. ** flux_n - 1.)**2. / o15_sig**2.
+        elif nu_component == 'n13':
+            return n13_mean_f**2. * (10. ** flux_n - 1.)**2. / n13_sig**2.
+        elif nu_component == 'f17':
+            return f17_mean_f**2. * (10. ** flux_n - 1.)**2. / f17_sig**2.
+        elif nu_component == 'atmnue':
+            return atmnue_mean_f**2. * (10. ** flux_n - 1.)**2. / atmnue_sig**2.
+        elif nu_component == 'atmnuebar':
+            return atmnuebar_mean_f**2. * (10. ** flux_n - 1.)**2. / atmnuebar_sig**2.
+        elif nu_component == 'atmnumu':
+            return atmnumu_mean_f**2. * (10. ** flux_n - 1.)**2. / atmnumu_sig**2.
+        elif nu_component == 'atmnumubar':
+            return atmnumubar_mean_f**2. * (10. ** flux_n - 1.)**2. / atmnumubar_sig**2.
+        elif nu_component == 'dsnb3mev':
+            return dsnb3mev_mean_f**2. * (10. ** flux_n - 1.)**2. / dsnb3mev_sig**2.
+        elif nu_component == 'dsnb5mev':
+            return dsnb5mev_mean_f**2. * (10. ** flux_n - 1.)**2. / dsnb5mev_sig**2.
+        elif nu_component == 'dsnb8mev':
+            return dsnb8mev_mean_f**2. * (10. ** flux_n - 1.)**2. / dsnb8mev_sig**2.
+			
         else:
-            return b8_mean_f**2. * (10. ** flux_n - 1.) / b8_sig**2. * 2.*np.log(10.)
+            return 0.
     
 
 class Nu_spec(object):
@@ -135,16 +325,76 @@ class Nu_spec(object):
         conversion_factor = xi / mT * s_to_yr * (0.938 / (1.66 * 10.**-27.)) \
             * 10**-3. / (0.51 * 10.**14.)**2.
         # Where is this (A-Z)/100 coming from? Should not be there???
-    
+	
+#	print ('nuspec check, component: {}'.format(nu_component))
+	
         diff_rate = np.zeros_like(er)
         for i,e in enumerate(er):
             e_nu_min = np.sqrt(mT * e / 2.)
-            e_nu_max = 16.18 # B8 only
-            b8_mean_f = 5.69 * 10. ** 6. # B8 cm^-2 s^-1
-            diff_rate[i] = quad(self.nu_recoil_spec, e_nu_min, e_nu_max,
-                                args=(e, mT, Z, A, nu_component), limit=50)[0]
-            diff_rate[i] *= b8_mean_f * conversion_factor
-
+			
+			
+            if nu_component == 'b8':
+                e_nu_max = 16.18 # b8 
+                nu_mean_f = 5.58 * 10. ** 6. # b8 cm^-2 s^-1
+            elif nu_component == 'b7l1':
+                e_nu_max = 0.39  
+                nu_mean_f = (0.1) * 5.00 * 10. ** 9.
+            elif nu_component == 'b7l2':
+                e_nu_max = 0.87  
+                nu_mean_f = (0.9) * 5.00 * 10. ** 9.
+            elif nu_component == 'pepl1':
+                e_nu_max = 1.45  
+                nu_mean_f = 1.44 * 10. ** 8.
+            elif nu_component == 'hep':
+                e_nu_max = 18.77  
+                nu_mean_f = 8.04 * 10. ** 3.  
+            elif nu_component == 'pp':
+                e_nu_max = 0.42
+                nu_mean_f = 5.98 * 10. ** 10.
+            elif nu_component == 'o15':
+                e_nu_max = 1.73  
+                nu_mean_f = 2.23 * 10. ** 8. 
+            elif nu_component == 'n13':
+                e_nu_max = 1.20  
+                nu_mean_f = 2.96 * 10. ** 8. 
+            elif nu_component == 'f17':
+                e_nu_max = 1.74  
+                nu_mean_f = 5.52 * 10. ** 6. 
+            elif nu_component == 'atmnue':
+                e_nu_max = 9.44 * 10 ** 2  
+                nu_mean_f = 1.27 * 10. ** 1
+            elif nu_component == 'atmnuebar':
+                e_nu_max = 9.44 * 10 ** 2
+                nu_mean_f = 1.17 * 10. ** 1
+            elif nu_component == 'atmnumu':
+                e_nu_max = 9.44 * 10 ** 2
+                nu_mean_f = 2.46 * 10. ** 1
+            elif nu_component == 'atmnumu':
+                e_nu_max = 9.44 * 10 ** 2 
+                nu_mean_f = 2.45 * 10. ** 1
+            elif nu_component == 'dsnb3mev':
+                e_nu_max = 36.90  
+                nu_mean_f = 4.55 * 10. ** 1
+            elif nu_component == 'dsnb5mev':
+                e_nu_max = 57.01  
+                nu_mean_f = 2.73 * 10. ** 1
+            elif nu_component == 'dsnb8mev':
+                e_nu_max = 81.91  
+                nu_mean_f = 1.75 * 10. ** 1
+				
+            else:
+                return 0.
+			
+			
+            diff_rate[i] = romberg(self.nu_recoil_spec, e_nu_min, e_nu_max,
+                                args=(e, mT, Z, A, nu_component))
+								
+            #print ('result romb: {}'.format(diff_rate[i]))
+            #print ('result quad: {}'.format(quad(self.nu_recoil_spec, e_nu_min, e_nu_max,
+            #                   args=(e, mT, Z, A, nu_component),limit=50)[0]))
+			
+            diff_rate[i] *= nu_mean_f * conversion_factor
+			
         return diff_rate
 
     def max_er_from_nu(self, enu, mT):
@@ -153,8 +403,40 @@ class Nu_spec(object):
         return 2. * enu**2. / mT
     
     def nu_recoil_spec(self, enu, er, mT, Z, A, nu_comp):
-        if nu_comp == 'B8':
-            return self.nu_csec(enu, er, mT, Z, A) * b8nu_spectrum(enu)
+        
+        if nu_comp == 'b8':
+            return self.nu_csec(enu, er, mT, Z, A) * b8nu_spectrum(enu) 
+			
+        elif nu_comp == 'b7l1':
+            return self.nu_csec(enu, er, mT, Z, A) * b7nul1_spectrum(enu)
+        elif nu_comp == 'b7l2':
+            return self.nu_csec(enu, er, mT, Z, A) * b7nul2_spectrum(enu)
+        elif nu_comp == 'pepl1':
+            return self.nu_csec(enu, er, mT, Z, A) * pepnul1_spectrum(enu)
+        elif nu_comp == 'hep':
+            return self.nu_csec(enu, er, mT, Z, A) * hepnu_spectrum(enu) 
+        elif nu_comp == 'pp':
+            return self.nu_csec(enu, er, mT, Z, A) * ppnu_spectrum(enu) 
+        elif nu_comp == 'o15':
+            return self.nu_csec(enu, er, mT, Z, A) * o15nu_spectrum(enu) 
+        elif nu_comp == 'n13':
+            return self.nu_csec(enu, er, mT, Z, A) * n13nu_spectrum(enu)
+        elif nu_comp == 'f17':
+            return self.nu_csec(enu, er, mT, Z, A) * f17nu_spectrum(enu)	
+        elif nu_comp == 'atmnue':
+            return self.nu_csec(enu, er, mT, Z, A) * atmnue_spectrum(enu)
+        elif nu_comp == 'atmnuebar':
+            return self.nu_csec(enu, er, mT, Z, A) * atmnuebar_spectrum(enu)
+        elif nu_comp == 'atmnumu':
+            return self.nu_csec(enu, er, mT, Z, A) * atmnumu_spectrum(enu) 
+        elif nu_comp == 'atmnumubar':
+            return self.nu_csec(enu, er, mT, Z, A) * atmnumubar_spectrum(enu)
+        elif nu_comp == 'dsnb3mev':
+            return self.nu_csec(enu, er, mT, Z, A) * dsnb3mevnu_spectrum(enu) 
+        elif nu_comp == 'dsnb5mev':
+            return self.nu_csec(enu, er, mT, Z, A) * dsnb5mevnu_spectrum(enu)
+        elif nu_comp == 'dsnb8mev':
+            return self.nu_csec(enu, er, mT, Z, A) * dsnb8mevnu_spectrum(enu)
         else:
             return 0.
 

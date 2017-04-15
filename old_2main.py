@@ -82,66 +82,57 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
         cdf_dm /= cdf_dm.max()
         dm_events_sim = int(dm_rate * exposure)
         
-        # TODO generalize beyond b8
-        nu_comp = ['b8','b7l1','b7l2','pepl1','hep','pp','o15','n13','f17','atmnue','atmnuebar','atmnumu','atmnumubar','dsnb3mev','dsnb5mev','dsnb8mev']
-		
-#	print 'check 1'
+        # TODO generalize beyond B8
+        nu_comp = ['B8','hep']
 		
         # neutrino ER spectrum
 		
-        nuspec = np.zeros(16, dtype=object)
-        nu_rate = np.zeros(16, dtype=object)
-        nu_pdf = np.zeros(16, dtype=object)
-        cdf_nu = np.zeros(16, dtype=object)
-        Nu_events_sim = np.zeros(16)
+        nuspec = np.zeros(2, dtype=object)
+        nu_rate = np.zeros(2, dtype=object)
+        nu_pdf = np.zeros(2, dtype=object)
+        cdf_nu = np.zeros(2, dtype=object)
+        Nu_events_sim = np.zeros(2)
 		
-        for i in range(16):
-            nuspec[i] = np.zeros_like(er_list)
-            
+        nuspec[0] = np.zeros_like(er_list)
+        nuspec[1] = np.zeros_like(er_list)
 		
         for iso in experiment_info:
+            nuspec[0] += Nu_spec().nu_rate(nu_comp[0], er_list, iso)
+            nuspec[1] += Nu_spec().nu_rate(nu_comp[1], er_list, iso)
+
+        nu_rate[0] = np.trapz(nuspec[0], er_list)
+        nu_pdf[0] = nuspec[0] / nu_rate[0]
+        cdf_nu[0] = nu_pdf[0].cumsum()
+        cdf_nu[0] /= cdf_nu[0].max()
+        Nu_events_sim[0] = int(nu_rate[0] * exposure)
 		
-        #    print ('exp  = {}'.format(iso))
-            for i in range(16):
-			
-                nuspec[i] += Nu_spec().nu_rate(nu_comp[i], er_list, iso)
-        #        print ('nuspec check i = {}, nuspec:{}'.format(i,nuspec[i]))
-				
-	print 'check 2'
-	
-        for i in range(16):
-            nu_rate[i] = np.trapz(nuspec[i], er_list)
-            nu_pdf[i] = nuspec[i] / nu_rate[i]
-            cdf_nu[i] = nu_pdf[i].cumsum()
-            cdf_nu[i] /= cdf_nu[i].max()
-            Nu_events_sim[i] = int(nu_rate[i] * exposure)
-            #print('i={}   ;   nu rate:{}'.format(i,nu_rate[i]))
-	
-        nevts_n = np.zeros(16)
+        nu_rate[1] = np.trapz(nuspec[1], er_list)
+        nu_pdf[1] = nuspec[1] / nu_rate[1]
+        cdf_nu[1] = nu_pdf[1].cumsum()
+        cdf_nu[1] /= cdf_nu[1].max()
+        Nu_events_sim[1] = int(nu_rate[1] * exposure)
+		
+        nevts_n = np.zeros(2)
         nevent_dm = 0
 
         tstat_arr = np.zeros(n_runs)
         # While loop goes here. Fill tstat_arr for new sims and extract median/mean
         nn = 0
-
-	print 'starting N loop'
 		
         while nn < n_runs:
 
             print 'Run {:.0f} of {:.0f}'.format(nn + 1, n_runs)
             nevts_dm = poisson.rvs(int(dm_events_sim))
-			
-            for i in range(16):
-                nevts_n[i] = poisson.rvs(int(Nu_events_sim[i])) 
-				
+            nevts_n[0] = poisson.rvs(int(Nu_events_sim[0])) 
+            nevts_n[1] = poisson.rvs(int(Nu_events_sim[1])) 
             if not QUIET:
-                print 'Predicted Number of Nu events: {}'.format(sum(Nu_events_sim))
+                print 'Predicted Number of Nu events: {}'.format(Nu_events_sim[0] + Nu_events_sim[1])
                 print 'Predicted Number of DM events: {}'.format(dm_events_sim)
 
             # Simulate events
-            print('ev_nu :{}  ; ev_dm:{}'.format(sum(nevts_n), nevts_dm))
+            print('ev_nu1:{}  ev_nu2:{} ev_dm:{}'.format(nevts_n[0], nevts_n[1], nevts_dm))
 
-            Nevents = int(sum(nevts_n) + nevts_dm)
+            Nevents = int(nevts_n[0] + nevts_n[1] + nevts_dm)
             if not QUIET:
                 print 'Simulation {:.0f} events...'.format(Nevents)
             u = random.rand(Nevents)
@@ -152,37 +143,8 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
                     e_sim[i] = er_list[np.absolute(cdf_nu[0] - u[i]).argmin()]
                 elif i < int(nevts_n[1]):
                     e_sim[i] = er_list[np.absolute(cdf_nu[1] - u[i]).argmin()]
-                elif i < int(nevts_n[2]):
-                    e_sim[i] = er_list[np.absolute(cdf_nu[2] - u[i]).argmin()]
-                elif i < int(nevts_n[3]):
-                    e_sim[i] = er_list[np.absolute(cdf_nu[3] - u[i]).argmin()]
-                elif i < int(nevts_n[4]):
-                    e_sim[i] = er_list[np.absolute(cdf_nu[4] - u[i]).argmin()]
-                elif i < int(nevts_n[5]):
-                    e_sim[i] = er_list[np.absolute(cdf_nu[5] - u[i]).argmin()]
-                elif i < int(nevts_n[6]):
-                    e_sim[i] = er_list[np.absolute(cdf_nu[6] - u[i]).argmin()]
-                elif i < int(nevts_n[7]):
-                    e_sim[i] = er_list[np.absolute(cdf_nu[7] - u[i]).argmin()]
-                elif i < int(nevts_n[8]):
-                    e_sim[i] = er_list[np.absolute(cdf_nu[8] - u[i]).argmin()]
-                elif i < int(nevts_n[9]):
-                    e_sim[i] = er_list[np.absolute(cdf_nu[9] - u[i]).argmin()]
-                elif i < int(nevts_n[10]):
-                    e_sim[i] = er_list[np.absolute(cdf_nu[10] - u[i]).argmin()]
-                elif i < int(nevts_n[11]):
-                    e_sim[i] = er_list[np.absolute(cdf_nu[11] - u[i]).argmin()]
-                elif i < int(nevts_n[12]):
-                    e_sim[i] = er_list[np.absolute(cdf_nu[12] - u[i]).argmin()]
-                elif i < int(nevts_n[13]):
-                    e_sim[i] = er_list[np.absolute(cdf_nu[13] - u[i]).argmin()]
-                elif i < int(nevts_n[14]):
-                    e_sim[i] = er_list[np.absolute(cdf_nu[14] - u[i]).argmin()]
-                elif i < int(nevts_n[15]):
-                    e_sim[i] = er_list[np.absolute(cdf_nu[15] - u[i]).argmin()]
                 else:
                     e_sim[i] = er_list[np.absolute(cdf_dm - u[i]).argmin()]
-  
             times = np.zeros_like(e_sim)
             #print e_sim
 
@@ -192,7 +154,7 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
             like_init_nodm = Likelihood_analysis(model, coupling, mass, 0., fnfp,
                                                  exposure, element, experiment_info, e_sim, times,
                                                  Qmin=Qmin, Qmax=Qmax, time_info=time_info, GF=False)
-            max_nodm = minimize(like_init_nodm.likelihood, np.array([0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.]), args=(np.array([-100.])), tol=0.01) #np_array expand to N-zeroes
+            max_nodm = minimize(like_init_nodm.likelihood, np.array([0.,0.]), args=(np.array([-100.])), tol=0.01) #np_array expand to N-zeroes
             #print max_nodm
 
             like_init_dm = Likelihood_analysis(model, coupling, mass, 1., fnfp,
@@ -200,7 +162,7 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
                                                Qmin=Qmin, Qmax=Qmax, time_info=time_info, GF=False)
             print sigmap, type(sigmap)								      
             
-            max_dm = minimize(like_init_dm.like_multi_wrapper, np.array([0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,np.log10(sigmap)]), tol=0.01,
+            max_dm = minimize(like_init_dm.like_multi_wrapper, np.array([0.,0., np.log10(sigmap)]), tol=0.01,
                               jac=False) #np_log 
 							  #np.array([NU = [0. .... ] - 1 component, DM = np.log10(sigmap)])
 
@@ -224,7 +186,7 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
         print 'True DM mass: ', mass
         print 'True DM sigma_p: ', sigmap
         print 'Median Q: {:.2f}'.format(np.median(tstat_arr))
-        print 'Mean Q: {:.2f}'.format(np.mean(tstat_arr))
+        print 'Mean Q: {:.2f}'.format(np.median(tstat_arr))
 		
         testq = np.mean(tstat_arr)
 
@@ -235,12 +197,12 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
             
             break
         
-        elif testq > 0.01:
+        elif testq > 1:
             print 'testq: {} --> WRITE'.format(testq)
             
             if os.path.exists(file_info):
                 load_old = np.loadtxt(file_info)
-                new_arr = np.vstack((load_old, np.array([np.log10(sigmap), np.median(tstat_arr)])))
+                new_arr = np.vstack((load_old, np.array([np.log10(sigmap), np.mean(tstat_arr)])))
                 new_arr = new_arr[new_arr[:, 0].argsort()]
                 np.savetxt(file_info, new_arr)
             else:
