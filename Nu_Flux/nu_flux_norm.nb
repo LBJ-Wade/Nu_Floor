@@ -1,0 +1,694 @@
+(* Content-type: application/vnd.wolfram.mathematica *)
+
+(*** Wolfram Notebook File ***)
+(* http://www.wolfram.com/nb *)
+
+(* CreatedBy='Mathematica 10.0' *)
+
+(*CacheID: 234*)
+(* Internal cache information:
+NotebookFileLineBreakTest
+NotebookFileLineBreakTest
+NotebookDataPosition[       158,          7]
+NotebookDataLength[     23774,        685]
+NotebookOptionsPosition[     22729,        648]
+NotebookOutlinePosition[     23094,        664]
+CellTagsIndexPosition[     23051,        661]
+WindowFrame->Normal*)
+
+(* Beginning of Notebook Content *)
+Notebook[{
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{"atmnue", " ", "=", " ", 
+   RowBox[{
+   "Import", "[", 
+    "\"\<D:\\\\Research\\\\Ongoing\\\\NU_Floor\\\\Nu_Flux\\\\atmnue_noosc_\
+fluka_flux.dat\>\"", "]"}]}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"atmnuebar", " ", "=", " ", 
+   RowBox[{
+   "Import", "[", 
+    "\"\<D:\\\\Research\\\\Ongoing\\\\NU_Floor\\\\Nu_Flux\\\\atmnuebar_noosc_\
+fluka_flux.dat\>\"", "]"}]}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"atmnumu", " ", "=", " ", 
+   RowBox[{
+   "Import", "[", 
+    "\"\<D:\\\\Research\\\\Ongoing\\\\NU_Floor\\\\Nu_Flux\\\\atmnumu_noosc_\
+fluka_flux.dat\>\"", "]"}]}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"atmnumubar", " ", "=", " ", 
+   RowBox[{
+   "Import", "[", 
+    "\"\<D:\\\\Research\\\\Ongoing\\\\NU_Floor\\\\Nu_Flux\\\\atmnumubar_noosc_\
+fluka_flux.dat\>\"", "]"}]}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"dsnb3mev", " ", "=", " ", 
+   RowBox[{
+   "Import", "[", 
+    "\"\<D:\\\\Research\\\\Ongoing\\\\NU_Floor\\\\Nu_Flux\\\\dsnb_3mev_flux.\
+dat\>\"", "]"}]}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"dsnb5mev", " ", "=", " ", 
+   RowBox[{
+   "Import", "[", 
+    "\"\<D:\\\\Research\\\\Ongoing\\\\NU_Floor\\\\Nu_Flux\\\\dsnb_5mev_flux.\
+dat\>\"", "]"}]}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"dsnb8mev", " ", "=", " ", 
+   RowBox[{
+   "Import", "[", 
+    "\"\<D:\\\\Research\\\\Ongoing\\\\NU_Floor\\\\Nu_Flux\\\\dsnb_8mev_flux.\
+dat\>\"", "]"}]}], ";"}]}], "Input",
+ CellChangeTimes->{{3.70104648087568*^9, 3.701046494616417*^9}, 
+   3.701048684224593*^9, {3.701133185058152*^9, 3.7011331898197036`*^9}, {
+   3.7011349716296415`*^9, 3.7011350512616043`*^9}, {3.70113512063085*^9, 
+   3.7011351239830265`*^9}, {3.7011356740203514`*^9, 
+   3.7011357170285063`*^9}, {3.7012013075444455`*^9, 
+   3.7012013122164984`*^9}, {3.701202625962494*^9, 3.701202629968356*^9}}],
+
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{"atmnueint", "=", 
+   RowBox[{"Interpolation", "[", 
+    RowBox[{"atmnue", ",", 
+     RowBox[{"InterpolationOrder", "\[Rule]", "1"}]}], "]"}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"atmnuebarint", "=", 
+   RowBox[{"Interpolation", "[", 
+    RowBox[{"atmnuebar", ",", 
+     RowBox[{"InterpolationOrder", "\[Rule]", "1"}]}], "]"}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"atmnumuint", "=", 
+   RowBox[{"Interpolation", "[", 
+    RowBox[{"atmnumu", ",", 
+     RowBox[{"InterpolationOrder", "\[Rule]", "1"}]}], "]"}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"atmnumubarint", "=", 
+   RowBox[{"Interpolation", "[", 
+    RowBox[{"atmnumubar", ",", 
+     RowBox[{"InterpolationOrder", "\[Rule]", "1"}]}], "]"}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"dsnb3mevint", "=", 
+   RowBox[{"Interpolation", "[", 
+    RowBox[{"dsnb3mev", ",", 
+     RowBox[{"InterpolationOrder", "\[Rule]", "1"}]}], "]"}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"dsnb5mevint", "=", 
+   RowBox[{"Interpolation", "[", 
+    RowBox[{"dsnb5mev", ",", 
+     RowBox[{"InterpolationOrder", "\[Rule]", "1"}]}], "]"}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"dsnb8mevint", "=", 
+   RowBox[{"Interpolation", "[", 
+    RowBox[{"dsnb8mev", ",", 
+     RowBox[{"InterpolationOrder", "\[Rule]", "1"}]}], "]"}]}], 
+  ";"}]}], "Input",
+ CellChangeTimes->{{3.701198703793053*^9, 3.7011987285537148`*^9}, {
+  3.701198820226524*^9, 3.701198860637111*^9}, {3.701202636894236*^9, 
+  3.701202647593814*^9}}],
+
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{"atmnuenorm", "=", 
+   RowBox[{"GeV2MeV", " ", "*", 
+    RowBox[{"Integrate", "[", 
+     RowBox[{
+      RowBox[{"atmnueint", "[", "x", "]"}], ",", 
+      RowBox[{"{", 
+       RowBox[{"x", ",", 
+        RowBox[{
+         RowBox[{"First", "[", "atmnue", "]"}], "[", 
+         RowBox[{"[", "1", "]"}], "]"}], " ", ",", 
+        RowBox[{
+         RowBox[{"Last", "[", "atmnue", "]"}], "[", 
+         RowBox[{"[", "1", "]"}], "]"}]}], "}"}]}], "]"}]}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"atmnuebarnorm", "=", 
+   RowBox[{"GeV2MeV", " ", "*", 
+    RowBox[{"Integrate", "[", 
+     RowBox[{
+      RowBox[{"atmnuebarint", "[", "x", "]"}], ",", 
+      RowBox[{"{", 
+       RowBox[{"x", ",", 
+        RowBox[{
+         RowBox[{"First", "[", "atmnuebar", "]"}], "[", 
+         RowBox[{"[", "1", "]"}], "]"}], " ", ",", 
+        RowBox[{
+         RowBox[{"Last", "[", "atmnuebar", "]"}], "[", 
+         RowBox[{"[", "1", "]"}], "]"}]}], "}"}]}], "]"}]}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"atmnumunorm", "=", 
+   RowBox[{"GeV2MeV", " ", "*", 
+    RowBox[{"Integrate", "[", 
+     RowBox[{
+      RowBox[{"atmnumuint", "[", "x", "]"}], ",", 
+      RowBox[{"{", 
+       RowBox[{"x", ",", 
+        RowBox[{
+         RowBox[{"First", "[", "atmnumu", "]"}], "[", 
+         RowBox[{"[", "1", "]"}], "]"}], ",", 
+        RowBox[{
+         RowBox[{"Last", "[", "atmnumu", "]"}], "[", 
+         RowBox[{"[", "1", "]"}], "]"}]}], "}"}]}], "]"}]}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"atmnumubarnorm", "=", 
+   RowBox[{"GeV2MeV", " ", "*", 
+    RowBox[{"Integrate", "[", 
+     RowBox[{
+      RowBox[{"atmnumubarint", "[", "x", "]"}], ",", 
+      RowBox[{"{", 
+       RowBox[{"x", ",", 
+        RowBox[{
+         RowBox[{"First", "[", "atmnumubar", "]"}], "[", 
+         RowBox[{"[", "1", "]"}], "]"}], ",", 
+        RowBox[{
+         RowBox[{"Last", "[", "atmnumubar", "]"}], "[", 
+         RowBox[{"[", "1", "]"}], "]"}]}], "}"}]}], "]"}]}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"dsnb3mevnorm", "=", 
+   RowBox[{"Integrate", "[", 
+    RowBox[{
+     RowBox[{"dsnb3mevint", "[", "x", "]"}], ",", 
+     RowBox[{"{", 
+      RowBox[{"x", ",", 
+       RowBox[{
+        RowBox[{"First", "[", "dsnb3mev", "]"}], "[", 
+        RowBox[{"[", "1", "]"}], "]"}], ",", 
+       RowBox[{
+        RowBox[{"Last", "[", "dsnb3mev", "]"}], "[", 
+        RowBox[{"[", "1", "]"}], "]"}]}], "}"}]}], "]"}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"dsnb5mevnorm", "=", 
+   RowBox[{"Integrate", "[", 
+    RowBox[{
+     RowBox[{"dsnb5mevint", "[", "x", "]"}], ",", 
+     RowBox[{"{", 
+      RowBox[{"x", ",", 
+       RowBox[{
+        RowBox[{"First", "[", "dsnb5mev", "]"}], "[", 
+        RowBox[{"[", "1", "]"}], "]"}], ",", 
+       RowBox[{
+        RowBox[{"Last", "[", "dsnb5mev", "]"}], "[", 
+        RowBox[{"[", "1", "]"}], "]"}]}], "}"}]}], "]"}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"dsnb8mevnorm", "=", 
+   RowBox[{"Integrate", "[", 
+    RowBox[{
+     RowBox[{"dsnb8mevint", "[", "x", "]"}], ",", 
+     RowBox[{"{", 
+      RowBox[{"x", ",", 
+       RowBox[{
+        RowBox[{"First", "[", "dsnb8mev", "]"}], "[", 
+        RowBox[{"[", "1", "]"}], "]"}], ",", 
+       RowBox[{
+        RowBox[{"Last", "[", "dsnb8mev", "]"}], "[", 
+        RowBox[{"[", "1", "]"}], "]"}]}], "}"}]}], "]"}]}], ";"}]}], "Input",
+ CellChangeTimes->{{3.701198732215329*^9, 3.701198813686921*^9}, {
+  3.7011988721932583`*^9, 3.7011989734128323`*^9}, {3.701201161089944*^9, 
+  3.70120123229556*^9}, {3.70120265233914*^9, 3.701202676844873*^9}}],
+
+Cell[BoxData[
+ RowBox[{"(*", 
+  RowBox[{
+   RowBox[{"atmnueMEAN", "=", 
+    RowBox[{"Mean", "[", 
+     RowBox[{"MapThread", "[", 
+      RowBox[{
+       RowBox[{
+        RowBox[{"#1", "[", 
+         RowBox[{"[", "2", "]"}], "]"}], "&"}], ",", 
+       RowBox[{"{", "atmnue", "}"}]}], "]"}], "]"}]}], ";", 
+   "\[IndentingNewLine]", 
+   RowBox[{"atmnumuMEAN", "=", 
+    RowBox[{"Mean", "[", 
+     RowBox[{"MapThread", "[", 
+      RowBox[{
+       RowBox[{
+        RowBox[{"#1", "[", 
+         RowBox[{"[", "2", "]"}], "]"}], "&"}], ",", 
+       RowBox[{"{", "atmnumu", "}"}]}], "]"}], "]"}]}], ";", 
+   "\[IndentingNewLine]", 
+   RowBox[{"dsnb3mevMEAN", "=", 
+    RowBox[{"Mean", "[", 
+     RowBox[{"MapThread", "[", 
+      RowBox[{
+       RowBox[{
+        RowBox[{"#1", "[", 
+         RowBox[{"[", "2", "]"}], "]"}], "&"}], ",", 
+       RowBox[{"{", "dsnb3mev", "}"}]}], "]"}], "]"}]}], ";", 
+   "\[IndentingNewLine]", 
+   RowBox[{"dsnb5mevMEAN", "=", 
+    RowBox[{"Mean", "[", 
+     RowBox[{"MapThread", "[", 
+      RowBox[{
+       RowBox[{
+        RowBox[{"#1", "[", 
+         RowBox[{"[", "2", "]"}], "]"}], "&"}], ",", 
+       RowBox[{"{", "dsnb5mev", "}"}]}], "]"}], "]"}]}], ";", 
+   "\[IndentingNewLine]", 
+   RowBox[{"dsnb8mevMEAN", "=", 
+    RowBox[{"Mean", "[", 
+     RowBox[{"MapThread", "[", 
+      RowBox[{
+       RowBox[{
+        RowBox[{"#1", "[", 
+         RowBox[{"[", "2", "]"}], "]"}], "&"}], ",", 
+       RowBox[{"{", "dsnb8mev", "}"}]}], "]"}], "]"}]}], ";"}], 
+  "*)"}]], "Input",
+ CellChangeTimes->{{3.70113345010009*^9, 3.7011334555865526`*^9}, {
+   3.7011335279566593`*^9, 3.701133529443994*^9}, {3.7011351278181076`*^9, 
+   3.701135154359415*^9}, 3.701135220884611*^9, {3.701135333670972*^9, 
+   3.7011353390422907`*^9}, {3.701135528644617*^9, 3.701135558109254*^9}, 
+   3.7011989716175337`*^9}],
+
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{"GeV2MeV", " ", "=", " ", 
+   RowBox[{"10", "^", 
+    RowBox[{"(", 
+     RowBox[{"-", "3"}], ")"}]}]}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"m2tocm2", "=", 
+   RowBox[{"10", "^", 
+    RowBox[{"(", 
+     RowBox[{"-", "4"}], ")"}]}]}], ";"}]}], "Input",
+ CellChangeTimes->{{3.7012008963966246`*^9, 3.701200933672676*^9}}],
+
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{"atmnueNEW", "=", 
+   RowBox[{"MapThread", "[", 
+    RowBox[{
+     RowBox[{
+      RowBox[{"{", 
+       RowBox[{
+        RowBox[{
+         RowBox[{"#1", "[", 
+          RowBox[{"[", "1", "]"}], "]"}], " ", "/", "GeV2MeV"}], ",", 
+        RowBox[{
+         RowBox[{"#1", "[", 
+          RowBox[{"[", "2", "]"}], "]"}], "*", "GeV2MeV", "*", " ", 
+         RowBox[{"m2tocm2", "/", "atmnuenorm"}]}]}], "}"}], "&"}], ",", 
+     RowBox[{"{", "atmnue", "}"}]}], "]"}]}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"atmnuebarNEW", "=", 
+   RowBox[{"MapThread", "[", 
+    RowBox[{
+     RowBox[{
+      RowBox[{"{", 
+       RowBox[{
+        RowBox[{
+         RowBox[{"#1", "[", 
+          RowBox[{"[", "1", "]"}], "]"}], " ", "/", "GeV2MeV"}], ",", 
+        RowBox[{
+         RowBox[{"#1", "[", 
+          RowBox[{"[", "2", "]"}], "]"}], "*", "GeV2MeV", "*", " ", 
+         RowBox[{"m2tocm2", "/", "atmnuebarnorm"}]}]}], "}"}], "&"}], ",", 
+     RowBox[{"{", "atmnuebar", "}"}]}], "]"}]}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"atmnumuNEW", "=", 
+   RowBox[{"MapThread", "[", 
+    RowBox[{
+     RowBox[{
+      RowBox[{"{", 
+       RowBox[{
+        RowBox[{
+         RowBox[{"#1", "[", 
+          RowBox[{"[", "1", "]"}], "]"}], " ", "/", "GeV2MeV"}], ",", 
+        RowBox[{
+         RowBox[{"#1", "[", 
+          RowBox[{"[", "2", "]"}], "]"}], "*", "GeV2MeV", " ", "*", 
+         RowBox[{"m2tocm2", "/", "atmnumunorm"}]}]}], "}"}], "&"}], ",", 
+     RowBox[{"{", "atmnumu", "}"}]}], "]"}]}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"atmnumubarNEW", "=", 
+   RowBox[{"MapThread", "[", 
+    RowBox[{
+     RowBox[{
+      RowBox[{"{", 
+       RowBox[{
+        RowBox[{
+         RowBox[{"#1", "[", 
+          RowBox[{"[", "1", "]"}], "]"}], " ", "/", "GeV2MeV"}], ",", 
+        RowBox[{
+         RowBox[{"#1", "[", 
+          RowBox[{"[", "2", "]"}], "]"}], "*", "GeV2MeV", " ", "*", 
+         RowBox[{"m2tocm2", "/", "atmnumubarnorm"}]}]}], "}"}], "&"}], ",", 
+     RowBox[{"{", "atmnumubar", "}"}]}], "]"}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"dsnb3mevNEW", "=", 
+   RowBox[{"MapThread", "[", 
+    RowBox[{
+     RowBox[{
+      RowBox[{"{", 
+       RowBox[{
+        RowBox[{"#1", "[", 
+         RowBox[{"[", "1", "]"}], "]"}], ",", 
+        RowBox[{
+         RowBox[{"#1", "[", 
+          RowBox[{"[", "2", "]"}], "]"}], "/", "dsnb3mevnorm"}]}], "}"}], 
+      "&"}], ",", 
+     RowBox[{"{", "dsnb3mev", "}"}]}], "]"}]}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"dsnb5mevNEW", "=", 
+   RowBox[{"MapThread", "[", 
+    RowBox[{
+     RowBox[{
+      RowBox[{"{", 
+       RowBox[{
+        RowBox[{"#1", "[", 
+         RowBox[{"[", "1", "]"}], "]"}], ",", 
+        RowBox[{
+         RowBox[{"#1", "[", 
+          RowBox[{"[", "2", "]"}], "]"}], "/", "dsnb5mevnorm"}]}], "}"}], 
+      "&"}], ",", 
+     RowBox[{"{", "dsnb5mev", "}"}]}], "]"}]}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"dsnb8mevNEW", "=", 
+   RowBox[{"MapThread", "[", 
+    RowBox[{
+     RowBox[{
+      RowBox[{"{", 
+       RowBox[{
+        RowBox[{"#1", "[", 
+         RowBox[{"[", "1", "]"}], "]"}], ",", 
+        RowBox[{
+         RowBox[{"#1", "[", 
+          RowBox[{"[", "2", "]"}], "]"}], "/", "dsnb8mevnorm"}]}], "}"}], 
+      "&"}], ",", 
+     RowBox[{"{", "dsnb8mev", "}"}]}], "]"}]}], ";"}]}], "Input",
+ CellChangeTimes->{{3.7011351743182287`*^9, 3.701135218103898*^9}, {
+  3.701135342929263*^9, 3.7011353494059553`*^9}, {3.701135563242538*^9, 
+  3.70113559109706*^9}, {3.7011989839772997`*^9, 3.701199002174135*^9}, {
+  3.7012009428549213`*^9, 3.7012009506367807`*^9}, {3.701201053081636*^9, 
+  3.7012010583066216`*^9}, {3.701201199269795*^9, 3.7012012046427326`*^9}, {
+  3.7012012607002316`*^9, 3.7012012626946726`*^9}, {3.7012026828511267`*^9, 
+  3.701202706460805*^9}}],
+
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{"Export", "[", 
+   RowBox[{
+   "\"\<D:\\\\Research\\\\Ongoing\\\\NU_Floor\\\\Nu_Flux\\\\atmnue_noosc_\
+fluka_flux_norm.dat\>\"", ",", "atmnueNEW"}], "]"}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"Export", "[", 
+   RowBox[{
+   "\"\<D:\\\\Research\\\\Ongoing\\\\NU_Floor\\\\Nu_Flux\\\\atmnuebar_noosc_\
+fluka_flux_norm.dat\>\"", ",", "atmnuebarNEW"}], "]"}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"Export", "[", 
+   RowBox[{
+   "\"\<D:\\\\Research\\\\Ongoing\\\\NU_Floor\\\\Nu_Flux\\\\atmnumu_noosc_\
+fluka_flux_norm.dat\>\"", ",", "atmnumuNEW"}], "]"}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"Export", "[", 
+   RowBox[{
+   "\"\<D:\\\\Research\\\\Ongoing\\\\NU_Floor\\\\Nu_Flux\\\\atmnumubar_noosc_\
+fluka_flux_norm.dat\>\"", ",", "atmnumubarNEW"}], "]"}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"Export", "[", 
+   RowBox[{
+   "\"\<D:\\\\Research\\\\Ongoing\\\\NU_Floor\\\\Nu_Flux\\\\dsnb_3mev_flux_\
+norm.dat\>\"", ",", "dsnb3mevNEW"}], "]"}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"Export", "[", 
+   RowBox[{
+   "\"\<D:\\\\Research\\\\Ongoing\\\\NU_Floor\\\\Nu_Flux\\\\dsnb_5mev_flux_\
+norm.dat\>\"", ",", "dsnb5mevNEW"}], "]"}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"Export", "[", 
+   RowBox[{
+   "\"\<D:\\\\Research\\\\Ongoing\\\\NU_Floor\\\\Nu_Flux\\\\dsnb_8mev_flux_\
+norm.dat\>\"", ",", "dsnb8mevNEW"}], "]"}], ";"}]}], "Input",
+ CellChangeTimes->{{3.701048595968072*^9, 3.7010486297039595`*^9}, 
+   3.7011349791026344`*^9, {3.7011353665175967`*^9, 3.7011354302229304`*^9}, {
+   3.701135606883507*^9, 3.7011356484277945`*^9}, {3.701135889958657*^9, 
+   3.7011358981476727`*^9}, {3.701202713896058*^9, 3.701202726195754*^9}}],
+
+Cell[" ", "Text",
+ Editable->False,
+ Selectable->False,
+ CellFrame->{{0, 0}, {0, 0.5}},
+ ShowCellBracket->False,
+ CellMargins->{{0, 0}, {1, 1}},
+ CellElementSpacings->{"CellMinHeight"->1},
+ CellFrameMargins->0,
+ CellFrameColor->RGBColor[0, 0, 1],
+ CellSize->{Inherited, 3}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[{
+ RowBox[{"Print", "[", 
+  RowBox[{"\"\<Atm \!\(\*SubscriptBox[\(\[Nu]\), \(e\)]\) norm: \>\"", ",", 
+   RowBox[{"atmnuenorm", "//", "ScientificForm"}]}], " ", 
+  "]"}], "\[IndentingNewLine]", 
+ RowBox[{"Print", "[", 
+  RowBox[{
+  "\"\<Atm \!\(\*SubscriptBox[OverscriptBox[\(\[Nu]\), \(_\)], \(e\)]\) norm: \
+\>\"", ",", 
+   RowBox[{"atmnuebarnorm", "//", "ScientificForm"}]}], " ", 
+  "]"}], "\[IndentingNewLine]", 
+ RowBox[{"Print", "[", 
+  RowBox[{
+  "\"\<Atm \!\(\*SubscriptBox[\(\[Nu]\), \(\[Mu]\)]\) norm: \>\"", ",", 
+   RowBox[{"atmnumunorm", "//", "ScientificForm"}]}], " ", 
+  "]"}], "\[IndentingNewLine]", 
+ RowBox[{"Print", "[", 
+  RowBox[{
+  "\"\<Atm \!\(\*SubscriptBox[OverscriptBox[\(\[Nu]\), \(_\)], \(\[Mu]\)]\) \
+norm: \>\"", ",", 
+   RowBox[{"atmnumubarnorm", "//", "ScientificForm"}]}], " ", 
+  "]"}], "\[IndentingNewLine]", 
+ RowBox[{"Print", "[", 
+  RowBox[{"\"\<DSNB 3 MeV norm: \>\"", ",", 
+   RowBox[{"dsnb3mevnorm", "//", "ScientificForm"}]}], " ", 
+  "]"}], "\[IndentingNewLine]", 
+ RowBox[{"Print", "[", 
+  RowBox[{"\"\<DSNB 5 MeV norm: \>\"", ",", 
+   RowBox[{"dsnb5mevnorm", "//", "ScientificForm"}]}], " ", 
+  "]"}], "\[IndentingNewLine]", 
+ RowBox[{"Print", "[", 
+  RowBox[{"\"\<DSNB 8 MeV norm: \>\"", ",", 
+   RowBox[{"dsnb8mevnorm", "//", "ScientificForm"}]}], " ", "]"}]}], "Input",
+ CellChangeTimes->{{3.701135737530327*^9, 3.70113584059173*^9}, {
+  3.7011990131038895`*^9, 3.701199036322303*^9}, {3.7012027297172422`*^9, 
+  3.701202803390678*^9}}],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"Atm \\!\\(\\*SubscriptBox[\\(\[Nu]\\), \\(e\\)]\\) norm: \"\>",
+    "\[InvisibleSpace]", 
+   TagBox[
+    InterpretationBox[
+     RowBox[{"\<\"1.26895\"\>", "\[Times]", 
+      SuperscriptBox["10", "\<\"1\"\>"]}],
+     12.689535,
+     AutoDelete->True],
+    ScientificForm]}],
+  SequenceForm["Atm \!\(\*SubscriptBox[\(\[Nu]\), \(e\)]\) norm: ", 
+   ScientificForm[12.689535]],
+  Editable->False]], "Print",
+ CellChangeTimes->{{3.7011357468429756`*^9, 3.7011358055452185`*^9}, {
+   3.701135844429407*^9, 3.7011358648526363`*^9}, 3.701135904717594*^9, 
+   3.701199021493806*^9, 3.7011992872733326`*^9, 3.701202746931411*^9, {
+   3.7012027794247427`*^9, 3.701202810892979*^9}}],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"Atm \\!\\(\\*SubscriptBox[OverscriptBox[\\(\[Nu]\\), \\(_\\)], \
+\\(e\\)]\\) norm: \"\>", "\[InvisibleSpace]", 
+   TagBox[
+    InterpretationBox[
+     RowBox[{"\<\"1.1671\"\>", "\[Times]", 
+      SuperscriptBox["10", "\<\"1\"\>"]}],
+     11.671005,
+     AutoDelete->True],
+    ScientificForm]}],
+  SequenceForm[
+  "Atm \!\(\*SubscriptBox[OverscriptBox[\(\[Nu]\), \(_\)], \(e\)]\) norm: ", 
+   ScientificForm[11.671005]],
+  Editable->False]], "Print",
+ CellChangeTimes->{{3.7011357468429756`*^9, 3.7011358055452185`*^9}, {
+   3.701135844429407*^9, 3.7011358648526363`*^9}, 3.701135904717594*^9, 
+   3.701199021493806*^9, 3.7011992872733326`*^9, 3.701202746931411*^9, {
+   3.7012027794247427`*^9, 3.701202810894981*^9}}],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"Atm \\!\\(\\*SubscriptBox[\\(\[Nu]\\), \\(\[Mu]\\)]\\) norm: \
+\"\>", "\[InvisibleSpace]", 
+   TagBox[
+    InterpretationBox[
+     RowBox[{"\<\"2.45549\"\>", "\[Times]", 
+      SuperscriptBox["10", "\<\"1\"\>"]}],
+     24.554865000000007`,
+     AutoDelete->True],
+    ScientificForm]}],
+  SequenceForm["Atm \!\(\*SubscriptBox[\(\[Nu]\), \(\[Mu]\)]\) norm: ", 
+   ScientificForm[24.554865000000007`]],
+  Editable->False]], "Print",
+ CellChangeTimes->{{3.7011357468429756`*^9, 3.7011358055452185`*^9}, {
+   3.701135844429407*^9, 3.7011358648526363`*^9}, 3.701135904717594*^9, 
+   3.701199021493806*^9, 3.7011992872733326`*^9, 3.701202746931411*^9, {
+   3.7012027794247427`*^9, 3.701202810896982*^9}}],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"Atm \\!\\(\\*SubscriptBox[OverscriptBox[\\(\[Nu]\\), \\(_\\)], \
+\\(\[Mu]\\)]\\) norm: \"\>", "\[InvisibleSpace]", 
+   TagBox[
+    InterpretationBox[
+     RowBox[{"\<\"2.45342\"\>", "\[Times]", 
+      SuperscriptBox["10", "\<\"1\"\>"]}],
+     24.534235000000002`,
+     AutoDelete->True],
+    ScientificForm]}],
+  SequenceForm[
+  "Atm \!\(\*SubscriptBox[OverscriptBox[\(\[Nu]\), \(_\)], \(\[Mu]\)]\) norm: \
+", 
+   ScientificForm[24.534235000000002`]],
+  Editable->False]], "Print",
+ CellChangeTimes->{{3.7011357468429756`*^9, 3.7011358055452185`*^9}, {
+   3.701135844429407*^9, 3.7011358648526363`*^9}, 3.701135904717594*^9, 
+   3.701199021493806*^9, 3.7011992872733326`*^9, 3.701202746931411*^9, {
+   3.7012027794247427`*^9, 3.701202810896982*^9}}],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"DSNB 3 MeV norm: \"\>", "\[InvisibleSpace]", 
+   TagBox[
+    InterpretationBox[
+     RowBox[{"\<\"4.55296\"\>", "\[Times]", 
+      SuperscriptBox["10", "\<\"1\"\>"]}],
+     45.52955994730444,
+     AutoDelete->True],
+    ScientificForm]}],
+  SequenceForm["DSNB 3 MeV norm: ", 
+   ScientificForm[45.52955994730444]],
+  Editable->False]], "Print",
+ CellChangeTimes->{{3.7011357468429756`*^9, 3.7011358055452185`*^9}, {
+   3.701135844429407*^9, 3.7011358648526363`*^9}, 3.701135904717594*^9, 
+   3.701199021493806*^9, 3.7011992872733326`*^9, 3.701202746931411*^9, {
+   3.7012027794247427`*^9, 3.701202810898984*^9}}],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"DSNB 5 MeV norm: \"\>", "\[InvisibleSpace]", 
+   TagBox[
+    InterpretationBox[
+     RowBox[{"\<\"2.73105\"\>", "\[Times]", 
+      SuperscriptBox["10", "\<\"1\"\>"]}],
+     27.31053451518013,
+     AutoDelete->True],
+    ScientificForm]}],
+  SequenceForm["DSNB 5 MeV norm: ", 
+   ScientificForm[27.31053451518013]],
+  Editable->False]], "Print",
+ CellChangeTimes->{{3.7011357468429756`*^9, 3.7011358055452185`*^9}, {
+   3.701135844429407*^9, 3.7011358648526363`*^9}, 3.701135904717594*^9, 
+   3.701199021493806*^9, 3.7011992872733326`*^9, 3.701202746931411*^9, {
+   3.7012027794247427`*^9, 3.7012028108999844`*^9}}],
+
+Cell[BoxData[
+ InterpretationBox[
+  RowBox[{"\<\"DSNB 8 MeV norm: \"\>", "\[InvisibleSpace]", 
+   TagBox[
+    InterpretationBox[
+     RowBox[{"\<\"1.7451\"\>", "\[Times]", 
+      SuperscriptBox["10", "\<\"1\"\>"]}],
+     17.450958176136186`,
+     AutoDelete->True],
+    ScientificForm]}],
+  SequenceForm["DSNB 8 MeV norm: ", 
+   ScientificForm[17.450958176136186`]],
+  Editable->False]], "Print",
+ CellChangeTimes->{{3.7011357468429756`*^9, 3.7011358055452185`*^9}, {
+   3.701135844429407*^9, 3.7011358648526363`*^9}, 3.701135904717594*^9, 
+   3.701199021493806*^9, 3.7011992872733326`*^9, 3.701202746931411*^9, {
+   3.7012027794247427`*^9, 3.7012028109009852`*^9}}]
+}, Open  ]]
+}, Open  ]],
+
+Cell[CellGroupData[{
+
+Cell[BoxData[
+ RowBox[{"Sqrt", "[", 
+  RowBox[{
+   RowBox[{"0.2", "^", "2"}], "+", 
+   RowBox[{"0.4", "^", "2"}], "+", 
+   RowBox[{"0.2", "^", "2"}]}], "]"}]], "Input",
+ CellChangeTimes->{{3.7012053075473924`*^9, 3.7012053179977913`*^9}}],
+
+Cell[BoxData["0.48989794855663565`"], "Output",
+ CellChangeTimes->{3.7012053183280096`*^9}]
+}, Open  ]]
+},
+WindowSize->{1211, 662},
+WindowMargins->{{590, Automatic}, {Automatic, 146}},
+Magnification->1.25,
+FrontEndVersion->"10.0 for Microsoft Windows (64-bit) (July 1, 2014)",
+StyleDefinitions->"Default.nb"
+]
+(* End of Notebook Content *)
+
+(* Internal cache information *)
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+(*NotebookFileOutline
+Notebook[{
+Cell[558, 20, 1892, 48, 175, "Input"],
+Cell[2453, 70, 1588, 45, 175, "Input"],
+Cell[4044, 117, 3631, 104, 175, "Input"],
+Cell[7678, 223, 1818, 52, 129, "Input"],
+Cell[9499, 277, 369, 11, 60, "Input"],
+Cell[9871, 290, 3839, 110, 175, "Input"],
+Cell[13713, 402, 1753, 43, 175, "Input"],
+Cell[15469, 447, 273, 9, 6, "Text"],
+Cell[CellGroupData[{
+Cell[15767, 460, 1499, 35, 175, "Input"],
+Cell[CellGroupData[{
+Cell[17291, 499, 721, 17, 27, "Print"],
+Cell[18015, 518, 767, 18, 27, "Print"],
+Cell[18785, 538, 747, 17, 27, "Print"],
+Cell[19535, 557, 798, 19, 27, "Print"],
+Cell[20336, 578, 661, 16, 27, "Print"],
+Cell[21000, 596, 663, 16, 27, "Print"],
+Cell[21666, 614, 666, 16, 27, "Print"]
+}, Open  ]]
+}, Open  ]],
+Cell[CellGroupData[{
+Cell[22381, 636, 238, 6, 36, "Input"],
+Cell[22622, 644, 91, 1, 69, "Output"]
+}, Open  ]]
+}
+]
+*)
+
+(* End of internal cache information *)
