@@ -10,10 +10,10 @@ path = os.getcwd()
 
 parser = argparse.ArgumentParser()
 
-parser.add_argument('--sig_high', type=float, default=10.**-44.)
-parser.add_argument('--sig_low', type=float, default=10.**-46.)
-parser.add_argument('--n_sigs', type=int, default=10)
-parser.add_argument('--model', default="sigma_si")
+parser.add_argument('--sig_high', type=float, default=10.**-44.) #x-sec range
+parser.add_argument('--sig_low', type=float, default=10.**-46.) #x-sec range
+parser.add_argument('--n_sigs', type=int, default=5) # number of cross-section tests in x-sec range
+parser.add_argument('--model', default="sigma_si") 
 parser.add_argument('--masses', nargs='+', default=np.linspace(6., 7., 1), type=float,)
 parser.add_argument('--fnfp', type=float, default=1.)
 parser.add_argument('--element', nargs='+', default=['germanium'])
@@ -22,7 +22,7 @@ parser.add_argument('--delta', type=float, default=0.)  # FIX for now
 parser.add_argument('--time_info',default='F')  # FIX for now
 parser.add_argument('--GF', default='F')  # FIX for now
 parser.add_argument('--file_tag',default='_')
-parser.add_argument('--n_runs', type=int, default=4)
+parser.add_argument('--n_runs', type=int, default=3) # number of realizations of data
 parser.add_argument('--tag',default='')
 
 args = parser.parse_args()
