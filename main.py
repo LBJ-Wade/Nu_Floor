@@ -128,13 +128,13 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
             like_init_nodm = Likelihood_analysis(model, coupling, mass, 0., fnfp,
                                                  exposure, element, experiment_info, e_sim, times,
                                                  Qmin=Qmin, Qmax=Qmax, time_info=time_info, GF=False)
-            max_nodm = minimize(like_init_nodm.likelihood, np.array([0.]), args=(np.array([-100.])), tol=0.01)
+            max_nodm = minimize(like_init_nodm.likelihood, np.array([0.]), args=(np.array([-100.])), tol=0.001)
             #print max_nodm
 
             like_init_dm = Likelihood_analysis(model, coupling, mass, 1., fnfp,
                                                exposure, element, experiment_info, e_sim, times,
                                                Qmin=Qmin, Qmax=Qmax, time_info=time_info, GF=False)
-            max_dm = minimize(like_init_dm.like_multi_wrapper, np.array([0., np.log10(sigmap)]), tol=0.01,
+            max_dm = minimize(like_init_dm.like_multi_wrapper, np.array([0., np.log10(sigmap)]), tol=0.001,
                               jac=False)
 
             if not QUIET:
