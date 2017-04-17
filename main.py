@@ -119,10 +119,16 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
         while nn < n_runs:
 
             print 'Run {:.0f} of {:.0f}'.format(nn + 1, n_runs)
-            nevts_dm = poisson.rvs(int(dm_events_sim))
+            try:
+                nevts_dm = poisson.rvs(int(dm_events_sim))
+            except ValueError:
+                nevts_dm = 0
 
             for i in range(nu_contrib):
-                nevts_n[i] = poisson.rvs(int(Nu_events_sim[i]))
+                try:
+                    nevts_n[i] = poisson.rvs(int(Nu_events_sim[i]))
+                except ValueError:
+                    nevts_n[i] = 0
             if not QUIET:
                 print 'Predicted Number of Nu events: {}'.format(sum(Nu_events_sim))
                 print 'Predicted Number of DM events: {}'.format(dm_events_sim)
