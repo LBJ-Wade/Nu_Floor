@@ -208,7 +208,7 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
 
         if testq > 20:
             print 'testq: {} --> BREAK'.format(testq)
-            exit()
+            break
 
         elif testq > 0.01:
             print 'testq: {} --> WRITE'.format(testq)
