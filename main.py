@@ -52,8 +52,8 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
         print 'Mass: {:.0f}, Sigma: {:.2e}'.format(mass, sigmap)
 
         file_info = path + '/Saved_Files/'
-        file_info += element + '_' + model + '_' + coupling + '_{:.0f}'.format(fnfp)
-        file_info += '_Exposure_{:.1f}_tonyr_DM_Mass_{:.0f}_GeV'.format(exposure, mass)
+        file_info += element + '_' + model + '_' + coupling + '_{:.2f}'.format(fnfp)
+        file_info += '_Exposure_{:.2f}_tonyr_DM_Mass_{:.2f}_GeV'.format(exposure, mass)
         file_info += file_tag + '.dat'
         print 'Output File: ', file_info
         print '\n'
@@ -206,11 +206,11 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
 
         print 'testq (mean, end n cycle): {}'.format(testq)
 
-        if testq > 20:
+        if testq > 30:
             print 'testq: {} --> BREAK'.format(testq)
             break
 
-        elif testq > 0.01:
+        elif testq > 0.001:
             print 'testq: {} --> WRITE'.format(testq)
 
             if os.path.exists(file_info):
