@@ -32,6 +32,7 @@ path = os.getcwd()
 
 QUIET = False
 
+xenLAB = 'LZ'
 
 def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
             element='germanium', exposure=1., delta=0., GF=False, time_info=False,
@@ -58,6 +59,7 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
         print 'Output File: ', file_info
         print '\n'
         experiment_info, Qmin, Qmax = Element_Info(element)
+        labor = laboratory(element, xen=xenLAB)
 
         drdq_params = default_rate_parameters.copy()
         drdq_params['element'] = element
@@ -85,7 +87,8 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
             continue
 
         nu_comp = ['b8','b7l1','b7l2','pepl1','hep','pp','o15','n13','f17','atmnue',
-                   'atmnuebar','atmnumu','atmnumubar','dsnb3mev','dsnb5mev','dsnb8mev']
+                   'atmnuebar','atmnumu','atmnumubar','dsnb3mev','dsnb5mev','dsnb8mev',
+                   'reactor', 'geoU', 'geoTh']
 
         nu_contrib = len(nu_comp)
 
@@ -100,7 +103,7 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
 
         for iso in experiment_info:
             for i in range(nu_contrib):
-                nuspec[i] += Nu_spec().nu_rate(nu_comp[i], er_list, iso)
+                nuspec[i] += Nu_spec(labor).nu_rate(nu_comp[i], er_list, iso)
 
 
         for i in range(nu_contrib):
@@ -166,21 +169,21 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
                 print 'Running Likelihood Analysis...'
             # Minimize likelihood -- MAKE SURE THIS MINIMIZATION DOESNT FAIL. CONSIDER USING GRADIENT INFO
             like_init_nodm = Likelihood_analysis(model, coupling, mass, 0., fnfp,
-                                                 exposure, element, experiment_info, e_sim, times,
-                                                 Qmin=Qmin, Qmax=Qmax, time_info=time_info, GF=False)
-            max_nodm = minimize(like_init_nodm.likelihood,
-                                np.zeros(nu_contrib),
-                                args=(np.array([-100.])), tol=0.01)
+                                                 exposure, element, experiment_info, e_sim, times, nu_comp, labor,
+                                                 nu_contrib,
+                                                 Qmin, Qmax, time_info=time_info, GF=False)
+            max_nodm = minimize(like_init_nodm.likelihood, np.zeros(nu_contrib),
+                                args=(np.array([-100.])), tol=0.0001, options={'maxiter': 100})
 
             like_init_dm = Likelihood_analysis(model, coupling, mass, 1., fnfp,
-                                               exposure, element, experiment_info, e_sim, times,
-                                               Qmin=Qmin, Qmax=Qmax, time_info=time_info, GF=False)
+                                               exposure, element, experiment_info, e_sim, times, nu_comp, labor,
+                                               nu_contrib,
+                                               Qmin, Qmax, time_info=time_info, GF=False)
             #print max_nodm
             max_dm = minimize(like_init_dm.like_multi_wrapper,
                               np.concatenate((np.zeros(nu_contrib),np.array([np.log10(sigmap)]))),
-                              tol=0.01,
-                              jac=False)
-            #print max_dm
+                              tol=0.0001, jac=False, options={'maxiter': 100})
+            print 'Minimizaiton Success: ', max_nodm.success, max_dm.success
 
             if not QUIET:
                 print 'BF Neutrino normalization without DM: {:.2e}'.format(10.**max_nodm.x[0])
@@ -210,9 +213,16 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
 
         if testq > 30:
             print 'testq: {} --> BREAK'.format(testq)
+            if os.path.exists(file_info):
+                load_old = np.loadtxt(file_info)
+                new_arr = np.vstack((load_old, np.array([np.log10(sigmap), np.median(tstat_arr)])))
+                new_arr = new_arr[new_arr[:, 0].argsort()]
+                np.savetxt(file_info, new_arr)
+            else:
+                np.savetxt(file_info, np.array([np.log10(sigmap), np.median(tstat_arr)]))
             break
 
-        elif testq > 0.001:
+        elif testq > 1e-4:
             print 'testq: {} --> WRITE'.format(testq)
 
             if os.path.exists(file_info):

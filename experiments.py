@@ -15,6 +15,7 @@ joule_to_MeV = 6.242e12
 miles_to_m = 1609.34
 ft_to_m = 0.3048
 
+
 def Element_Info(element):
 
     if element == 'germanium':
@@ -75,7 +76,6 @@ def laboratory(elem, xen='LZ'):
         lab = 'GS'
     else:
         raise ValueError
-
     return lab
 
 # Name of reactor, Surface distance in miles, Power output MWe
@@ -106,8 +106,6 @@ reac_runtime = 0.75
 rntime_err = 0.06
 Efiss = 205.3  # MeV
 
-reactor_spec = np.loadtxt(path + '/Nu_Flux/reactor_nu_spec.dat')
-
 
 def reactor_flux(loc='Snolab'):
     if loc == 'Snolab':
@@ -124,10 +122,40 @@ def reactor_flux(loc='Snolab'):
         reactor_list = []
 
     flux = 0.
+    err = 0.
     for reactor in reactor_list:
-        flux += Nfiss * reactor[2] * joule_to_MeV * 1e6/Efiss * reac_runtime * 4. * np.pi / \
-                ((reactor[1] * miles_to_m)**2. + depth**2.)
+        flux += Nfiss * reactor[2] * joule_to_MeV * 1e6/Efiss * reac_runtime / \
+                (4. * np.pi * ((reactor[1] * miles_to_m)**2. + depth**2.))/100.**2.
+        err += (Nfiss * reactor[2] * joule_to_MeV * 1e6 / (Efiss + 0.6) * (reac_runtime - rntime_err) /
+                (4. * np.pi * (((reactor[1] + 30.) * miles_to_m)**2. + depth**2.))/100.**2.)
 
+    return flux, err
 
-    return flux
+def geo_flux(loc='Snolab', el='U'):
+    #print loc, el
+    # element is either 'U' or 'Th'
+    if loc == 'Snolab':
+        if el == 'U':
+            flux = 4.9 * 10 ** 6.
+            flx_err = 0.98 * 10 ** 6.
+        elif el == 'Th':
+            flux = 4.55 * 10 ** 6.
+            flx_err = 1.17 * 10 ** 6.
+        return flux, flx_err
+    elif loc == 'SURF':
+        if el == 'U':
+            flux = 5.26 * 10**6.
+            flx_err = 1.17 * 10**6.
+        elif el == 'Th':
+            flux = 4.90 * 10**6.
+            flx_err = 1.34 * 10 **6.
+        return flux, flx_err
+    elif loc == 'GS':
+        if el == 'U':
+            flux = 4.34 * 10**6.
+            flx_err = 0.96 * 10 **6.
+        elif el == 'Th':
+            flux = 4.23 * 10**-6.
+            flx_err = 1.26 * 10 **6.
+        return flux, flx_err
 
