@@ -81,6 +81,8 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
         cdf_dm = dm_pdf.cumsum()
         cdf_dm /= cdf_dm.max()
         dm_events_sim = int(dm_rate * exposure)
+        if dm_events_sim < 5.:
+            continue
 
         nu_comp = ['b8','b7l1','b7l2','pepl1','hep','pp','o15','n13','f17','atmnue',
                    'atmnuebar','atmnumu','atmnumubar','dsnb3mev','dsnb5mev','dsnb8mev']
