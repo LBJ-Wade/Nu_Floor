@@ -117,8 +117,7 @@ class Likelihood_analysis(object):
         like_params['GF'] = GF
         like_params['time_info'] = time_info
 
-        # TODO: Right now im cutting corners. All sigmas and fnfps need to be passed directly into this function
-        # and values need to be controled in main.py
+
         self.dm_recoils = dRdQ(energies, times, **like_params) * 10.**3. * s_to_yr
 
         self.dm_integ = R(Qmin=self.Qmin, Qmax=self.Qmax, **like_params) * 10.**3. * s_to_yr
@@ -148,39 +147,28 @@ class Likelihood_analysis(object):
                 #sig_dm = norms[1]
                 #return self.likelihood(nu_norm, sig_dm, return_grad=True)
 
-    def like_multi_wrapper(self, norms):
+    def like_multi_wrapper(self, norms, grad=False):
         nu_norm = np.zeros(self.nu_spec, dtype=object)
-
         for i in range(self.nu_spec):
             nu_norm[i] = norms[i]
-
         sig_dm = norms[-1]
         return self.likelihood(nu_norm, sig_dm, return_grad=False)
 
     def likelihood(self, nu_norm, sig_dm, return_grad=False):
-        # TODO: consider implimenting gradient if minimization has difficulties
         # - 2 log likelihood
         # nu_norm in units of cm^-2 s^-1, sig_dm in units of cm^2
         like = 0.
-        grad_x = 0.
         diff_nu = np.zeros(self.nu_spec, dtype=object)
-        grad_nu = np.zeros(self.nu_spec)
         nu_events = np.zeros(self.nu_spec, dtype=object)
 
         n_obs = len(self.events)
         # total rate contribution
 
         dm_events = 10. ** sig_dm * self.dm_integ * self.exposure
-
         for i in range(self.nu_spec):
             nu_events[i] = 10. ** nu_norm[i] * self.exposure * self.nu_int_resp[i]
 
         like += 2. * (dm_events + sum(nu_events))
-
-        #grad_x += 2. * np.log(10.) * dm_events
-        #grad_nu[1] += 2. * np.log(10.) * nu_events[1]
-        #grad_nu[2] += 2. * np.log(10.) * nu_events[2]
-        #print 'Nobs: , b8 events: , DM events: ',n_obs, b8_events, dm_events
 
         # Differential contribution
         diff_dm = self.dm_recoils * self.exposure
@@ -192,22 +180,52 @@ class Likelihood_analysis(object):
         for i in range(len(lg_vle)):
             if lg_vle[i] > 0.:
                 like += -2. * np.log(lg_vle[i])
-        #print lg_vle.sum()
-        #grad_x += -2.*np.log(10.)*dm_events / lg_vle.sum()
-        #grad_nu += -2. * np.log(10.) * b8_events / lg_vle.sum()
 
         # nu normalization contribution
         for i in range(self.nu_spec):
             like += self.nu_gaussian(self.nu_names[i], nu_norm[i])
 
-        #+ self.nu_gaussian(nu_norm2) ...
-
-        #grad_nu += self.nu_gaussian(b8_norm, return_deriv=True)
-
-        #if return_grad:
-        #    return [grad_nu, grad_x]
-        #else:
         return like
+
+    def likegrad_multi_wrapper(self, norms):
+        nu_norm = np.zeros(self.nu_spec, dtype=object)
+        for i in range(self.nu_spec):
+            nu_norm[i] = norms[i]
+        sig_dm = norms[-1]
+        return self.like_gradi(nu_norm, sig_dm, ret_just_nu=False)
+
+    def like_gradi(self, nu_norm, sig_dm, ret_just_nu=True):
+        grad_x = 0.
+        diff_nu = np.zeros(self.nu_spec, dtype=object)
+        grad_nu = np.zeros(self.nu_spec)
+        nu_events = np.zeros(self.nu_spec, dtype=object)
+
+        n_obs = len(self.events)
+
+        dm_events = 10. ** sig_dm * self.dm_integ * self.exposure
+
+        grad_x += 2. * np.log(10.) * dm_events
+        for i in range(self.nu_spec):
+            grad_nu[i] += 2. * np.log(10.) * nu_events[i] * 10. ** nu_norm[i] * \
+                          self.exposure * self.nu_int_resp[i]
+
+        diff_dm = self.dm_recoils * self.exposure
+
+        for i in range(self.nu_spec):
+            diff_nu[i] = self.nu_resp[i](self.events) * self.exposure
+
+        lg_vle = (10. ** sig_dm * diff_dm + np.dot(list(map(lambda x: 10 ** x, nu_norm)), diff_nu))
+
+        grad_x += np.sum(-2. * np.log(10.) * diff_dm * 10. ** sig_dm / lg_vle.sum())
+        for i in range(self.nu_spec):
+            grad_nu[i] += np.sum(-2. * np.log(10.) * diff_nu[i] * 10**nu_norm[i] / lg_vle.sum())
+            grad_nu[i] += self.nu_gaussian(self.nu_names[i], nu_norm[i], return_deriv=True)
+        #print grad_nu, grad_x
+
+        if ret_just_nu:
+            return grad_nu
+        else:
+            return np.concatenate((grad_nu, np.array([grad_x])))
 
 
     def nu_gaussian(self, nu_component, flux_n, return_deriv=False):
@@ -268,43 +286,119 @@ class Likelihood_analysis(object):
         geoT_mean_f, geoT_sig = geo_flux(loc=self.lab, el='Th')
 
         if nu_component == 'b8':
-            return b8_mean_f**2. * (10. ** flux_n - 1.)**2. / b8_sig**2.
+            if return_deriv:
+                return b8_mean_f ** 2. / b8_sig ** 2. * (10. ** flux_n - 1.) * \
+                       np.log(10.) * 2.** (flux_n + 1.) * 5. ** flux_n
+            else:
+                return b8_mean_f**2. * (10. ** flux_n - 1.)**2. / b8_sig**2.
         elif nu_component == 'b7l1':
-            return b7l1_mean_f**2. * (10. ** flux_n - 1.)**2. / b7l1_sig**2.
+            if return_deriv:
+                return b7l1_mean_f ** 2. / b7l1_sig ** 2. * (10. ** flux_n - 1.) * \
+                       np.log(10.) * 2.** (flux_n + 1.) * 5. ** flux_n
+            else:
+                return b7l1_mean_f**2. * (10. ** flux_n - 1.)**2. / b7l1_sig**2.
         elif nu_component == 'b7l2':
-            return b7l2_mean_f**2. * (10. ** flux_n - 1.)**2. / b7l2_sig**2.
+            if return_deriv:
+                return b7l2_mean_f ** 2. / b7l2_sig ** 2. * (10. ** flux_n - 1.) * \
+                       np.log(10.) * 2.** (flux_n + 1.) * 5. ** flux_n
+            else:
+                return b7l2_mean_f**2. * (10. ** flux_n - 1.)**2. / b7l2_sig**2.
         elif nu_component == 'pepl1':
-            return pepl1_mean_f**2. * (10. ** flux_n - 1.)**2. / pepl1_sig**2.
+            if return_deriv:
+                return pepl1_mean_f ** 2. / pepl1_sig ** 2. * (10. ** flux_n - 1.) * \
+                       np.log(10.) * 2.** (flux_n + 1.) * 5. ** flux_n
+            else:
+                return pepl1_mean_f**2. * (10. ** flux_n - 1.)**2. / pepl1_sig**2.
         elif nu_component == 'hep':
-            return hep_mean_f**2. * (10. ** flux_n - 1.)**2. / hep_sig**2.
+            if return_deriv:
+                return hep_mean_f ** 2. / hep_sig ** 2. * (10. ** flux_n - 1.) * \
+                       np.log(10.) * 2.** (flux_n + 1.) * 5. ** flux_n
+            else:
+                return hep_mean_f**2. * (10. ** flux_n - 1.)**2. / hep_sig**2.
         elif nu_component == 'pp':
-            return pp_mean_f**2. * (10. ** flux_n - 1.)**2. / pp_sig**2.
+            if return_deriv:
+                return pp_mean_f ** 2. / pp_sig ** 2. * (10. ** flux_n - 1.) * \
+                       np.log(10.) * 2.** (flux_n + 1.) * 5. ** flux_n
+            else:
+                return pp_mean_f**2. * (10. ** flux_n - 1.)**2. / pp_sig**2.
         elif nu_component == 'o15':
-            return o15_mean_f**2. * (10. ** flux_n - 1.)**2. / o15_sig**2.
+            if return_deriv:
+                return o15_mean_f ** 2. / o15_sig ** 2. * (10. ** flux_n - 1.) * \
+                       np.log(10.) * 2.** (flux_n + 1.) * 5. ** flux_n
+            else:
+                return o15_mean_f**2. * (10. ** flux_n - 1.)**2. / o15_sig**2.
         elif nu_component == 'n13':
-            return n13_mean_f**2. * (10. ** flux_n - 1.)**2. / n13_sig**2.
+            if return_deriv:
+                return n13_mean_f ** 2. / n13_sig ** 2. * (10. ** flux_n - 1.) * \
+                       np.log(10.) * 2.** (flux_n + 1.) * 5. ** flux_n
+            else:
+                return n13_mean_f**2. * (10. ** flux_n - 1.)**2. / n13_sig**2.
         elif nu_component == 'f17':
-            return f17_mean_f**2. * (10. ** flux_n - 1.)**2. / f17_sig**2.
+            if return_deriv:
+                return f17_mean_f ** 2. / f17_sig ** 2. * (10. ** flux_n - 1.) * \
+                       np.log(10.) * 2.** (flux_n + 1.) * 5. ** flux_n
+            else:
+                return f17_mean_f**2. * (10. ** flux_n - 1.)**2. / f17_sig**2.
         elif nu_component == 'atmnue':
-            return atmnue_mean_f**2. * (10. ** flux_n - 1.)**2. / atmnue_sig**2.
+            if return_deriv:
+                return atmnue_mean_f ** 2. / atmnue_sig ** 2. * (10. ** flux_n - 1.) * \
+                       np.log(10.) * 2.** (flux_n + 1.) * 5. ** flux_n
+            else:
+                return atmnue_mean_f**2. * (10. ** flux_n - 1.)**2. / atmnue_sig**2.
         elif nu_component == 'atmnuebar':
-            return atmnuebar_mean_f**2. * (10. ** flux_n - 1.)**2. / atmnuebar_sig**2.
+            if return_deriv:
+                return atmnuebar_mean_f ** 2. / atmnuebar_sig ** 2. * (10. ** flux_n - 1.) * \
+                       np.log(10.) * 2.** (flux_n + 1.) * 5. ** flux_n
+            else:
+                return atmnuebar_mean_f**2. * (10. ** flux_n - 1.)**2. / atmnuebar_sig**2.
         elif nu_component == 'atmnumu':
-            return atmnumu_mean_f**2. * (10. ** flux_n - 1.)**2. / atmnumu_sig**2.
+            if return_deriv:
+                return atmnumu_mean_f ** 2. / atmnumu_sig ** 2. * (10. ** flux_n - 1.) * \
+                       np.log(10.) * 2.** (flux_n + 1.) * 5. ** flux_n
+            else:
+                return atmnumu_mean_f**2. * (10. ** flux_n - 1.)**2. / atmnumu_sig**2.
         elif nu_component == 'atmnumubar':
-            return atmnumubar_mean_f**2. * (10. ** flux_n - 1.)**2. / atmnumubar_sig**2.
+            if return_deriv:
+                return atmnumubar_mean_f ** 2. / atmnumubar_sig ** 2. * (10. ** flux_n - 1.) * \
+                       np.log(10.) * 2.** (flux_n + 1.) * 5. ** flux_n
+            else:
+                return atmnumubar_mean_f**2. * (10. ** flux_n - 1.)**2. / atmnumubar_sig**2.
         elif nu_component == 'dsnb3mev':
-            return dsnb3mev_mean_f**2. * (10. ** flux_n - 1.)**2. / dsnb3mev_sig**2.
+            if return_deriv:
+                return dsnb3mev_mean_f ** 2. / dsnb3mev_sig ** 2. * (10. ** flux_n - 1.) * \
+                       np.log(10.) * 2.** (flux_n + 1.) * 5. ** flux_n
+            else:
+                return dsnb3mev_mean_f**2. * (10. ** flux_n - 1.)**2. / dsnb3mev_sig**2.
         elif nu_component == 'dsnb5mev':
-            return dsnb5mev_mean_f**2. * (10. ** flux_n - 1.)**2. / dsnb5mev_sig**2.
+            if return_deriv:
+                return dsnb5mev_mean_f ** 2. / dsnb5mev_sig ** 2. * (10. ** flux_n - 1.) * \
+                       np.log(10.) * 2.** (flux_n + 1.) * 5. ** flux_n
+            else:
+                return dsnb5mev_mean_f**2. * (10. ** flux_n - 1.)**2. / dsnb5mev_sig**2.
         elif nu_component == 'dsnb8mev':
-            return dsnb8mev_mean_f**2. * (10. ** flux_n - 1.)**2. / dsnb8mev_sig**2.
+            if return_deriv:
+                return dsnb8mev_mean_f ** 2. / dsnb8mev_sig ** 2. * (10. ** flux_n - 1.) * \
+                       np.log(10.) * 2.** (flux_n + 1.) * 5. ** flux_n
+            else:
+                return dsnb8mev_mean_f**2. * (10. ** flux_n - 1.)**2. / dsnb8mev_sig**2.
         elif nu_component == 'reactor':
-            return reactor_mean_f**2. * (10. ** flux_n - 1.)**2. / reactor_sig**2.
+            if return_deriv:
+                return reactor_mean_f ** 2. / reactor_sig ** 2. * (10. ** flux_n - 1.) * \
+                       np.log(10.) * 2.** (flux_n + 1.) * 5. ** flux_n
+            else:
+                return reactor_mean_f**2. * (10. ** flux_n - 1.)**2. / reactor_sig**2.
         elif nu_component == 'geoU':
-            return geoU_mean_f**2. * (10. ** flux_n - 1.)**2. / geoU_mean_f**2.
+            if return_deriv:
+                return geoU_mean_f ** 2. / geoU_mean_f ** 2. * (10. ** flux_n - 1.) * \
+                       np.log(10.) * 2.** (flux_n + 1.) * 5. ** flux_n
+            else:
+                return geoU_mean_f**2. * (10. ** flux_n - 1.)**2. / geoU_mean_f**2.
         elif nu_component == 'geoTh':
-            return geoT_mean_f**2. * (10. ** flux_n - 1.)**2. / geoT_mean_f**2.
+            if return_deriv:
+                return geoT_mean_f ** 2. / geoT_mean_f ** 2. * (10. ** flux_n - 1.) * \
+                       np.log(10.) * 2.** (flux_n + 1.) * 5. ** flux_n
+            else:
+                return geoT_mean_f**2. * (10. ** flux_n - 1.)**2. / geoT_mean_f**2.
         else:
             return 0.
 

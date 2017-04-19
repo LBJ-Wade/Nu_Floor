@@ -148,14 +148,14 @@ def geo_flux(loc='Snolab', el='U'):
             flx_err = 1.17 * 10**6.
         elif el == 'Th':
             flux = 4.90 * 10**6.
-            flx_err = 1.34 * 10 **6.
+            flx_err = 1.34 * 10**6.
         return flux, flx_err
     elif loc == 'GS':
         if el == 'U':
             flux = 4.34 * 10**6.
             flx_err = 0.96 * 10 **6.
         elif el == 'Th':
-            flux = 4.23 * 10**-6.
+            flux = 4.23 * 10**6.
             flx_err = 1.26 * 10 **6.
         return flux, flx_err
 
