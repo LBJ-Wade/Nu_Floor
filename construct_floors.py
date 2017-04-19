@@ -36,7 +36,8 @@ def make_a_floor(element='germanium', model='sigma_si', fnfp=1., exposure=1.,
 
             if os.path.exists(file_sv):
                 load_old = np.loadtxt(file_sv)
-                if mx not in load_old[:, 0]:
+
+                if mx not in load_old:
                     new_arr = np.vstack((load_old, np.array([mx, csec])))
                     new_arr = new_arr[new_arr[:, 0].argsort()]
                     np.savetxt(file_sv, new_arr)
@@ -48,7 +49,6 @@ def make_a_floor(element='germanium', model='sigma_si', fnfp=1., exposure=1.,
         except IndexError:
             pass
     return
-
 
 
 def interpola(val, x, y):
