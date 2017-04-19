@@ -22,13 +22,13 @@ def make_a_floor(element='germanium', model='sigma_si', fnfp=1., exposure=1.,
 
     print 'Look for files of form: ', file_info
     files = glob.glob(file_info)
-    print files
+    #print files
     for f in files:
         mx = float(f[f.find('DM_Mass_')+8:f.find('_GeV')])
         load = np.loadtxt(f)
         try:
             dim_test = load.shape[1]
-            csec = brentq(lambda x: interpola(x, load[:,0], load[:, 1]) - qaim, load[0, 0], -40.)
+            csec = brentq(lambda x: interpola(x, load[:,0], load[:, 1]) - qaim, -60., -30.)
             print 'DM mass: {:.2f}, Cross Sec {:.2e}'.format(mx, 10.**csec)
 
             if os.path.exists(file_sv):
