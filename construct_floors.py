@@ -38,13 +38,13 @@ def make_a_floor(element='germanium', model='sigma_si', fnfp=1., exposure=1.,
                 load_old = np.loadtxt(file_sv)
 
                 if mx not in load_old:
-                    new_arr = np.vstack((load_old, np.array([mx, csec])))
+                    new_arr = np.vstack((load_old, np.array([np.log10(mx), csec])))
                     new_arr = new_arr[new_arr[:, 0].argsort()]
                     np.savetxt(file_sv, new_arr)
                 else:
                     print 'DM mass already in file...'
             else:
-                np.savetxt(file_sv, np.array([mx, csec]))
+                np.savetxt(file_sv, np.array([np.log10(mx), csec]))
 
         except IndexError:
             pass
