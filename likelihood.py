@@ -90,6 +90,7 @@ class Likelihood_analysis(object):
         self.nu_lines = ['b7l1', 'b7l2', 'pepl1']
         self.line = [0.380, 0.860, 1.440]
 
+
         nu_resp = np.zeros(nu_spec, dtype=object)
 
         self.nu_resp = np.zeros(nu_spec, dtype=object)
@@ -126,7 +127,7 @@ class Likelihood_analysis(object):
 
         self.dm_integ = R(Qmin=self.Qmin, Qmax=self.Qmax, **like_params) * 10.**3. * s_to_yr
 
-        eng_lge = np.logspace(np.log10(self.Qmin), np.log10(self.Qmax), 100)
+        eng_lge = np.logspace(np.log10(self.Qmin), np.log10(self.Qmax), 200)
 
         for i in range(nu_spec):
             nu_resp[i] = np.zeros_like(eng_lge)
@@ -137,7 +138,7 @@ class Likelihood_analysis(object):
 
         for i in range(nu_spec):
             #linear interpolation for the 3 lines
-            self.nu_resp[i] = interp1d(eng_lge, nu_resp[i], kind='cubic', bounds_error=False, fill_value=0.)
+            self.nu_resp[i] = interp1d(eng_lge, np.abs(nu_resp[i]), kind='cubic', bounds_error=False, fill_value=0.)
             self.nu_int_resp[i] = np.trapz(self.nu_resp[i](eng_lge), eng_lge)
 
 
@@ -175,7 +176,6 @@ class Likelihood_analysis(object):
         diff_dm = self.dm_recoils * self.exposure
 
         for i in range(self.nu_spec):
-            print self.events
             diff_nu[i] = self.nu_resp[i](self.events) * self.exposure
 
 
@@ -206,23 +206,24 @@ class Likelihood_analysis(object):
 
         grad_x += 2. * np.log(10.) * dm_events
         for i in range(self.nu_spec):
-            grad_nu[i] += 2. * np.log(10.) * nu_events[i] * 10. ** nu_norm[i] * \
-                          self.exposure * self.nu_int_resp[i]
+            grad_nu[i] += 2. * np.log(10.) * 10. ** nu_norm[i] * self.exposure * self.nu_int_resp[i]
 
         for i in range(self.nu_spec):
             grad_nu[i] += self.nu_gaussian(self.nu_names[i], nu_norm[i], return_deriv=True)
 
         if self.element != 'fluorine':
-
             diff_dm = self.dm_recoils * self.exposure
             for i in range(self.nu_spec):
                 diff_nu[i] = self.nu_resp[i](self.events) * self.exposure
 
             lg_vle = (10. ** sig_dm * diff_dm + np.dot(list(map(lambda x: 10 ** x, nu_norm)), diff_nu))
+
             for i in range(len(lg_vle)):
                 grad_x += -2. * np.log(10.) * diff_dm[i] * 10. ** sig_dm / lg_vle[i]
             for i in range(self.nu_spec):
-                grad_nu[i] += -2. * np.log(10.) * diff_nu[i] * 10**nu_norm[i] / lg_vle[i]
+                for j in range(len(lg_vle)):
+                    grad_nu[i] += -2. * np.log(10.) * diff_nu[i][j] * 10**nu_norm[i] / lg_vle[j]
+
 
         if ret_just_nu:
             return grad_nu
@@ -289,8 +290,9 @@ class Likelihood_analysis(object):
 
         if nu_component == 'b8':
             if return_deriv:
-                return b8_mean_f ** 2. / b8_sig ** 2. * (10. ** flux_n - 1.) * \
-                       np.log(10.) * 2.** (flux_n + 1.) * 5. ** flux_n
+                return b8_mean_f**2./b8_sig**2.*(10.**flux_n - 1.)* \
+                       np.log(10.)*2.**(flux_n + 1.)*5.**flux_n
+
             else:
                 return b8_mean_f**2. * (10. ** flux_n - 1.)**2. / b8_sig**2.
         elif nu_component == 'b7l1':
@@ -480,7 +482,7 @@ class Nu_spec(object):
                 e_nu_max = 4.
                 nu_mean_f = geo_flux(loc=self.lab, el='U')[0]
             elif nu_component == 'geoTh':
-                e_nu_max = 2.252
+                e_nu_max = 2.26
                 nu_mean_f = geo_flux(loc=self.lab, el='Th')[0]
 
             else:

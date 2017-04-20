@@ -104,41 +104,10 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
             Nu_events_sim[i] = int(nu_rate[i] * exposure)
 
     nevts_n = np.zeros(nu_contrib)
-
-    for i in range(nu_contrib):
-        try:
-            nevts_n[i] = poisson.rvs(int(Nu_events_sim[i]))
-        except ValueError:
-            nevts_n[i] = 0
-
-    Nevents = int(sum(nevts_n))
-
-    u = random.rand(Nevents)
-    # Generalize to rejection sampling algo for time implimentation
-    e_sim = np.zeros(Nevents)
-    sum_nu_evts = np.zeros(nu_contrib)
-
-    for i in range(nu_contrib):
-        sum_nu_evts[i] = np.sum(nevts_n[:i + 1])
-    sum_nu_evts = np.insert(sum_nu_evts, 0, -1)
-    j = 0
-
-    for i in range(Nevents):
-        if i < sum(nevts_n):
-            for j in range(nu_contrib + 1):
-                if sum_nu_evts[j] <= i < sum_nu_evts[j + 1]:
-                    if nu_comp[j] not in nu_lines:
-                        e_sim[i] = er_list[np.absolute(cdf_nu[j] - u[i]).argmin()]
-                    else:
-                        if nu_comp[j] == nu_lines[0]:
-                            e_sim[i] = e_lines[0]
-                        elif nu_comp[j] == nu_lines[1]:
-                            e_sim[i] = e_lines[1]
-                        elif nu_comp[j] == nu_lines[2]:
-                            e_sim[i] = e_lines[2]
     print '\n \n'
 
     for sigmap in sig_list:
+
         print 'Sigma: {:.2e}'.format(sigmap)
 
         drdq_params = default_rate_parameters.copy()
@@ -158,6 +127,9 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
         cdf_dm /= cdf_dm.max()
         dm_events_sim = int(dm_rate * exposure)
 
+        if dm_events_sim < 5.:
+            continue
+
         nevent_dm = 0
 
         tstat_arr = np.zeros(n_runs)
@@ -165,6 +137,36 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
 
         fails = np.array([])
         while nn < n_runs:
+            for i in range(nu_contrib):
+                try:
+                    nevts_n[i] = poisson.rvs(int(Nu_events_sim[i]))
+                except ValueError:
+                    nevts_n[i] = 0
+
+            Nevents = int(sum(nevts_n))
+
+            u = random.rand(Nevents)
+            e_sim = np.zeros(Nevents)
+            sum_nu_evts = np.zeros(nu_contrib)
+
+            for i in range(nu_contrib):
+                sum_nu_evts[i] = np.sum(nevts_n[:i + 1])
+            sum_nu_evts = np.insert(sum_nu_evts, 0, -1)
+            j = 0
+
+            for i in range(Nevents):
+                if i < sum(nevts_n):
+                    for j in range(nu_contrib + 1):
+                        if sum_nu_evts[j] <= i < sum_nu_evts[j + 1]:
+                            if nu_comp[j] not in nu_lines:
+                                e_sim[i] = er_list[np.absolute(cdf_nu[j] - u[i]).argmin()]
+                            else:
+                                if nu_comp[j] == nu_lines[0]:
+                                    e_sim[i] = e_lines[0]
+                                elif nu_comp[j] == nu_lines[1]:
+                                    e_sim[i] = e_lines[1]
+                                elif nu_comp[j] == nu_lines[2]:
+                                    e_sim[i] = e_lines[2]
 
             print 'Run {:.0f} of {:.0f}'.format(nn + 1, n_runs)
             try:
@@ -177,7 +179,7 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
                 print 'Predicted Number of DM events: {}'.format(dm_events_sim)
 
             # Simulate events
-            print('ev_nu :{:.0f}  ; ev_dm:{:.0f}'.format(sum(nevts_n), nevts_dm))
+            print('Evaluated Events: Neutrino {:.0f}, DM {:.0f}'.format(sum(nevts_n), nevts_dm))
 
             u = random.rand(nevts_dm)
             # Generalize to rejection sampling algo for time implimentation
@@ -192,7 +194,8 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
             if not QUIET:
                 print 'Running Likelihood Analysis...'
             # Minimize likelihood -- MAKE SURE THIS MINIMIZATION DOESNT FAIL. CONSIDER USING GRADIENT INFO
-
+            nu_bnds = [(-2.5, 2.5)] * nu_contrib
+            dm_bnds = nu_bnds + [(-60., -30.)]
             like_init_nodm = Likelihood_analysis(model, coupling, mass, 0., fnfp,
                                                  exposure, element, experiment_info,
                                                  e_sim, times, nu_comp, labor,
@@ -201,7 +204,7 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
 
             max_nodm = minimize(like_init_nodm.likelihood, np.zeros(nu_contrib),
                                 args=(np.array([-100.])), tol=0.001, method='SLSQP',
-                                options={'maxiter': 100},
+                                options={'maxiter': 100}, bounds=nu_bnds,
                                 jac=like_init_nodm.like_gradi)
 
             like_init_dm = Likelihood_analysis(model, coupling, mass, 1., fnfp,
@@ -211,17 +214,12 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
 
             max_dm = minimize(like_init_dm.like_multi_wrapper,
                               np.concatenate((np.zeros(nu_contrib),np.array([np.log10(sigmap)]))),
-                              tol=0.001, method='SLSQP',
+                              tol=0.001, method='SLSQP', bounds=dm_bnds,
                               options={'maxiter': 100}, jac=like_init_dm.likegrad_multi_wrapper)
             print 'Minimizaiton Success: ', max_nodm.success, max_dm.success
 
             if not max_nodm.success or not max_dm.success:
                 fails = np.append(fails, nn)
-
-            if not QUIET:
-                print 'BF Neutrino normalization without DM: {:.2e}'.format(10.**max_nodm.x[0])
-                print 'BF Neutrino normalization with DM: {:.2e}'.format(10.**max_dm.x[0])
-                print 'BF DM sigma_p: {:.2e} \n\n'.format(10.**max_dm.x[-1])
 
             test_stat = np.max([max_nodm.fun - max_dm.fun, 0.])
 
@@ -242,6 +240,7 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
         print 'True DM sigma_p: ', sigmap
         #print("--- %s seconds ---" % (time.time() - start_time))
 
+
         if len(tstat_arr) > 0:
             print 'Median Q: {:.2f}'.format(np.median(tstat_arr))
             print 'Mean Q: {:.2f}\n'.format(np.mean(tstat_arr))
@@ -254,6 +253,7 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
 
             if testq > 30:
                 print 'testq: {} --> BREAK'.format(testq)
+                print '~~~~~~~~~~~~~~~~~~~~~MOVING ON~~~~~~~~~~~~~~~~~~~~~'
                 print '\n'
                 if os.path.exists(file_info):
                     load_old = np.loadtxt(file_info)
@@ -266,6 +266,7 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
 
             else:
                 print 'testq: {} --> WRITE'.format(testq)
+                print '~~~~~~~~~~~~~~~~~~~~~MOVING ON~~~~~~~~~~~~~~~~~~~~~'
                 print '\n'
                 if os.path.exists(file_info):
                     load_old = np.loadtxt(file_info)
