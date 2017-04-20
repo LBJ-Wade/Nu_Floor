@@ -87,6 +87,9 @@ class Likelihood_analysis(object):
     def __init__(self, model, coupling, mass, dm_sigp, fnfp, exposure, element, isotopes,
                  energies, times, nu_names, lab, nu_spec, Qmin, Qmax, time_info=False, GF=False):
 
+        self.nu_lines = ['b7l1', 'b7l2', 'pepl1']
+        self.line = [0.380, 0.860, 1.440]
+
         nu_resp = np.zeros(nu_spec, dtype=object)
 
         self.nu_resp = np.zeros(nu_spec, dtype=object)
@@ -128,24 +131,14 @@ class Likelihood_analysis(object):
             nu_resp[i] = np.zeros_like(eng_lge)
 
         for iso in isotopes:
-            # isotope list [mT, Z, A, frac]
             for j in range(nu_spec):
                 nu_resp[j] += Nu_spec(self.lab).nu_rate(nu_names[j], eng_lge, iso)
 
         for i in range(nu_spec):
             #linear interpolation for the 3 lines
-            if i == 1 or i == 2 or i == 3:
-                self.nu_resp[i] = interp1d(eng_lge, nu_resp[i], kind='linear', bounds_error=False, fill_value=0.)
-                self.nu_int_resp[i] = np.trapz(self.nu_resp[i](eng_lge), eng_lge)
-            else:
-                self.nu_resp[i] = interp1d(eng_lge, nu_resp[i], kind='cubic', bounds_error=False, fill_value=0.)
-                self.nu_int_resp[i] = np.trapz(self.nu_resp[i](eng_lge), eng_lge)
+            self.nu_resp[i] = interp1d(eng_lge, nu_resp[i], kind='cubic', bounds_error=False, fill_value=0.)
+            self.nu_int_resp[i] = np.trapz(self.nu_resp[i](eng_lge), eng_lge)
 
-                #def like_multi_grad(self, norms):
-                # Not used at moment
-                #nu_norm = norms[0]
-                #sig_dm = norms[1]
-                #return self.likelihood(nu_norm, sig_dm, return_grad=True)
 
     def like_multi_wrapper(self, norms, grad=False):
         nu_norm = np.zeros(self.nu_spec, dtype=object)
@@ -412,17 +405,19 @@ class Nu_spec(object):
     # Think about defining some of these neutino parameters as variables in constants.py (e.g. mean flux)
     def __init__(self, lab):
         self.lab = lab
+        self.nu_lines = ['b7l1', 'b7l2','pepl1']
+        self.line = [ 0.380, 0.860, 1.440]
 
     def nu_rate(self, nu_component, er, element_info):
 
         mT, Z, A, xi = element_info
         conversion_factor = xi / mT * s_to_yr * (0.938 / (1.66 * 10.**-27.)) \
                             * 10**-3. / (0.51 * 10.**14.)**2.
-        # Where is this (A-Z)/100 coming from? Should not be there???
 
         #	print ('nuspec check, component: {}'.format(nu_component))
 
         diff_rate = np.zeros_like(er)
+        diff_rate2 = np.zeros_like(er)
         for i,e in enumerate(er):
             e_nu_min = np.sqrt(mT * e / 2.)
 
@@ -488,20 +483,21 @@ class Nu_spec(object):
                 return 0.
 
 
-            diff_rate[i] = romberg(self.nu_recoil_spec, e_nu_min, e_nu_max,
-                                   args=(e, mT, Z, A, nu_component))
-
-            #print ('result romb: {}'.format(diff_rate[i]))
-            #print ('result quad: {}'.format(quad(self.nu_recoil_spec, e_nu_min, e_nu_max,
-            #                   args=(e, mT, Z, A, nu_component),limit=50)[0]))
+            if nu_component not in self.nu_lines:
+                diff_rate[i] = romberg(self.nu_recoil_spec, e_nu_min, e_nu_max, args=(e, mT, Z, A, nu_component))
+            else:
+                if nu_component == self.nu_lines[0]:
+                    diff_rate[i] = self.nu_recoil_spec(self.line[0], e, mT, Z, A, nu_component)
+                elif nu_component == self.nu_lines[1]:
+                    diff_rate[i] = self.nu_recoil_spec(self.line[1], e, mT, Z, A, nu_component)
+                elif nu_component == self.nu_lines[2]:
+                    diff_rate[i] = self.nu_recoil_spec(self.line[2], e, mT, Z, A, nu_component)
 
             diff_rate[i] *= nu_mean_f * conversion_factor
 
         return diff_rate
 
     def max_er_from_nu(self, enu, mT):
-        # return 2. * enu**2. / (mT + 2. * enu) # -- This formula is in 1307.5458, but it is
-        # not consistent with the numbers they use in other papers...
         return 2. * enu**2. / mT
 
     def nu_recoil_spec(self, enu, er, mT, Z, A, nu_comp):
@@ -509,11 +505,14 @@ class Nu_spec(object):
         if nu_comp == 'b8':
             return self.nu_csec(enu, er, mT, Z, A) * b8nu_spectrum(enu)
         elif nu_comp == 'b7l1':
-            return self.nu_csec(enu, er, mT, Z, A) * b7nul1_spectrum(enu)
+            if enu == self.line[0]:
+                return self.nu_csec(enu, er, mT, Z, A)
         elif nu_comp == 'b7l2':
-            return self.nu_csec(enu, er, mT, Z, A) * b7nul2_spectrum(enu)
+            if enu == self.line[1]:
+                return self.nu_csec(enu, er, mT, Z, A)
         elif nu_comp == 'pepl1':
-            return self.nu_csec(enu, er, mT, Z, A) * pepnul1_spectrum(enu)
+            if enu == self.line[2]:
+                return self.nu_csec(enu, er, mT, Z, A)
         elif nu_comp == 'hep':
             return self.nu_csec(enu, er, mT, Z, A) * hepnu_spectrum(enu)
         elif nu_comp == 'pp':

@@ -70,6 +70,10 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
                'atmnuebar', 'atmnumu', 'atmnumubar', 'dsnb3mev', 'dsnb5mev', 'dsnb8mev',
                'reactor', 'geoU', 'geoTh']
 
+    nu_lines = ['b7l1', 'b7l2','pepl1']
+    line_flux = [(0.1) * 5.00 * 10. ** 9., (0.9) * 5.00 * 10. ** 9., 1.44 * 10. ** 8.]
+    e_lines = [0.380, 0.860, 1.440]
+
     nu_contrib = len(nu_comp)
 
     nuspec = np.zeros(nu_contrib, dtype=object)
@@ -85,8 +89,11 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
         for i in range(nu_contrib):
             nuspec[i] += Nu_spec(labor).nu_rate(nu_comp[i], er_list, iso)
 
+
     for i in range(nu_contrib):
         nu_rate[i] = np.trapz(nuspec[i], er_list)
+
+
         print nu_comp[i], nu_rate[i]
         if nu_rate[i] > 0.:
             nu_pdf[i] = nuspec[i] / nu_rate[i]
@@ -114,13 +121,20 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
     sum_nu_evts = np.insert(sum_nu_evts, 0, -1)
     j = 0
 
-    print '\n \n'
-
     for i in range(Nevents):
         if i < sum(nevts_n):
             for j in range(nu_contrib + 1):
                 if sum_nu_evts[j] <= i < sum_nu_evts[j + 1]:
-                    e_sim[i] = er_list[np.absolute(cdf_nu[j] - u[i]).argmin()]
+                    if nu_comp[j] not in nu_lines:
+                        e_sim[i] = er_list[np.absolute(cdf_nu[j] - u[i]).argmin()]
+                    else:
+                        if nu_comp[j] == nu_lines[0]:
+                            e_sim[i] = e_lines[0]
+                        elif nu_comp[j] == nu_lines[1]:
+                            e_sim[i] = e_lines[1]
+                        elif nu_comp[j] == nu_lines[2]:
+                            e_sim[i] = e_lines[2]
+    print '\n \n'
 
     for sigmap in sig_list:
         print 'Sigma: {:.2e}'.format(sigmap)
@@ -146,6 +160,8 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
 
         tstat_arr = np.zeros(n_runs)
         nn = 0
+
+        fails = np.array([])
         while nn < n_runs:
 
             print 'Run {:.0f} of {:.0f}'.format(nn + 1, n_runs)
@@ -180,7 +196,7 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
                                                  Qmin, Qmax, time_info=time_info, GF=False)
             max_nodm = minimize(like_init_nodm.likelihood, np.zeros(nu_contrib),
                                 args=(np.array([-100.])), tol=0.001, method='SLSQP',
-                                options={'maxiter': 300},
+                                options={'maxiter': 100},
                                 jac=like_init_nodm.like_gradi)
 
             like_init_dm = Likelihood_analysis(model, coupling, mass, 1., fnfp,
@@ -191,10 +207,11 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
             max_dm = minimize(like_init_dm.like_multi_wrapper,
                               np.concatenate((np.zeros(nu_contrib),np.array([np.log10(sigmap)]))),
                               tol=0.001, method='SLSQP',
-                              options={'maxiter': 300}, jac=like_init_dm.likegrad_multi_wrapper)
+                              options={'maxiter': 100}, jac=like_init_dm.likegrad_multi_wrapper)
             print 'Minimizaiton Success: ', max_nodm.success, max_dm.success
 
-
+            if not max_nodm.success or not max_dm.success:
+                fails = np.append(fails, nn)
 
             if not QUIET:
                 print 'BF Neutrino normalization without DM: {:.2e}'.format(10.**max_nodm.x[0])
@@ -212,6 +229,8 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
             tstat_arr[nn] = test_stat
             nn += 1
 
+        mask = np.array([(i in fails) for i in xrange(len(tstat_arr))])
+        tstat_arr = tstat_arr[~mask]
 
         print 'FINISHED CYCLE \n'
         print 'True DM mass: ', mass
