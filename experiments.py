@@ -20,14 +20,14 @@ def Element_Info(element):
 
     if element == 'germanium':
         Qmin = 0.1
-        Qmax = 7.
+        Qmax = 50.
         Z = 32.
         Atope = np.array([70., 72., 73., 74., 76.])
         mfrac = np.array([0.212, 0.277, 0.077, 0.359, 0.074])
     
     elif element == 'xenon':
         Qmin = 0.1
-        Qmax = 10.
+        Qmax = 50.
         Z = 54.
         Atope = np.array([128., 129., 130., 131., 132., 134., 136.])
         mfrac = np.array([0.019, 0.264, 0.041, 0.212, 0.269, 0.104, 0.089])

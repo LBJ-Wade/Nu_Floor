@@ -170,6 +170,13 @@ class Likelihood_analysis(object):
 
         like += 2. * (dm_events + sum(nu_events))
 
+        # nu normalization contribution
+        for i in range(self.nu_spec):
+            like += self.nu_gaussian(self.nu_names[i], nu_norm[i])
+
+        if self.element == 'fluorine':
+            return like
+
         # Differential contribution
         diff_dm = self.dm_recoils * self.exposure
 
@@ -180,10 +187,6 @@ class Likelihood_analysis(object):
         for i in range(len(lg_vle)):
             if lg_vle[i] > 0.:
                 like += -2. * np.log(lg_vle[i])
-
-        # nu normalization contribution
-        for i in range(self.nu_spec):
-            like += self.nu_gaussian(self.nu_names[i], nu_norm[i])
 
         return like
 
@@ -209,18 +212,20 @@ class Likelihood_analysis(object):
             grad_nu[i] += 2. * np.log(10.) * nu_events[i] * 10. ** nu_norm[i] * \
                           self.exposure * self.nu_int_resp[i]
 
-        diff_dm = self.dm_recoils * self.exposure
-
         for i in range(self.nu_spec):
-            diff_nu[i] = self.nu_resp[i](self.events) * self.exposure
-
-        lg_vle = (10. ** sig_dm * diff_dm + np.dot(list(map(lambda x: 10 ** x, nu_norm)), diff_nu))
-
-        grad_x += np.sum(-2. * np.log(10.) * diff_dm * 10. ** sig_dm / lg_vle.sum())
-        for i in range(self.nu_spec):
-            grad_nu[i] += np.sum(-2. * np.log(10.) * diff_nu[i] * 10**nu_norm[i] / lg_vle.sum())
             grad_nu[i] += self.nu_gaussian(self.nu_names[i], nu_norm[i], return_deriv=True)
-        #print grad_nu, grad_x
+
+        if self.element != 'fluorine':
+
+            diff_dm = self.dm_recoils * self.exposure
+            for i in range(self.nu_spec):
+                diff_nu[i] = self.nu_resp[i](self.events) * self.exposure
+
+            lg_vle = (10. ** sig_dm * diff_dm + np.dot(list(map(lambda x: 10 ** x, nu_norm)), diff_nu))
+
+            grad_x += np.sum(-2. * np.log(10.) * diff_dm * 10. ** sig_dm / lg_vle.sum())
+            for i in range(self.nu_spec):
+                grad_nu[i] += np.sum(-2. * np.log(10.) * diff_nu[i] * 10**nu_norm[i] / lg_vle.sum())
 
         if ret_just_nu:
             return grad_nu

@@ -94,6 +94,34 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
             cdf_nu[i] /= cdf_nu[i].max()
             Nu_events_sim[i] = int(nu_rate[i] * exposure)
 
+    nevts_n = np.zeros(nu_contrib)
+
+    for i in range(nu_contrib):
+        try:
+            nevts_n[i] = poisson.rvs(int(Nu_events_sim[i]))
+        except ValueError:
+            nevts_n[i] = 0
+
+    Nevents = int(sum(nevts_n))
+
+    u = random.rand(Nevents)
+    # Generalize to rejection sampling algo for time implimentation
+    e_sim = np.zeros(Nevents)
+    sum_nu_evts = np.zeros(nu_contrib)
+
+    for i in range(nu_contrib):
+        sum_nu_evts[i] = np.sum(nevts_n[:i + 1])
+    sum_nu_evts = np.insert(sum_nu_evts, 0, -1)
+    j = 0
+
+    print '\n \n'
+
+    for i in range(Nevents):
+        if i < sum(nevts_n):
+            for j in range(nu_contrib + 1):
+                if sum_nu_evts[j] <= i < sum_nu_evts[j + 1]:
+                    e_sim[i] = er_list[np.absolute(cdf_nu[j] - u[i]).argmin()]
+
     for sigmap in sig_list:
         print 'Sigma: {:.2e}'.format(sigmap)
 
@@ -114,12 +142,9 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
         cdf_dm /= cdf_dm.max()
         dm_events_sim = int(dm_rate * exposure)
 
-
-        nevts_n = np.zeros(nu_contrib)
         nevent_dm = 0
 
         tstat_arr = np.zeros(n_runs)
-
         nn = 0
         while nn < n_runs:
 
@@ -129,11 +154,6 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
             except ValueError:
                 nevts_dm = 0
 
-            for i in range(nu_contrib):
-                try:
-                    nevts_n[i] = poisson.rvs(int(Nu_events_sim[i]))
-                except ValueError:
-                    nevts_n[i] = 0
             if not QUIET:
                 print 'Predicted Number of Nu events: {}'.format(sum(Nu_events_sim))
                 print 'Predicted Number of DM events: {}'.format(dm_events_sim)
@@ -141,26 +161,12 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
             # Simulate events
             print('ev_nu :{:.0f}  ; ev_dm:{:.0f}'.format(sum(nevts_n), nevts_dm))
 
-            Nevents = int(sum(nevts_n) + nevts_dm)
-            if not QUIET:
-                print 'Simulation {:.0f} events...'.format(Nevents)
-            u = random.rand(Nevents)
+            u = random.rand(nevts_dm)
             # Generalize to rejection sampling algo for time implimentation
-            e_sim = np.zeros(Nevents)
-            sum_nu_evts = np.zeros(nu_contrib)
+            e_sim = np.zeros(nevts_dm)
 
-            for i in range(nu_contrib):
-                sum_nu_evts[i] = np.sum(nevts_n[:i+1])
-            sum_nu_evts = np.insert(sum_nu_evts, 0, -1)
-            j = 0
-
-            for i in range(Nevents):
-                if i < sum(nevts_n):
-                    for j in range(nu_contrib + 1):
-                        if sum_nu_evts[j] <= i < sum_nu_evts[j+1]:
-                            e_sim[i] = er_list[np.absolute(cdf_nu[j] - u[i]).argmin()]
-                else:
-                    e_sim[i] = er_list[np.absolute(cdf_dm - u[i]).argmin()]
+            for i in range(nevts_dm):
+                 e_sim = np.append(e_sim, er_list[np.absolute(cdf_dm - u[i]).argmin()])
 
             times = np.zeros_like(e_sim)
             #print e_sim
