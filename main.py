@@ -63,7 +63,7 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
     q_goal = 9.0
 
     # make sure there are enough points for numerical accuracy/stability
-    er_list = np.logspace(np.log10(Qmin), np.log10(Qmax), 200)
+    er_list = np.logspace(np.log10(Qmin), np.log10(Qmax), 100)
     time_list = np.zeros_like(er_list)
 
     nu_comp = ['b8', 'b7l1', 'b7l2', 'pepl1', 'hep', 'pp', 'o15', 'n13', 'f17', 'atmnue',
@@ -114,10 +114,6 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
         cdf_dm /= cdf_dm.max()
         dm_events_sim = int(dm_rate * exposure)
 
-
-        if (dm_events_sim / sum(Nu_events_sim)) < 0.01 or (dm_events_sim / sum(Nu_events_sim)) > 10.:
-            print 'Skipping this cross section...\n \n'
-            continue
 
         nevts_n = np.zeros(nu_contrib)
         nevent_dm = 0
@@ -192,28 +188,24 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
                               options={'maxiter': 300}, jac=like_init_dm.likegrad_multi_wrapper)
             print 'Minimizaiton Success: ', max_nodm.success, max_dm.success
 
-            if max_nodm.success and max_dm.success:
-                print 'Success.'
-                if not QUIET:
-                    print 'BF Neutrino normalization without DM: {:.2e}'.format(10.**max_nodm.x[0])
-                    print 'BF Neutrino normalization with DM: {:.2e}'.format(10.**max_dm.x[0])
-                    print 'BF DM sigma_p: {:.2e} \n\n'.format(10.**max_dm.x[-1])
 
-                test_stat = np.max([max_nodm.fun - max_dm.fun, 0.])
 
-                pval = chi2.sf(test_stat,1)
+            if not QUIET:
+                print 'BF Neutrino normalization without DM: {:.2e}'.format(10.**max_nodm.x[0])
+                print 'BF Neutrino normalization with DM: {:.2e}'.format(10.**max_dm.x[0])
+                print 'BF DM sigma_p: {:.2e} \n\n'.format(10.**max_dm.x[-1])
 
-                if not QUIET:
-                    print 'TS: ', test_stat
-                    print 'p-value: ', pval
-                    print '\n \n'
-                tstat_arr[nn] = test_stat
-                nn += 1
-            else:
-                print 'FAIL.\n \n'
-                nn += 1
+            test_stat = np.max([max_nodm.fun - max_dm.fun, 0.])
 
-        #tstat_arr = tstat_arr[tstat_arr > 0.]
+            pval = chi2.sf(test_stat,1)
+
+            if not QUIET:
+                print 'TS: ', test_stat
+                print 'p-value: ', pval
+                print '\n \n'
+            tstat_arr[nn] = test_stat
+            nn += 1
+
 
         print 'FINISHED CYCLE \n'
         print 'True DM mass: ', mass
@@ -240,7 +232,7 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
                     np.savetxt(file_info, np.array([np.log10(sigmap), testq]))
                 break
 
-            elif testq > 1e-4:
+            else:
                 print 'testq: {} --> WRITE'.format(testq)
                 print '\n'
                 if os.path.exists(file_info):
