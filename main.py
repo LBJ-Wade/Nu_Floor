@@ -181,7 +181,7 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
 
             u = random.rand(nevts_dm)
             # Generalize to rejection sampling algo for time implimentation
-            e_sim = np.zeros(nevts_dm)
+
 
             for i in range(nevts_dm):
                  e_sim = np.append(e_sim, er_list[np.absolute(cdf_dm - u[i]).argmin()])
@@ -192,21 +192,23 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
             if not QUIET:
                 print 'Running Likelihood Analysis...'
             # Minimize likelihood -- MAKE SURE THIS MINIMIZATION DOESNT FAIL. CONSIDER USING GRADIENT INFO
+
             like_init_nodm = Likelihood_analysis(model, coupling, mass, 0., fnfp,
-                                                 exposure, element, experiment_info, e_sim, times, nu_comp, labor,
+                                                 exposure, element, experiment_info,
+                                                 e_sim, times, nu_comp, labor,
                                                  nu_contrib,
                                                  Qmin, Qmax, time_info=time_info, GF=False)
-            print 'Likelihood init.'
+
             max_nodm = minimize(like_init_nodm.likelihood, np.zeros(nu_contrib),
                                 args=(np.array([-100.])), tol=0.001, method='SLSQP',
                                 options={'maxiter': 100},
                                 jac=like_init_nodm.like_gradi)
-            print 'Minimiztion one.'
+
             like_init_dm = Likelihood_analysis(model, coupling, mass, 1., fnfp,
                                                exposure, element, experiment_info, e_sim, times, nu_comp, labor,
                                                nu_contrib,
                                                Qmin, Qmax, time_info=time_info, GF=False)
-            print 'Likelihood init.'
+
             max_dm = minimize(like_init_dm.like_multi_wrapper,
                               np.concatenate((np.zeros(nu_contrib),np.array([np.log10(sigmap)]))),
                               tol=0.001, method='SLSQP',

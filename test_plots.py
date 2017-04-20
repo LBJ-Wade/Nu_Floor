@@ -1,4 +1,6 @@
 import numpy as np
+import matplotlib
+matplotlib.use('Agg')
 import pylab as pl
 import matplotlib.pyplot as plt
 import os
@@ -181,27 +183,49 @@ def neutrino_spectrum(lab='Snolab', Emin=0.1, Emax=1000., fs=18, save=True):
 
 def neutrino_recoils(Emin=0.001, Emax=100., element='germanium', fs=18, save=True,
                      mass=6., sigmap=4.*10**-45., model='sigma_si', fnfp=1.,
-                     delta=0., GF=False, time_info=False, lab='Snolab'):
-    filename = test_plots + 'NeutrinoRecoils_in_' + element + '.pdf'
+                     delta=0., GF=False, time_info=False, xenlab='LZ'):
+    coupling = "fnfp" + model[5:]
+
+    filename = test_plots + 'Recoils_in_' + element + '_'
+    filename += model + '_' + coupling + '_{:.2f}'.format(fnfp)
+    filename += '_DM_mass_{:.2f}_CSec_{:.2e}_Delta_{:.2f}'.format(mass, sigmap, delta)
+    if element == 'xenon':
+        filename += xenlab + '_'
+    filename += '.pdf'
+
+    er_list = np.logspace(np.log10(Emin), np.log10(Emax), 300)
 
     experiment_info, Qmin, Qmax = Element_Info(element)
+    lab = laboratory(element, xen=xenlab)
 
-    b8_nu_max = 16.18
-    b8_flux = Nu_spec(lab)
-    erb8 = np.logspace(np.log10(Emin), np.log10(b8_flux.max_er_from_nu(b8_nu_max, np.min(experiment_info[:,0]))),
-                       200)
-    nub8spec = np.zeros_like(erb8)
+    nu_comp = ['b8', 'b7l1', 'b7l2', 'pepl1', 'hep', 'pp', 'o15', 'n13', 'f17', 'atmnue',
+               'atmnuebar', 'atmnumu', 'atmnumubar', 'dsnb3mev', 'dsnb5mev', 'dsnb8mev',
+               'reactor', 'geoU', 'geoTh']
 
-    hep_nu_max = 18.77
-    hep_flux = Nu_spec(lab)
-    erhep = np.logspace(np.log10(Emin), np.log10(hep_flux.max_er_from_nu(hep_nu_max, np.min(experiment_info[:,0]))),
-                        200)
-    nuhepspec = np.zeros_like(erhep)
+    nu_labels = ['8B', '7B [384.3 keV]', '7B [861.3 keV]', 'pep', 'hep', 'pp', '15O', '13N', '17F',
+                 r'atm $\nu_e$', r'atm $\nu_{\bar e}$', r'atm $\nu_\mu$',
+                 r'atm $\nu_{\bar \mu}$', 'DSN 3 MeV',
+                 'DSN 5 MeV', 'DSN 8 MeV', 'Reactor', 'Geo U', 'Geo Th']
+
+    nu_lines = ['b7l1', 'b7l2', 'pepl1']
+    line_flux = [(0.1) * 5.00 * 10. ** 9., (0.9) * 5.00 * 10. ** 9., 1.44 * 10. ** 8.]
+    e_lines = [0.380, 0.860, 1.440]
+
+    color_list = ['#800080', '#000080', '#000080', '#8A2BE2', '#A52A2A', '#A0522D', '#DC143C', '#B8860B',
+                  '#8B008B', '#556B2F', '#FF8C00', '#9932CC', '#E9967A', '#FF1493', '#696969', '#228B22',
+                  '#40E0D0', '#CD5C5C', '#90EE90',]
+    line_list = ['-', '--', '--', '-', '-','-', '-','-', '-','-', '-','-', '-','-', '-','-', '-','-', '-']
+
+    nu_contrib = len(nu_comp)
+
+    nuspec = np.zeros(nu_contrib, dtype=object)
+
+    for i in range(nu_contrib):
+        nuspec[i] = np.zeros_like(er_list)
 
     for iso in experiment_info:
-        nub8spec += b8_flux.nu_rate('B8', erb8, iso)
-        nuhepspec += b8_flux.nu_rate('B8', erb8, iso)
-        nuhepspec += hep_flux.nu_rate('hep', erhep, iso)
+        for i in range(nu_contrib):
+            nuspec[i] += Nu_spec(lab).nu_rate(nu_comp[i], er_list, iso)
 
     coupling = "fnfp" + model[5:]
 
@@ -214,7 +238,6 @@ def neutrino_recoils(Emin=0.001, Emax=100., element='germanium', fs=18, save=Tru
     drdq_params['GF'] = GF
     drdq_params['time_info'] = time_info
 
-    er_list = np.logspace(np.log10(Emin), np.log10(Emax), 200)
     time_list = np.zeros_like(er_list)
     dm_spec = dRdQ(er_list, time_list, **drdq_params) * 10. ** 3. * s_to_yr
 
@@ -224,9 +247,10 @@ def neutrino_recoils(Emin=0.001, Emax=100., element='germanium', fs=18, save=Tru
     ax.set_xlabel(r'Recoil Energy  [keV]', fontsize=fs)
     ax.set_ylabel(r'Event Rate  [${\rm ton}^{-1} {\rm yr}^{-1} {\rm keV}^{-1}$]', fontsize=fs)
 
-    pl.plot(erb8, nub8spec, 'r', lw=1)
-    pl.plot(erhep, nuhepspec, 'r', lw=1)
-    pl.plot(er_list, dm_spec, 'b', lw=1)
+    for i in range(nu_contrib):
+        pl.plot(er_list, nuspec[i], color_list[i], ls=line_list[i], lw=1, label=nu_labels[i])
+
+    pl.plot(er_list, dm_spec, 'b', lw=1, label='Dark Matter')
 
     plt.tight_layout()
 
@@ -234,6 +258,9 @@ def neutrino_recoils(Emin=0.001, Emax=100., element='germanium', fs=18, save=Tru
     plt.ylim(ymin=10.**-5., ymax=10.**8.)
     ax.set_xscale("log")
     ax.set_yscale("log")
+
+    plt.legend(loc=1, frameon=True, framealpha=0.5, fontsize=9, ncol=1, fancybox=True)
+
     if save:
         plt.savefig(filename)
     return

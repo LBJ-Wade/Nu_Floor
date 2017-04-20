@@ -96,6 +96,7 @@ class Likelihood_analysis(object):
         self.nu_int_resp = np.zeros(nu_spec, dtype=object)
 
         self.events = energies
+
         self.element = element
         self.mass = mass
         self.dm_sigp = dm_sigp
@@ -174,9 +175,12 @@ class Likelihood_analysis(object):
         diff_dm = self.dm_recoils * self.exposure
 
         for i in range(self.nu_spec):
+            print self.events
             diff_nu[i] = self.nu_resp[i](self.events) * self.exposure
 
+
         lg_vle = (10. ** sig_dm * diff_dm + np.dot(list(map(lambda x:10**x,nu_norm)),diff_nu)) #nu norm array
+
         for i in range(len(lg_vle)):
             if lg_vle[i] > 0.:
                 like += -2. * np.log(lg_vle[i])
@@ -215,10 +219,10 @@ class Likelihood_analysis(object):
                 diff_nu[i] = self.nu_resp[i](self.events) * self.exposure
 
             lg_vle = (10. ** sig_dm * diff_dm + np.dot(list(map(lambda x: 10 ** x, nu_norm)), diff_nu))
-
-            grad_x += np.sum(-2. * np.log(10.) * diff_dm * 10. ** sig_dm / lg_vle.sum())
+            for i in range(len(lg_vle)):
+                grad_x += -2. * np.log(10.) * diff_dm[i] * 10. ** sig_dm / lg_vle[i]
             for i in range(self.nu_spec):
-                grad_nu[i] += np.sum(-2. * np.log(10.) * diff_nu[i] * 10**nu_norm[i] / lg_vle.sum())
+                grad_nu[i] += -2. * np.log(10.) * diff_nu[i] * 10**nu_norm[i] / lg_vle[i]
 
         if ret_just_nu:
             return grad_nu
