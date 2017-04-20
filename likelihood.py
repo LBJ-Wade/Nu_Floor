@@ -125,7 +125,7 @@ class Likelihood_analysis(object):
 
         self.dm_integ = R(Qmin=self.Qmin, Qmax=self.Qmax, **like_params) * 10.**3. * s_to_yr
 
-        eng_lge = np.logspace(np.log10(self.Qmin), np.log10(self.Qmax), 400)
+        eng_lge = np.logspace(np.log10(self.Qmin), np.log10(self.Qmax), 100)
 
         for i in range(nu_spec):
             nu_resp[i] = np.zeros_like(eng_lge)
@@ -484,7 +484,10 @@ class Nu_spec(object):
 
 
             if nu_component not in self.nu_lines:
-                diff_rate[i] = romberg(self.nu_recoil_spec, e_nu_min, e_nu_max, args=(e, mT, Z, A, nu_component))
+                ergs = np.logspace(np.log10(e_nu_min), np.log10(e_nu_max), 100)
+                diff_rate[i] = np.trapz(self.nu_recoil_spec(ergs, e, mT, Z, A, nu_component), ergs)
+                #diff_rate[i] = romberg(self.nu_recoil_spec, e_nu_min, e_nu_max, args=(e, mT, Z, A, nu_component))
+
             else:
                 if nu_component == self.nu_lines[0]:
                     diff_rate[i] = self.nu_recoil_spec(self.line[0], e, mT, Z, A, nu_component)
@@ -547,12 +550,16 @@ class Nu_spec(object):
             return 0.
 
     def nu_csec(self, enu, er, mT, Z, A):
+        # enu can be array, er cannot be
         Qw = (A - Z) - (1. - 4. * sw) * Z
-        if er < self.max_er_from_nu(enu, mT):
-            return gF ** 2. / (4. * np.pi) * Qw**2. * mT * \
-                   (1. - mT * er / (2. * enu**2.)) * self.helm_ff(er, A, Z, mT)
-        else:
-            return 0.
+        if type(enu) is not np.ndarray:
+            enu = np.array([enu])
+        ret = np.zeros_like(enu)
+        for i,en in enumerate(enu):
+            if er < self.max_er_from_nu(en, mT):
+                ret[i] = gF ** 2. / (4. * np.pi) * Qw**2. * mT * \
+                        (1. - mT * er / (2. * en**2.)) * self.helm_ff(er, A, Z, mT)
+        return ret
 
     def helm_ff(self, er, A, Z, mT):
         q = np.sqrt(2. * mT * er) * MeVtofm

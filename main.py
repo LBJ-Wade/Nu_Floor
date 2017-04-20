@@ -27,6 +27,7 @@ from rate_UV import *
 from helpers import *
 import os
 from scipy.stats import poisson
+import time
 
 path = os.getcwd()
 
@@ -38,6 +39,7 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
             element='germanium', exposure=1., delta=0., GF=False, time_info=False,
             file_tag='', n_runs=20):
 
+    #start_time = time.time()
     sig_list = np.logspace(np.log10(sig_low), np.log10(sig_high), n_sigs)
 
     testq = 0
@@ -194,16 +196,17 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
                                                  exposure, element, experiment_info, e_sim, times, nu_comp, labor,
                                                  nu_contrib,
                                                  Qmin, Qmax, time_info=time_info, GF=False)
+            print 'Likelihood init.'
             max_nodm = minimize(like_init_nodm.likelihood, np.zeros(nu_contrib),
                                 args=(np.array([-100.])), tol=0.001, method='SLSQP',
                                 options={'maxiter': 100},
                                 jac=like_init_nodm.like_gradi)
-
+            print 'Minimiztion one.'
             like_init_dm = Likelihood_analysis(model, coupling, mass, 1., fnfp,
                                                exposure, element, experiment_info, e_sim, times, nu_comp, labor,
                                                nu_contrib,
                                                Qmin, Qmax, time_info=time_info, GF=False)
-            #print max_nodm
+            print 'Likelihood init.'
             max_dm = minimize(like_init_dm.like_multi_wrapper,
                               np.concatenate((np.zeros(nu_contrib),np.array([np.log10(sigmap)]))),
                               tol=0.001, method='SLSQP',
@@ -235,6 +238,8 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
         print 'FINISHED CYCLE \n'
         print 'True DM mass: ', mass
         print 'True DM sigma_p: ', sigmap
+        #print("--- %s seconds ---" % (time.time() - start_time))
+
         if len(tstat_arr) > 0:
             print 'Median Q: {:.2f}'.format(np.median(tstat_arr))
             print 'Mean Q: {:.2f}\n'.format(np.mean(tstat_arr))
