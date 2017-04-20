@@ -127,7 +127,7 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
         cdf_dm /= cdf_dm.max()
         dm_events_sim = int(dm_rate * exposure)
 
-        if dm_events_sim < 5.:
+        if dm_events_sim < 1.:
             continue
 
         nevent_dm = 0
