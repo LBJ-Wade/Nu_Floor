@@ -327,6 +327,8 @@ def dRdQana(Er, time, V0, v_lag, v_esc, mx, sigp, fnfp, elt, rho_x=0.3, delta=0.
             val_zeta = zeta_GF(v_min, time, time_info)
         tot = v_independent * (val_zeta * ff_v_sq + val_eta * ff_v_std)
         out[i]=tot
+        if out[i] < 0.:
+            out[i] = 0.
     return out
 
 #anapole - assuming that the DM is spin 1/2 (relevant for the factor C_\chi)
@@ -411,8 +413,8 @@ def dRdQmagdip(Er, time, V0, v_lag, v_esc, mx, sigp, fnfp, elt, rho_x=0.3, delta
 
         q_squared = 2.*weight*mN*q
 
-        ff_v_std = formUV.factor_magdip_v_std_del(element_name,y_harm,mx,b_harm)
-        #ff_v_std = formUV.factor_magdip_v_std(element_name,y_harm,mx,b_harm)
+        #ff_v_std = formUV.factor_magdip_v_std_del(element_name,y_harm,mx,b_harm)
+        ff_v_std = formUV.factor_magdip_v_std(element_name,y_harm,mx,b_harm)
         ff_v_sq = formUV.factor_magdip_v_sq(element_name,y_harm)
         if not GF:
             val_eta = eta(v_min,v_esc,V0,v_lag_pass)
@@ -1131,7 +1133,10 @@ def R(mass=50.,
                 sigma_LS_massless=sigma_LS_massless, sigma_f1_massless=sigma_f1_massless,
                 sigma_f2_massless=sigma_f2_massless, sigma_f3_massless=sigma_f3_massless,
                 GF=GF, time_info=False, delta=delta)
+
     result = np.trapz(dRdQs,Qs)
+    if result < 0.:
+        print np.column_stack((Qs, dRdQs))
     return result
 
 

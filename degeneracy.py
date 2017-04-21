@@ -56,8 +56,16 @@ def find_degeneracy(nu_cand='b8', Emin=0.1, Emax=5., bins=20,
         nu_bins[i] = np.trapz(nuspec, erlist2)
 
     store_arr = np.zeros(Mnum * 3).reshape((Mnum, 3))
+    minMassarr = np.zeros_like(mass_list)
+    for j,mass in  enumerate(mass_list):
+        hold = np.zeros(len(experiment_info))
+        for i,iso in enumerate(experiment_info):
+            hold[i] = MinDMMass(iso[0], delta, Emin, vesc=533.+232.)
+        minMassarr[j] = np.min(hold)
 
     for i,mass in enumerate(mass_list):
+        if mass < minMassarr[i]:
+            continue
         drdq_params = default_rate_parameters.copy()
         drdq_params['element'] = element
         drdq_params['mass'] = mass
@@ -103,8 +111,8 @@ def find_degeneracy(nu_cand='b8', Emin=0.1, Emax=5., bins=20,
     return bfmass, bfcs, store_arr[bf_index, 1]
 
 
-def plt_model_degeneracy(nu_cand='b8', Emin=0.1, Emax=7.,bins=10,
-                         Mmin=5., Mmax=10., Mnum=100, element='germanium',
+def plt_model_degeneracy(nu_cand='b8', Emin=0.1, Emax=7., bins=10,
+                         Mmin=5., Mmax=14., Mnum=100, element='germanium',
                          fnfp=1., delta=0., GF=False, time_info=False, xenlab='LZ',
                          models=np.array(['sigma_si','sigma_sd','sigma_anapole','sigma_elecdip',
                                           'sigma_magdip','sigma_LS', 'sigma_si_massless', 'sigma_sd_massless',
@@ -115,8 +123,9 @@ def plt_model_degeneracy(nu_cand='b8', Emin=0.1, Emax=7.,bins=10,
                                           'brown', 'goldenrod', 'salmon', 'grey', 'indianred']),
                          tag='_'):
 
-    filename = test_plots + 'Model_Degeneracy_' + nu_cand + '_' + element
-    filename += '_Emin_{:.2f}_Emax_{:.2f}_delta_{:.2f}'.format(Emin, Emax, delta)
+    svfile = 'Model_Degeneracy_' + nu_cand + '_' + element
+    svfile += '_Emin_{:.2f}_Emax_{:.2f}_delta_{:.2f}'.format(Emin, Emax, delta)
+    filename = test_plots + svfile
     filename += tag + '.pdf'
 
     ergs = np.logspace(np.log10(Emin), np.log10(Emax), 200)
@@ -144,9 +153,9 @@ def plt_model_degeneracy(nu_cand='b8', Emin=0.1, Emax=7.,bins=10,
             label = label[:look_low] + ' ' + label[look_low+1:]
         coupling = "fnfp" + mm[5:]
         if (mm == 'sigma_si_massless' or mm == 'sigma_sd_massless' or
-                    mm == 'sigma_anapole_massless') and (nu_cand == 'b8'):
-            massmin = 800.
-            massmax = 1300.
+                    mm == 'sigma_anapole_massless'):
+            massmin = 500.
+            massmax = 1500.
         else:
             massmin = Mmin
             massmax = Mmax
@@ -169,9 +178,21 @@ def plt_model_degeneracy(nu_cand='b8', Emin=0.1, Emax=7.,bins=10,
         dm_spec[i] *= nu_events/dmevts
         pl.plot(ergs, dm_spec[i], c_list[i], lw=1, ls='--', label=label)
     bfits = bfits.T
-    np.savetxt(filename[:-3] + 'dat', bfits, comments='# ' + models)
-    plt.xlim(xmin=0.1, xmax=Emax)
-    plt.ylim(ymin=10. ** 0., ymax=3*10. ** 3.)
+
+    print 'Saving File to: ', svfile
+    models_str = ''
+    for i in range(len(models)):
+        models_str += models[i] + '  '
+    fmt_str = '%.4e ' * len(models)
+    np.savetxt(test_plots + 'BF_' + svfile, bfits, fmt=fmt_str, header=models_str)
+    fmt_str = '%.4e ' * (len(models) + 2)
+    np.savetxt(test_plots + 'Spectrum_' + svfile, np.column_stack((ergs, nuspec, dm_spec.T)), fmt=fmt_str,
+               header='Energy  NuSpectrum  ' + models_str)
+    plt.xlim(xmin=Emin, xmax=Emax)
+    if nu_cand == 'b8':
+        plt.ylim(ymin=10. ** 0., ymax=3*10. ** 3.)
+    elif nu_cand == 'atmnumu':
+        plt.ylim(ymin=10. ** -5., ymax=10.**-3.)
     ax.set_xscale("log")
     ax.set_yscale("log")
 
@@ -184,7 +205,7 @@ def plt_model_degeneracy(nu_cand='b8', Emin=0.1, Emax=7.,bins=10,
 
 def plt_inelastic_degeneracy(nu_cand='b8', Emin=0.1, Emax=7., sims=1000, bins=15,
                             Mmin=1., Mmax=100., Mnum=100, element='germanium',
-                            fnfp=1., delta=np.array([-30., -20., -10., 10., 30., 30.]),
+                            fnfp=1., delta=np.array([-10., -5., -10., 10., 30., 30.]),
                             GF=False, time_info=False, xenlab='LZ',
                             model='sigma_si', fs=18,
                             c_list=np.array(['blue', 'green','red','violet','aqua','magenta','orange',

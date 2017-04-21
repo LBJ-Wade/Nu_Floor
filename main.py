@@ -61,6 +61,14 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
     experiment_info, Qmin, Qmax = Element_Info(element)
     labor = laboratory(element, xen=xenLAB)
 
+    mindm = np.zeros(len(experiment_info[:, 0]))
+    for i, iso in enumerate(experiment_info):
+        mindm[i] = MinDMMass(iso[0], delta, Qmin, vesc=533.+232.)
+    MinDM = np.min(mindm)
+    print 'Minimum DM mass: ', MinDM
+    if mass < MinDM:
+        print 'Mass too small...'
+        exit()
     # 3\sigma for Chi-square Dist with 1 DoF means q = 9.0
     q_goal = 9.0
 
@@ -72,7 +80,7 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
                'atmnuebar', 'atmnumu', 'atmnumubar', 'dsnb3mev', 'dsnb5mev', 'dsnb8mev',
                'reactor', 'geoU', 'geoTh']
 
-    nu_lines = ['b7l1', 'b7l2','pepl1']
+    nu_lines = ['b7l1', 'b7l2', 'pepl1']
     line_flux = [(0.1) * 5.00 * 10. ** 9., (0.9) * 5.00 * 10. ** 9., 1.44 * 10. ** 8.]
     e_lines = [0.380, 0.860, 1.440]
 

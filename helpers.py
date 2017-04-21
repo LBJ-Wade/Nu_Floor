@@ -2,11 +2,13 @@ import numpy as np
 import os
 from scipy.interpolate import interp1d
 from scipy.special import erf
+from scipy.optimize import brentq
 #from scipy.interpolate import griddata,interp1d,interp2d
 
 path = os.getcwd()
 
 pi = np.pi #3.14159265359
+c_lgt = 2.998 * 10.**5.
 
 #eta0_a0_tabbed = np.loadtxt(os.environ['DMDD_AM_MAIN_PATH']+'/..'+'/dmdd/eta0_a0.dat')
 #cdef np.float_t[:,:] eta0_a0_tabbed = np.loadtxt(os.environ['DMDD_AM_MAIN_PATH']+'/..'+'/dmdd/eta0_a0.dat')
@@ -93,6 +95,32 @@ default_rate_parameters = dict(mass=50., sigma_si=0., sigma_sd=0., sigma_anapole
                                 fnfp_f2_massless=1.,  fnfp_f3_massless=1., v_lag=220.,  v_rms=220.,
                                 v_esc=533.,  rho_x=0.3, delta=0., GF=False, time_info=False)
 
+def ERplus(mx, mT, v, delta):
+    r_mass = mx * mT / (mx + mT)
+    if delta > 1e6 * (v/c_lgt)**2. * r_mass/2.:
+        return 0.
+    sqt_t = np.sqrt(1. - 2. * delta * 1e-6 * c_lgt**2. / (r_mass * v**2.))
+    return (v/c_lgt)**2. * r_mass**2. /(2.*mT) * 1e6 * (1. + sqt_t)**2.
+
+def ERminus(mx, mT, v, delta):
+    r_mass = mx * mT / (mx + mT)
+    if delta > 1e6 * (v/c_lgt)**2. * r_mass/2.:
+        return 0.
+    sqt_t = np.sqrt(1. - 2. * delta * 1e-6 * c_lgt**2. / (r_mass * v**2.))
+    return (v/c_lgt)**2. * r_mass**2. /(2.*mT) * 1e6 * (1. - sqt_t)**2.
+
+def vdelta(delta, mx, mT):
+    return c_lgt * np.sqrt()
+
+def MinDMMass(mT, delta, eng, vesc=533.+232.):
+    if delta <= 0:
+        mmin = 0.5
+    else:
+        term = 2. * (c_lgt/vesc)**2. * delta * 1e-6 / mT
+        mmin = mT * term / (1. - term)
+
+    solve = brentq(lambda x: ERplus(x, mT, vesc, delta) - eng, mmin, 1000.)
+    return solve
 
 def trapz(y, x):
     """
