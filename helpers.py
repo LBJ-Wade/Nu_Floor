@@ -114,7 +114,7 @@ def vdelta(delta, mx, mT):
 
 def MinDMMass(mT, delta, eng, vesc=533.+232.):
     if delta <= 0:
-        mmin = 0.5
+        mmin = 0.001
     else:
         term = 2. * (c_lgt/vesc)**2. * delta * 1e-6 / mT
         mmin = mT * term / (1. - term)
