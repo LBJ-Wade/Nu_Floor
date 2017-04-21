@@ -15,66 +15,6 @@ from experiments import *
 
 path = os.getcwd()
 
-b8nu = np.loadtxt(path + '/Nu_Flux/B8NeutrinoFlux.dat')
-b8nu_spectrum = interp1d(b8nu[:,0], b8nu[:,1], kind='cubic', fill_value=0., bounds_error=False)
-
-#note lines have linear interpolation in bin
-
-b7nul1 = np.loadtxt(path + '/Nu_Flux/B7NeutrinoLine1.dat')
-b7nul1_spectrum = interp1d(b7nul1[:,0], b7nul1[:,1], kind='linear', fill_value=0., bounds_error=False)
-
-b7nul2 = np.loadtxt(path + '/Nu_Flux/B7NeutrinoLine2.dat')
-b7nul2_spectrum = interp1d(b7nul2[:,0], b7nul2[:,1], kind='linear', fill_value=0., bounds_error=False)
-
-pepnul1 = np.loadtxt(path + '/Nu_Flux/PEPNeutrinoLine1.dat')
-pepnul1_spectrum = interp1d(pepnul1[:,0], pepnul1[:,1], kind='linear', fill_value=0., bounds_error=False)
-
-hepnu = np.loadtxt(path + '/Nu_Flux/HEPNeutrinoFlux.dat')
-hepnu_spectrum = interp1d(hepnu[:,0], hepnu[:,1], kind='cubic', fill_value=0., bounds_error=False)
-
-ppnu = np.loadtxt(path + '/Nu_Flux/PPNeutrinoFlux.dat')
-ppnu_spectrum = interp1d(ppnu[:,0], ppnu[:,1], kind='cubic', fill_value=0., bounds_error=False)
-
-o15nu = np.loadtxt(path + '/Nu_Flux/O15NeutrinoFlux.dat')
-o15nu_spectrum = interp1d(o15nu[:,0], o15nu[:,1], kind='cubic', fill_value=0., bounds_error=False)
-
-n13nu = np.loadtxt(path + '/Nu_Flux/N13NeutrinoFlux.dat')
-n13nu_spectrum = interp1d(n13nu[:,0], n13nu[:,1], kind='cubic', fill_value=0., bounds_error=False)
-
-f17nu = np.loadtxt(path + '/Nu_Flux/F17NeutrinoFlux.dat')
-f17nu_spectrum = interp1d(f17nu[:,0], f17nu[:,1], kind='cubic', fill_value=0., bounds_error=False)
-
-atmnue = np.loadtxt(path + '/Nu_Flux/atmnue_noosc_fluka_flux_norm.dat')
-atmnue_spectrum = interp1d(atmnue[:,0], atmnue[:,1], kind='cubic', fill_value=0., bounds_error=False)
-
-atmnuebar = np.loadtxt(path + '/Nu_Flux/atmnuebar_noosc_fluka_flux_norm.dat')
-atmnuebar_spectrum = interp1d(atmnuebar[:,0], atmnuebar[:,1], kind='cubic', fill_value=0., bounds_error=False)
-
-atmnumu = np.loadtxt(path + '/Nu_Flux/atmnumu_noosc_fluka_flux_norm.dat')
-atmnumu_spectrum = interp1d(atmnumu[:,0], atmnumu[:,1], kind='cubic', fill_value=0., bounds_error=False)
-
-atmnumubar = np.loadtxt(path + '/Nu_Flux/atmnumubar_noosc_fluka_flux_norm.dat')
-atmnumubar_spectrum = interp1d(atmnumubar[:,0], atmnumubar[:,1], kind='cubic', fill_value=0., bounds_error=False)
-
-dsnb3mevnu = np.loadtxt(path + '/Nu_Flux/dsnb_3mev_flux_norm.dat')
-dsnb3mevnu_spectrum = interp1d(dsnb3mevnu[:,0], dsnb3mevnu[:,1], kind='cubic', fill_value=0., bounds_error=False)
-
-dsnb5mevnu = np.loadtxt(path + '/Nu_Flux/dsnb_5mev_flux_norm.dat')
-dsnb5mevnu_spectrum = interp1d(dsnb5mevnu[:,0], dsnb5mevnu[:,1], kind='cubic', fill_value=0., bounds_error=False)
-
-dsnb8mevnu = np.loadtxt(path + '/Nu_Flux/dsnb_8mev_flux_norm.dat')
-dsnb8mevnu_spectrum = interp1d(dsnb8mevnu[:,0], dsnb8mevnu[:,1], kind='cubic', fill_value=0., bounds_error=False)
-
-# Reactor Nus
-reactor_nu = np.loadtxt(path + '/Nu_Flux/Reactor_Spectrum.dat')
-reactor_nu_spectrum = interp1d(reactor_nu[:,0], reactor_nu[:,1], kind='cubic', fill_value=0., bounds_error=False)
-
-# Geo nus
-geo_nu = np.loadtxt(path + '/Nu_Flux/Geo_nu.dat')
-geoU_spectrum = interp1d(geo_nu[:,0], geo_nu[:,1], kind='linear', fill_value=0., bounds_error=False)
-geoTh_spectrum = interp1d(geo_nu[:,0], geo_nu[:,2], kind='linear', fill_value=0., bounds_error=False)
-
-
 
 gF = 1.16637 * 10. ** -5. # Gfermi in GeV^-2
 sw = 0.2312 # sin(theat_weak)^2
@@ -149,6 +89,12 @@ class Likelihood_analysis(object):
         sig_dm = norms[-1]
         return self.likelihood(nu_norm, sig_dm, return_grad=False)
 
+    def like_dmONLY_wrapper(self, sig_dm, grad=False):
+        return self.likelihood(np.array([-100.]), sig_dm, return_grad=False)
+
+    def likegrad_dmONLY_wrapper(self, sig_dm, grad=False):
+        return self.like_gradi(np.array([-100.]), sig_dm, ret_just_nu=False, ret_just_dm=True)
+
     def likelihood(self, nu_norm, sig_dm, return_grad=False):
         # - 2 log likelihood
         # nu_norm in units of cm^-2 s^-1, sig_dm in units of cm^2
@@ -194,7 +140,7 @@ class Likelihood_analysis(object):
         sig_dm = norms[-1]
         return self.like_gradi(nu_norm, sig_dm, ret_just_nu=False)
 
-    def like_gradi(self, nu_norm, sig_dm, ret_just_nu=True):
+    def like_gradi(self, nu_norm, sig_dm, ret_just_nu=True, ret_just_dm=False):
         grad_x = 0.
         diff_nu = np.zeros(self.nu_spec, dtype=object)
         grad_nu = np.zeros(self.nu_spec)
@@ -228,7 +174,10 @@ class Likelihood_analysis(object):
         if ret_just_nu:
             return grad_nu
         else:
-            return np.concatenate((grad_nu, np.array([grad_x])))
+            if ret_just_dm:
+                return np.array([grad_x])
+            else:
+                return np.concatenate((grad_nu, np.array([grad_x])))
 
 
     def nu_gaussian(self, nu_component, flux_n, return_deriv=False):
@@ -479,7 +428,7 @@ class Nu_spec(object):
                 e_nu_max = 10.
                 nu_mean_f = reactor_flux(loc=self.lab)[0]
             elif nu_component == 'geoU':
-                e_nu_max = 4.
+                e_nu_max = 3.99
                 nu_mean_f = geo_flux(loc=self.lab, el='U')[0]
             elif nu_component == 'geoTh':
                 e_nu_max = 2.26
@@ -487,7 +436,6 @@ class Nu_spec(object):
 
             else:
                 return 0.
-
 
             if nu_component not in self.nu_lines:
                 ergs = np.logspace(np.log10(e_nu_min), np.log10(e_nu_max), 100)
@@ -507,7 +455,7 @@ class Nu_spec(object):
         return diff_rate
 
     def max_er_from_nu(self, enu, mT):
-        return 2. * enu**2. / mT
+        return 2. * enu**2. / (mT + 2. * enu * 1e-3)
 
     def nu_recoil_spec(self, enu, er, mT, Z, A, nu_comp):
 

@@ -264,7 +264,7 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
                     np.savetxt(file_info, np.array([np.log10(sigmap), testq]))
                 break
 
-            else:
+            elif testq < 1e-2:
                 print 'testq: {} --> WRITE'.format(testq)
                 print '~~~~~~~~~~~~~~~~~~~~~MOVING ON~~~~~~~~~~~~~~~~~~~~~'
                 print '\n'

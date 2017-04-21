@@ -193,7 +193,7 @@ def neutrino_recoils(Emin=0.001, Emax=100., element='germanium', fs=18, save=Tru
         filename += xenlab + '_'
     filename += '.pdf'
 
-    er_list = np.logspace(np.log10(Emin), np.log10(Emax), 300)
+    er_list = np.logspace(np.log10(Emin), np.log10(Emax), 500)
 
     experiment_info, Qmin, Qmax = Element_Info(element)
     lab = laboratory(element, xen=xenlab)

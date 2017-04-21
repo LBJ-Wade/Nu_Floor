@@ -1,8 +1,10 @@
 import numpy as np
 import os
+from scipy.interpolate import interp1d
 from scipy.special import erf
 #from scipy.interpolate import griddata,interp1d,interp2d
 
+path = os.getcwd()
 
 pi = np.pi #3.14159265359
 
@@ -18,6 +20,66 @@ pi = np.pi #3.14159265359
 #cdef np.float_t[:,:] eta1_a1_tabbed = np.loadtxt(os.environ['DMDD_AM_MAIN_PATH']+'/../'+'/dmdd/eta1_a1.dat')
 #eta1_b1_tabbed = np.loadtxt(os.environ['DMDD_AM_MAIN_PATH']+'/../'+'/dmdd/eta1_b1.dat')
 #cdef np.float_t[:,:] eta1_b1_tabbed = np.loadtxt(os.environ['DMDD_AM_MAIN_PATH']+'/../'+'/dmdd/eta1_b1.dat')
+
+b8nu = np.loadtxt(path + '/Nu_Flux/B8NeutrinoFlux.dat')
+b8nu_spectrum = interp1d(b8nu[:,0], b8nu[:,1], kind='cubic', fill_value=0., bounds_error=False)
+
+#note lines have linear interpolation in bin
+
+b7nul1 = np.loadtxt(path + '/Nu_Flux/B7NeutrinoLine1.dat')
+b7nul1_spectrum = interp1d(b7nul1[:,0], b7nul1[:,1], kind='linear', fill_value=0., bounds_error=False)
+
+b7nul2 = np.loadtxt(path + '/Nu_Flux/B7NeutrinoLine2.dat')
+b7nul2_spectrum = interp1d(b7nul2[:,0], b7nul2[:,1], kind='linear', fill_value=0., bounds_error=False)
+
+pepnul1 = np.loadtxt(path + '/Nu_Flux/PEPNeutrinoLine1.dat')
+pepnul1_spectrum = interp1d(pepnul1[:,0], pepnul1[:,1], kind='linear', fill_value=0., bounds_error=False)
+
+hepnu = np.loadtxt(path + '/Nu_Flux/HEPNeutrinoFlux.dat')
+hepnu_spectrum = interp1d(hepnu[:,0], hepnu[:,1], kind='cubic', fill_value=0., bounds_error=False)
+
+ppnu = np.loadtxt(path + '/Nu_Flux/PPNeutrinoFlux.dat')
+ppnu_spectrum = interp1d(ppnu[:,0], ppnu[:,1], kind='cubic', fill_value=0., bounds_error=False)
+
+o15nu = np.loadtxt(path + '/Nu_Flux/O15NeutrinoFlux.dat')
+o15nu_spectrum = interp1d(o15nu[:,0], o15nu[:,1], kind='cubic', fill_value=0., bounds_error=False)
+
+n13nu = np.loadtxt(path + '/Nu_Flux/N13NeutrinoFlux.dat')
+n13nu_spectrum = interp1d(n13nu[:,0], n13nu[:,1], kind='cubic', fill_value=0., bounds_error=False)
+
+f17nu = np.loadtxt(path + '/Nu_Flux/F17NeutrinoFlux.dat')
+f17nu_spectrum = interp1d(f17nu[:,0], f17nu[:,1], kind='cubic', fill_value=0., bounds_error=False)
+
+atmnue = np.loadtxt(path + '/Nu_Flux/atmnue_noosc_fluka_flux_norm.dat')
+atmnue_spectrum = interp1d(atmnue[:,0], atmnue[:,1], kind='cubic', fill_value=0., bounds_error=False)
+
+atmnuebar = np.loadtxt(path + '/Nu_Flux/atmnuebar_noosc_fluka_flux_norm.dat')
+atmnuebar_spectrum = interp1d(atmnuebar[:,0], atmnuebar[:,1], kind='cubic', fill_value=0., bounds_error=False)
+
+atmnumu = np.loadtxt(path + '/Nu_Flux/atmnumu_noosc_fluka_flux_norm.dat')
+atmnumu_spectrum = interp1d(atmnumu[:,0], atmnumu[:,1], kind='cubic', fill_value=0., bounds_error=False)
+
+atmnumubar = np.loadtxt(path + '/Nu_Flux/atmnumubar_noosc_fluka_flux_norm.dat')
+atmnumubar_spectrum = interp1d(atmnumubar[:,0], atmnumubar[:,1], kind='cubic', fill_value=0., bounds_error=False)
+
+dsnb3mevnu = np.loadtxt(path + '/Nu_Flux/dsnb_3mev_flux_norm.dat')
+dsnb3mevnu_spectrum = interp1d(dsnb3mevnu[:,0], dsnb3mevnu[:,1], kind='cubic', fill_value=0., bounds_error=False)
+
+dsnb5mevnu = np.loadtxt(path + '/Nu_Flux/dsnb_5mev_flux_norm.dat')
+dsnb5mevnu_spectrum = interp1d(dsnb5mevnu[:,0], dsnb5mevnu[:,1], kind='cubic', fill_value=0., bounds_error=False)
+
+dsnb8mevnu = np.loadtxt(path + '/Nu_Flux/dsnb_8mev_flux_norm.dat')
+dsnb8mevnu_spectrum = interp1d(dsnb8mevnu[:,0], dsnb8mevnu[:,1], kind='cubic', fill_value=0., bounds_error=False)
+
+# Reactor Nus
+reactor_nu = np.loadtxt(path + '/Nu_Flux/Reactor_Spectrum.dat')
+reactor_nu_spectrum = interp1d(reactor_nu[:,0], reactor_nu[:,1], kind='cubic', fill_value=0., bounds_error=False)
+
+# Geo nus
+geo_nu = np.loadtxt(path + '/Nu_Flux/Geo_nu.dat')
+geoU_spectrum = interp1d(geo_nu[:,0], geo_nu[:,1], kind='linear', fill_value=0., bounds_error=False)
+geoTh_spectrum = interp1d(geo_nu[:,0], geo_nu[:,2], kind='linear', fill_value=0., bounds_error=False)
+
 
 default_rate_parameters = dict(mass=50., sigma_si=0., sigma_sd=0., sigma_anapole=0., sigma_magdip=0.,
                                 sigma_elecdip=0., sigma_LS=0., sigma_f1=0., sigma_f2=0., sigma_f3=0.,

@@ -20,6 +20,8 @@ def make_a_floor(element='germanium', model='sigma_si', fnfp=1., exposure=1.,
     file_sv += '_Exposure_{:.2f}_tonyr_QGoal_{:.2f}'.format(exposure, qaim)
     file_sv += tag + '.dat'
 
+    open(file_sv, 'w').close()
+
     print 'Look for files of form: ', file_info
     files = glob.glob(file_info)
     #print files

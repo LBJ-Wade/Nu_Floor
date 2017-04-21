@@ -137,7 +137,7 @@ def dRdQSI_massless(Er, time, V0, v_lag, v_esc, mx, sigp, fnfp, elt, rho_x=0.3, 
     b_harm = 5.0677*(41.467/(45.*weight**(-1./3.) - 25.*weight**(-2./3.)))**0.5 #this is in [1/GeV]
     qref = 0.1
     m_reduced_sq = mx**2.*mN**2./(mx+mN)**2.
-    v_independent = ratenorm * rho_x * sigp * PAR_NORMS['sigma_si_massless'] / (2. * mx * m_reduced_sq)
+    v_independent = ratenorm * rho_x * sigp / (2. * mx * m_reduced_sq)
     for i in range(npts):
         q = Er[i]*10**-6. #converting Er from keV-->GeV.
         y_harm = weight*mN*q*b_harm**2/2. #this takes q in [GeV].
@@ -181,7 +181,7 @@ def dRdQSD(Er, time, V0, v_lag, v_esc, mx, sigp, fnfp, elt, rho_x=0.3, delta=0.,
     weight = eltshort[elt]['weight']
     b_harm = 5.0677*(41.467/(45.*weight**(-1./3.) - 25.*weight**(-2./3.)))**0.5 #this is in [1/GeV]
     m_reduced_sq = mx**2.*mN**2./(mx+mN)**2.
-    v_independent = ratenorm * rho_x * sigp * PAR_NORMS['sigma_sd'] / (2 * mx * m_reduced_sq)
+    v_independent = ratenorm * rho_x * sigp / (2 * mx * m_reduced_sq)
     for i in range(npts):
         q = Er[i]*10**-6. #converting Er from keV-->GeV.
         y_harm = weight*mN*q*b_harm**2/2. #this takes q in [GeV].
@@ -222,7 +222,7 @@ def dRdQSD_neutron(Er, time, V0, v_lag, v_esc, mx, sigp, fnfp, elt, rho_x=0.3, d
     weight = eltshort[elt]['weight']
     b_harm = 5.0677*(41.467/(45.*weight**(-1./3.) - 25.*weight**(-2./3.)))**0.5 #this is in [1/GeV]
     m_reduced_sq = mx**2.*mN**2./(mx+mN)**2.
-    v_independent = ratenorm * rho_x * sigp * PAR_NORMS['sigma_sd'] / (2 * mx * 3 * m_reduced_sq)
+    v_independent = ratenorm * rho_x * sigp / (2 * mx * 3 * m_reduced_sq)
     for i in range(npts):
         q = Er[i]*10**-6. #converting Er from keV-->GeV.
         y_harm = weight*mN*q*b_harm**2/2. #this takes q in [GeV].
@@ -265,7 +265,7 @@ def dRdQSD_massless(Er, time, V0, v_lag, v_esc, mx, sigp, fnfp, elt, rho_x=0.3, 
     b_harm = 5.0677*(41.467/(45.*weight**(-1./3.) - 25.*weight**(-2./3.)))**0.5 #this is in [1/GeV]
     qref = 0.1
     m_reduced_sq = mx**2.*mN**2./(mx+mN)**2.
-    v_independent = ratenorm * rho_x * sigp * PAR_NORMS['sigma_sd_massless'] / (2 * mx * m_reduced_sq)
+    v_independent = ratenorm * rho_x * sigp / (2 * mx * m_reduced_sq)
     for i in range(npts):
         q = Er[i]*10**-6. #converting Er from keV-->GeV.
         y_harm = weight*mN*q*b_harm**2/2. #this takes q in [GeV].
@@ -308,7 +308,7 @@ def dRdQana(Er, time, V0, v_lag, v_esc, mx, sigp, fnfp, elt, rho_x=0.3, delta=0.
     weight = eltshort[elt]['weight']
     b_harm = 5.0677*(41.467/(45.*weight**(-1./3.) - 25.*weight**(-2./3.)))**0.5 #this is in [1/GeV]
     m_reduced_sq = mx**2.*mN**2./(mx+mN)**2.
-    v_independent = ratenorm * rho_x * sigp * PAR_NORMS['sigma_anapole'] / (2 * mx * m_reduced_sq)
+    v_independent = ratenorm * rho_x * sigp / (2 * mx * m_reduced_sq)
     for i in range(npts):
         q = Er[i]*10**-6. #converting Er from keV-->GeV.
         y_harm = weight*mN*q*b_harm**2/2. #this takes q in [GeV].
@@ -355,7 +355,7 @@ def dRdQana_massless(Er, time, V0, v_lag, v_esc, mx, sigp, fnfp, elt, rho_x=0.3,
     b_harm = 5.0677*(41.467/(45.*weight**(-1./3.) - 25.*weight**(-2./3.)))**0.5 #this is in [1/GeV]
     qref = 0.1
     m_reduced_sq = mx**2.*mN**2./(mx+mN)**2.
-    v_independent = ratenorm * rho_x * sigp * PAR_NORMS['sigma_anapole_massless'] / (2 * mx * m_reduced_sq)
+    v_independent = ratenorm * rho_x * sigp / (2 * mx * m_reduced_sq)
     for i in range(npts):
         q = Er[i]*10**-6. #converting Er from keV-->GeV.
         y_harm = weight*mN*q*b_harm**2/2. #this takes q in [GeV].
@@ -401,7 +401,7 @@ def dRdQmagdip(Er, time, V0, v_lag, v_esc, mx, sigp, fnfp, elt, rho_x=0.3, delta
     b_harm = 5.0677*(41.467/(45.*weight**(-1./3.) - 25.*weight**(-2./3.)))**0.5 #this is in [1/GeV]
     qref = 0.1
     m_reduced_sq = mx**2.*mN**2./(mx+mN)**2.
-    v_independent = ratenorm * rho_x * sigp * PAR_NORMS['sigma_magdip'] / (2 * mx * m_reduced_sq)
+    v_independent = ratenorm * rho_x * sigp  / (2 * mx * m_reduced_sq)
     for i in range(npts):
         q = Er[i]*10**-6. #converting Er from keV-->GeV.
         y_harm = weight*mN*q*b_harm**2/2. #this takes q in [GeV].
@@ -420,7 +420,7 @@ def dRdQmagdip(Er, time, V0, v_lag, v_esc, mx, sigp, fnfp, elt, rho_x=0.3, delta
         elif GF:
             val_eta = eta_GF(v_min, time, time_info)
             val_zeta = zeta_GF(v_min, time, time_info)
-        print ff_v_std, ff_v_sq
+
         tot = v_independent * q_squared/(qref**2.) * ( val_zeta * ff_v_sq +  val_eta * ff_v_std )
         out[i]=tot
     return out
@@ -450,7 +450,7 @@ def dRdQmagdip_massless(Er, time, V0, v_lag, v_esc, mx, sigp, fnfp, elt, rho_x=0
     b_harm = 5.0677*(41.467/(45.*weight**(-1./3.) - 25.*weight**(-2./3.)))**0.5 #this is in [1/GeV]
     qref = 0.1
     m_reduced_sq = mx**2.*mN**2./(mx+mN)**2.
-    v_independent = ratenorm * rho_x * sigp * PAR_NORMS['sigma_magdip_massless'] / (2 * mx * m_reduced_sq)
+    v_independent = ratenorm * rho_x * sigp  / (2 * mx * m_reduced_sq)
     for i in range(npts):
         q = Er[i]*10**-6. #converting Er from keV-->GeV.
         y_harm = weight*mN*q*b_harm**2/2. #this takes q in [GeV].
@@ -496,7 +496,7 @@ def dRdQelecdip(Er, time, V0, v_lag, v_esc, mx, sigp, fnfp, elt, rho_x=0.3, delt
     b_harm = 5.0677*(41.467/(45.*weight**(-1./3.) - 25.*weight**(-2./3.)))**0.5 #this is in [1/GeV]
     qref = 0.1
     m_reduced_sq = mx**2.*mN**2./(mx+mN)**2.
-    v_independent = ratenorm * rho_x * sigp * PAR_NORMS['sigma_elecdip'] / (2 * mx * m_reduced_sq)
+    v_independent = ratenorm * rho_x * sigp / (2 * mx * m_reduced_sq)
     for i in range(npts):
         q = Er[i]*10**-6. #converting Er from keV-->GeV.
         y_harm = weight*mN*q*b_harm**2/2. #this takes q in [GeV].
@@ -539,7 +539,7 @@ def dRdQelecdip_massless(Er, time, V0, v_lag, v_esc, mx, sigp, fnfp, elt, rho_x=
     b_harm = 5.0677*(41.467/(45.*weight**(-1./3.) - 25.*weight**(-2./3.)))**0.5 #this is in [1/GeV]
     qref = 0.1
     m_reduced_sq = mx**2.*mN**2./(mx+mN)**2.
-    v_independent = ratenorm * rho_x * sigp * PAR_NORMS['sigma_elecdip_massless'] / (2 * mx * m_reduced_sq)
+    v_independent = ratenorm * rho_x * sigp / (2 * mx * m_reduced_sq)
     for i in range(npts):
         q = Er[i]*10**-6. #converting Er from keV-->GeV.
         y_harm = weight*mN*q*b_harm**2/2. #this takes q in [GeV].
@@ -581,7 +581,7 @@ def dRdQLS(Er, time, V0, v_lag, v_esc, mx, sigp, fnfp, elt, rho_x=0.3, delta=0.,
     weight = eltshort[elt]['weight']
     b_harm = 5.0677*(41.467/(45.*weight**(-1./3.) - 25.*weight**(-2./3.)))**0.5 #this is in [1/GeV]
     m_reduced_sq = mx**2.*mN**2./(mx+mN)**2.
-    v_independent = ratenorm * rho_x * sigp * PAR_NORMS['sigma_LS'] / (2 * mx * m_reduced_sq)
+    v_independent = ratenorm * rho_x * sigp / (2 * mx * m_reduced_sq)
     qref = 0.1
     for i in range(npts):
         q = Er[i]*10**-6. #converting Er from keV-->GeV.
@@ -628,7 +628,7 @@ def dRdQLS_massless(Er, time, V0, v_lag, v_esc, mx, sigp, fnfp, elt, rho_x=0.3, 
     b_harm = 5.0677*(41.467/(45.*weight**(-1./3.) - 25.*weight**(-2./3.)))**0.5 #this is in [1/GeV]
     qref = 0.1
     m_reduced_sq = mx**2.*mN**2./(mx+mN)**2.
-    v_independent = ratenorm * rho_x * sigp * PAR_NORMS['sigma_LS_massless'] / (2 * mx * m_reduced_sq) * (qref**2./(mN**2))**2
+    v_independent = ratenorm * rho_x * sigp / (2 * mx * m_reduced_sq) * (qref**2./(mN**2))**2
     for i in range(npts):
         q = Er[i]*10**-6. #converting Er from keV-->GeV.
         y_harm = weight*mN*q*b_harm**2/2. #this takes q in [GeV].    
@@ -636,7 +636,7 @@ def dRdQLS_massless(Er, time, V0, v_lag, v_esc, mx, sigp, fnfp, elt, rho_x=0.3, 
         #v_min = ((2.*weight*mN*q))**0.5/(2.*weight*mN*mx/(weight*mN+mx)) *3.*10.**5
         v_min = 1./np.sqrt(2.*weight*mN*q)*np.abs(weight*mN*q/(weight*mN*mx/(weight*mN+mx))+delta*10**-6.)*3.*10.**5
 
-        ff = formUV.factor_LS(element_name,y_harm,fnfp,mx)
+        ff = formUV.factor_LS_vstd(element_name,y_harm,fnfp,mx, b_harm)
         if not GF:
             val_eta = eta(v_min,v_esc,V0,v_lag_pass)
         elif GF:
@@ -670,7 +670,7 @@ def dRdQf1(Er, time, V0, v_lag, v_esc, mx, sigp, fnfp, elt, rho_x=0.3, delta=0.,
     b_harm = 5.0677*(41.467/(45.*weight**(-1./3.) - 25.*weight**(-2./3.)))**0.5 #this is in [1/GeV]
     qref = 0.1
     m_reduced_sq = mx**2.*mN**2./(mx+mN)**2.
-    v_independent = ratenorm * rho_x * sigp * PAR_NORMS['sigma_f1'] / (2 * mx * m_reduced_sq)
+    v_independent = ratenorm * rho_x * sigp / (2 * mx * m_reduced_sq)
     for i in range(npts):
         q = Er[i]*10**-6. #converting Er from keV-->GeV.
         y_harm = weight*mN*q*b_harm**2/2. #this takes q in [GeV].
@@ -714,7 +714,7 @@ def dRdQf1_massless(Er, time, V0, v_lag, v_esc, mx, sigp, fnfp, elt, rho_x=0.3, 
     b_harm = 5.0677*(41.467/(45.*weight**(-1./3.) - 25.*weight**(-2./3.)))**0.5 #this is in [1/GeV]
     qref = 0.1
     m_reduced_sq = mx**2.*mN**2./(mx+mN)**2.
-    v_independent = ratenorm * rho_x * sigp * PAR_NORMS['sigma_f1_massless'] / (2 * mx * m_reduced_sq)
+    v_independent = ratenorm * rho_x * sigp / (2 * mx * m_reduced_sq)
     for i in range(npts):
         q = Er[i]*10**-6. #converting Er from keV-->GeV.
         y_harm = weight*mN*q*b_harm**2/2. #this takes q in [GeV].
@@ -757,7 +757,7 @@ def dRdQf2(Er, time, V0, v_lag, v_esc, mx, sigp, fnfp, elt, rho_x=0.3, delta=0.,
     b_harm = 5.0677*(41.467/(45.*weight**(-1./3.) - 25.*weight**(-2./3.)))**0.5 #this is in [1/GeV]
     qref= 0.1
     m_reduced_sq = mx**2.*mN**2./(mx+mN)**2.
-    v_independent = ratenorm * rho_x * sigp * PAR_NORMS['sigma_f2'] / (2 * mx * m_reduced_sq)
+    v_independent = ratenorm * rho_x * sigp / (2 * mx * m_reduced_sq)
     for i in range(npts):
         q = Er[i]*10**-6. #converting Er from keV-->GeV.
         y_harm = weight*mN*q*b_harm**2/2. #this takes q in [GeV].
@@ -799,7 +799,7 @@ def dRdQf2_massless(Er, time, V0, v_lag, v_esc, mx, sigp, fnfp, elt, rho_x=0.3, 
     b_harm = 5.0677*(41.467/(45.*weight**(-1./3.) - 25.*weight**(-2./3.)))**0.5 #this is in [1/GeV]
     qref= 0.1
     m_reduced_sq = mx**2.*mN**2./(mx+mN)**2.
-    v_independent = ratenorm * rho_x * sigp * PAR_NORMS['sigma_f2_massless'] / (2 * mx * m_reduced_sq)
+    v_independent = ratenorm * rho_x * sigp / (2 * mx * m_reduced_sq)
     for i in range(npts):
         q = Er[i]*10**-6. #converting Er from keV-->GeV.
         y_harm = weight*mN*q*b_harm**2/2. #this takes q in [GeV].
@@ -842,7 +842,7 @@ def dRdQf3(Er, time, V0, v_lag, v_esc, mx, sigp, fnfp, elt, rho_x=0.3, delta=0.,
     b_harm = 5.0677*(41.467/(45.*weight**(-1./3.) - 25.*weight**(-2./3.)))**0.5 #this is in [1/GeV]
     qref = 0.1
     m_reduced_sq = mx**2.*mN**2./(mx+mN)**2.
-    v_independent = ratenorm * rho_x * sigp * PAR_NORMS['sigma_f3'] / (2 * mx * m_reduced_sq)
+    v_independent = ratenorm * rho_x * sigp / (2 * mx * m_reduced_sq)
     for i in range(npts):
         q = Er[i]*10**-6. #converting Er from keV-->GeV.
         y_harm = weight*mN*q*b_harm**2/2. #this takes q in [GeV].
@@ -884,7 +884,7 @@ def dRdQf3_massless(Er, time, V0, v_lag, v_esc, mx, sigp, fnfp, elt, rho_x=0.3, 
     weight = eltshort[elt]['weight']
     b_harm = 5.0677*(41.467/(45.*weight**(-1./3.) - 25.*weight**(-2./3.)))**0.5 #this is in [1/GeV]
     m_reduced_sq = mx**2.*mN**2./(mx+mN)**2.
-    v_independent = ratenorm * rho_x * sigp * PAR_NORMS['sigma_f3_massless'] / (2 * mx * m_reduced_sq)
+    v_independent = ratenorm * rho_x * sigp / (2 * mx * m_reduced_sq)
     for i in range(npts):
         q = Er[i]*10**-6. #converting Er from keV-->GeV.
         y_harm = weight*mN*q*b_harm**2/2. #this takes q in [GeV].
