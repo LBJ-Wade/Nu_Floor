@@ -39,12 +39,19 @@ def Element_Info(element):
         Atope = np.array([40.])
         mfrac = np.array([1.])
 
-    elif element == 'silicon':
-        Qmin = 0.1
+    elif element == 'Na':
+        Qmin = 1.
         Qmax = 50.
-        Z = 14.
-        Atope = np.array([28., 29., 30.])
-        mfrac = np.array([0.922, 0.047, 0.031])
+        Z = 11.
+        Atope = np.array([23.])
+        mfrac = np.array([1.])
+
+    elif element == 'I':
+        Qmin = 1.
+        Qmax = 50.
+        Z = 53.
+        Atope = np.array([127.])
+        mfrac = np.array([1.])
 
     elif element == 'fluorine':
         Qmin = 1.
@@ -73,6 +80,8 @@ def laboratory(elem, xen='LZ'):
         else:
             raise ValueError
     elif elem == 'argon':
+        lab = 'GS'
+    elif elem == 'Na' or elem == 'I':
         lab = 'GS'
     else:
         raise ValueError

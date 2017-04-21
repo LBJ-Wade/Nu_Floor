@@ -192,7 +192,7 @@ def plt_model_degeneracy(nu_cand='b8', Emin=0.1, Emax=7., bins=10,
     if nu_cand == 'b8':
         plt.ylim(ymin=10. ** 0., ymax=3*10. ** 3.)
     elif nu_cand == 'atmnumu':
-        plt.ylim(ymin=10. ** -5., ymax=10.**-3.)
+        plt.ylim(ymin=10. ** -5., ymax=5.*10.**-2.)
     ax.set_xscale("log")
     ax.set_yscale("log")
 

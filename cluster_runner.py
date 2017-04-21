@@ -8,13 +8,16 @@ import numpy as np
 
 path = os.getcwd()
 
+mass_arr = np.concatenate((np.linspace(1., 8., 8), np.linspace(9., 25., 8),
+                           np.logspace(np.log10(30.), 3., 20)))
+
 parser = argparse.ArgumentParser()
 
 parser.add_argument('--sig_high', type=float, default=10.**-44.)  # x-sec range
-parser.add_argument('--sig_low', type=float, default=10.**-46.)  # x-sec range
+parser.add_argument('--sig_low', type=float, default=10.**-48.)  # x-sec range
 parser.add_argument('--n_sigs', type=int, default=30)  # number of cross-section tests in x-sec range
 parser.add_argument('--model', default="sigma_si") 
-parser.add_argument('--masses', nargs='+', default=np.linspace(6., 7., 1), type=float,)
+parser.add_argument('--masses', nargs='+', default=mass_arr, type=float,)
 parser.add_argument('--fnfp', type=float, default=1.)
 parser.add_argument('--element', nargs='+', default=['germanium'])
 parser.add_argument('--exposure', type=float, default=1.)  # Ton-yr
