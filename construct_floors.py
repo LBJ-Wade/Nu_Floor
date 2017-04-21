@@ -36,7 +36,7 @@ def make_a_floor(element='germanium', model='sigma_si', fnfp=1., exposure=1.,
             try:
                 load_rm0 = load[load[:, 1] > 0.]
                 csec = brentq(lambda x: interp1d(load_rm0[:, 0], load_rm0[:, 1], bounds_error=False,
-                                                 fill_value='interpolate')(x) - qaim, -60., -30.)
+                                                 fill_value='extrapolate')(x) - qaim, -60., -30.)
             except ValueError:
                 continue
             print 'DM mass: {:.2f}, Cross Sec {:.2e}'.format(mx, 10.**csec)
