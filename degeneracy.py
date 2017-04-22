@@ -59,9 +59,10 @@ def find_degeneracy(nu_cand='b8', Emin=0.1, Emax=5., bins=20,
     minMassarr = np.zeros_like(mass_list)
     for j,mass in  enumerate(mass_list):
         hold = np.zeros(len(experiment_info))
-        for i,iso in enumerate(experiment_info):
-            hold[i] = MinDMMass(iso[0], delta, Emin, vesc=533.+232.)
-        minMassarr[j] = np.min(hold)
+        if delta == 0:
+            for i,iso in enumerate(experiment_info):
+                hold[i] = MinDMMass(iso[0], delta, Emin, vesc=533.+232.)
+            minMassarr[j] = np.min(hold)
 
     for i,mass in enumerate(mass_list):
         if mass < minMassarr[i]:
@@ -154,8 +155,16 @@ def plt_model_degeneracy(nu_cand='b8', Emin=0.1, Emax=7., bins=10,
         coupling = "fnfp" + mm[5:]
         if (mm == 'sigma_si_massless' or mm == 'sigma_sd_massless' or
                     mm == 'sigma_anapole_massless'):
-            massmin = 500.
-            massmax = 1500.
+            massmin = 2000.
+            massmax = 4000.
+        elif (mm == 'sigma_magdip_massless' or mm == 'sigma_elecdip_massless') and \
+            ('atm' in nu_cand):
+            massmin = 2000.
+            massmax = 4000.
+        elif (mm == 'sigma_magdip' or mm == 'sigma_elecdip' or mm == 'sigma_LS' or
+              mm == 'sigma_LS_massless') and ('atm' in nu_cand):
+            massmin = 10.
+            massmax = 80.
         else:
             massmin = Mmin
             massmax = Mmax
@@ -184,15 +193,15 @@ def plt_model_degeneracy(nu_cand='b8', Emin=0.1, Emax=7., bins=10,
     for i in range(len(models)):
         models_str += models[i] + '  '
     fmt_str = '%.4e ' * len(models)
-    np.savetxt(test_plots + 'BF_' + svfile, bfits, fmt=fmt_str, header=models_str)
+    np.savetxt(test_plots + 'BF_' + svfile + '.dat', bfits, fmt=fmt_str, header=models_str)
     fmt_str = '%.4e ' * (len(models) + 2)
-    np.savetxt(test_plots + 'Spectrum_' + svfile, np.column_stack((ergs, nuspec, dm_spec.T)), fmt=fmt_str,
+    np.savetxt(test_plots + 'Spectrum_' + svfile + '.dat', np.column_stack((ergs, nuspec, dm_spec.T)), fmt=fmt_str,
                header='Energy  NuSpectrum  ' + models_str)
     plt.xlim(xmin=Emin, xmax=Emax)
     if nu_cand == 'b8':
         plt.ylim(ymin=10. ** 0., ymax=3*10. ** 3.)
     elif nu_cand == 'atmnumu':
-        plt.ylim(ymin=10. ** -5., ymax=5.*10.**-2.)
+        plt.ylim(ymin=10. ** -5., ymax=5.*10.**-3.)
     ax.set_xscale("log")
     ax.set_yscale("log")
 
@@ -203,9 +212,9 @@ def plt_model_degeneracy(nu_cand='b8', Emin=0.1, Emax=7., bins=10,
     return
 
 
-def plt_inelastic_degeneracy(nu_cand='b8', Emin=0.1, Emax=7., sims=1000, bins=15,
-                            Mmin=1., Mmax=100., Mnum=100, element='germanium',
-                            fnfp=1., delta=np.array([-10., -5., -10., 10., 30., 30.]),
+def plt_inelastic_degeneracy(nu_cand='b8', Emin=1., Emax=7., bins=15,
+                            Mnum=100, element='germanium',
+                            fnfp=1., delta=np.array([-40., -20., -10., 10., 20., 40., 100.]),
                             GF=False, time_info=False, xenlab='LZ',
                             model='sigma_si', fs=18,
                             c_list=np.array(['blue', 'green','red','violet','aqua','magenta','orange',
@@ -220,6 +229,7 @@ def plt_inelastic_degeneracy(nu_cand='b8', Emin=0.1, Emax=7., sims=1000, bins=15
     experiment_info, Qmin, Qmax = Element_Info(element)
     labor = laboratory(element, xen=xenlab)
 
+
     nuspec = np.zeros_like(ergs)
     for iso in experiment_info:
         nuspec += Nu_spec(labor).nu_rate(nu_cand, ergs, iso)
@@ -232,18 +242,41 @@ def plt_inelastic_degeneracy(nu_cand='b8', Emin=0.1, Emax=7., sims=1000, bins=15
     ax.set_ylabel(r'Event Rate  [${\rm ton}^{-1} {\rm yr}^{-1} {\rm keV}^{-1}$]', fontsize=fs)
 
     pl.plot(ergs, nuspec, 'k', lw=1, label=nu_cand)
-
+    bfits = np.zeros(len(delta) * 3).reshape((len(delta), 3))
     dm_spec = np.zeros(len(delta) * len(ergs)).reshape((len(delta), len(ergs)))
     for i,dd in enumerate(delta):
+        minmass = v_leq_vesc(dd, experiment_info[0,0], vesc=533.+232.)
+        if minmass < 0:
+            minmass = 0.1
+        width = brentq(lambda x: ERplus(x, experiment_info[0,0], 533.+232., dd) -
+                         ERminus(x, experiment_info[-1,0], 533.+232., dd) - (Emax - Emin), minmass, 2000.)
+        minEmin = ERminus(width, experiment_info[-1,0], 533.+232., dd)
+        maxEmin = ERminus(2000., experiment_info[-1, 0], 533. + 232., dd)
+
+        if minEmin > Emin:
+            print 'Delta not compatible.'
+            print 'Min mass {:.2f}, MinEmin {:.2f}'.format(width, minEmin)
+            continue
+
+        if maxEmin > Emin:
+            maxmass = brentq(lambda x: ERminus(x, experiment_info[-1,0], 533.+232., dd) - Emin, width, 2000.)
+        else:
+            maxmass = 100.
+        #mlow, mhigh = mxRange(dd, experiment_info[:,0], Emin, Emax, vesc=533.+232.)
+        #
+        # if mhigh <= 1.:
+        #     continue
+        # if mlow <= 0.:
+        #     mlow = 0.1
+        print 'For delta: {:.1f}, Mass range: [{:.2f}, {:.2f}]'.format(dd, minmass, maxmass)
         label = str(dd) + ' keV'
         coupling = "fnfp" + model[5:]
 
-
-        mass, cs = find_degeneracy2(nu_cand='b8', Emin=Emin, Emax=Emax, sims=sims, bins=bins,
-                                   Mmin=Mmin, Mmax=Mmax, Mnum=Mnum, element=element,
+        mass, cs, like = find_degeneracy(nu_cand='b8', Emin=Emin, Emax=Emax, bins=bins,
+                                   Mmin=minmass, Mmax=maxmass, Mnum=Mnum, element=element,
                                    model=model, fnfp=fnfp,
                                    delta=dd, GF=GF, time_info=time_info, xenlab=xenlab)
-
+        bfits[i] = [mass, cs, like]
         drdq_params = default_rate_parameters.copy()
         drdq_params['element'] = element
         drdq_params['mass'] = mass
@@ -258,7 +291,8 @@ def plt_inelastic_degeneracy(nu_cand='b8', Emin=0.1, Emax=7., sims=1000, bins=15
         dm_spec[i] *= nu_events/dmevts
         pl.plot(ergs, dm_spec[i], c_list[i], lw=1, ls='--', label=label)
 
-    plt.xlim(xmin=0.1, xmax=Emax)
+
+    plt.xlim(xmin=Emin, xmax=Emax)
     plt.ylim(ymin=10. ** 0., ymax=3*10. ** 3.)
     ax.set_xscale("log")
     ax.set_yscale("log")

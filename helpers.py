@@ -95,6 +95,17 @@ default_rate_parameters = dict(mass=50., sigma_si=0., sigma_sd=0., sigma_anapole
                                 fnfp_f2_massless=1.,  fnfp_f3_massless=1., v_lag=220.,  v_rms=220.,
                                 v_esc=533.,  rho_x=0.3, delta=0., GF=False, time_info=False)
 
+def v_leq_vesc(delta, mT, vesc=533.+232.):
+    delta *= 1e-6
+    vesc /= c_lgt
+    return 2. * delta / (vesc**2. * (1. - 2.*delta/(mT * vesc**2.)))
+
+def v_delta(delta, mT, mx):
+    if delta <= 0:
+        return 0.
+    else:
+        return np.sqrt(2. * delta*1e-6 * (mx + mT) / (mx * mT))*c_lgt
+
 def ERplus(mx, mT, v, delta):
     r_mass = mx * mT / (mx + mT)
     if delta > 1e6 * (v/c_lgt)**2. * r_mass/2.:
@@ -109,8 +120,20 @@ def ERminus(mx, mT, v, delta):
     sqt_t = np.sqrt(1. - 2. * delta * 1e-6 * c_lgt**2. / (r_mass * v**2.))
     return (v/c_lgt)**2. * r_mass**2. /(2.*mT) * 1e6 * (1. - sqt_t)**2.
 
-def vdelta(delta, mx, mT):
-    return c_lgt * np.sqrt()
+
+def mxRange(delta, mT, Emin, Emax, vesc=533.+232.):
+    kG = 1e-6
+    Emax *= kG
+    Emin *= kG
+    delta *= kG
+    vesc /= c_lgt
+    mx_p1 = (-Emax**2.*mT + np.sqrt(2.)*(Emax*mT)**3./2.*vesc - Emax*mT*delta) / \
+           (Emax**2. - 2.*Emax*mT*vesc**2.+2.*Emax*delta+delta**2.)
+    mx_p2 = (-Emin ** 2. * mT + np.sqrt(2.) * (Emin * mT) ** 3. / 2. * vesc - Emin * mT * delta) / \
+           (Emin ** 2. - 2. * Emin * mT * vesc ** 2. + 2. * Emin * delta + delta ** 2.)
+    m_range = np.sort(np.concatenate((mx_p1, mx_p2)))
+    return np.min(m_range), np.max(m_range)
+
 
 def MinDMMass(mT, delta, eng, vesc=533.+232.):
     if delta <= 0:
@@ -121,6 +144,7 @@ def MinDMMass(mT, delta, eng, vesc=533.+232.):
 
     solve = brentq(lambda x: ERplus(x, mT, vesc, delta) - eng, mmin, 1000.)
     return solve
+
 
 def trapz(y, x):
     """

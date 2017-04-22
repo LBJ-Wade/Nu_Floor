@@ -425,6 +425,8 @@ def dRdQmagdip(Er, time, V0, v_lag, v_esc, mx, sigp, fnfp, elt, rho_x=0.3, delta
 
         tot = v_independent * q_squared/(qref**2.) * ( val_zeta * ff_v_sq +  val_eta * ff_v_std )
         out[i]=tot
+        if out[i] < 0:
+            out[i] = 0.
     return out
 
 #magnetic dipole - assuming that the DM is spin 1/2 (relevant for the factor C_\chi)

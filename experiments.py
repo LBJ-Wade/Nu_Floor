@@ -26,7 +26,7 @@ def Element_Info(element):
         mfrac = np.array([0.212, 0.277, 0.077, 0.359, 0.074])
     
     elif element == 'xenon':
-        Qmin = 1.
+        Qmin = 1.0
         Qmax = 50.
         Z = 54.
         Atope = np.array([128., 129., 130., 131., 132., 134., 136.])

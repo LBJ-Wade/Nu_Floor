@@ -211,7 +211,7 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
                                                  Qmin, Qmax, time_info=time_info, GF=False)
 
             max_nodm = minimize(like_init_nodm.likelihood, np.zeros(nu_contrib),
-                                args=(np.array([-100.])), tol=0.001, method='SLSQP',
+                                args=(np.array([-100.])), tol=1e-5, method='SLSQP',
                                 options={'maxiter': 100}, bounds=nu_bnds,
                                 jac=like_init_nodm.like_gradi)
 
@@ -222,16 +222,16 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
 
             max_dm = minimize(like_init_dm.like_multi_wrapper,
                               np.concatenate((np.zeros(nu_contrib),np.array([np.log10(sigmap)]))),
-                              tol=0.001, method='SLSQP', bounds=dm_bnds,
+                              tol=1e-5, method='SLSQP', bounds=dm_bnds,
                               options={'maxiter': 100}, jac=like_init_dm.likegrad_multi_wrapper)
             print 'Minimizaiton Success: ', max_nodm.success, max_dm.success
-
+            print 'DM Vals: ', max_dm.x
             if not max_nodm.success or not max_dm.success:
                 fails = np.append(fails, nn)
 
             test_stat = np.max([max_nodm.fun - max_dm.fun, 0.])
 
-            pval = chi2.sf(test_stat,1)
+            pval = chi2.sf(test_stat, 1)
 
             if not QUIET:
                 print 'TS: ', test_stat
@@ -242,6 +242,8 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
 
         mask = np.array([(i in fails) for i in xrange(len(tstat_arr))])
         tstat_arr = tstat_arr[~mask]
+        #print 'Tstat Array'
+        print tstat_arr
 
         print 'FINISHED CYCLE \n'
         print 'True DM mass: ', mass
@@ -272,7 +274,7 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
                     np.savetxt(file_info, np.array([np.log10(sigmap), testq]))
                 break
 
-            elif testq < 1e-2:
+            elif testq > 1e-3:
                 print 'testq: {} --> WRITE'.format(testq)
                 print '~~~~~~~~~~~~~~~~~~~~~MOVING ON~~~~~~~~~~~~~~~~~~~~~'
                 print '\n'
