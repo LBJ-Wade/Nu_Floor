@@ -11,7 +11,6 @@ Element options:  ['germanium', 'xenon', 'argon', 'sodium', 'fluorine', 'iodine'
 
 Exposure in Ton-year
 
-Delta = 0. -- Note: This code doesn't yet work for inelastic kinematics
 
 """
 
@@ -134,12 +133,10 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
         cdf_dm = dm_pdf.cumsum()
         cdf_dm /= cdf_dm.max()
         dm_events_sim = 0.
-        #dm_events_sim = int(dm_rate * exposure)
-        #
-        # if dm_events_sim < 1.:
-        #     continue
+        dm_events_sim = int(dm_rate * exposure)
 
-        nevent_dm = 0
+        if dm_events_sim < 1.:
+            continue
 
         tstat_arr = np.zeros(n_runs)
         nn = 0
@@ -203,7 +200,7 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
             if not QUIET:
                 print 'Running Likelihood Analysis...'
             # Minimize likelihood -- MAKE SURE THIS MINIMIZATION DOESNT FAIL. CONSIDER USING GRADIENT INFO
-            nu_bnds = [(-2.5, 2.5)] * nu_contrib
+            nu_bnds = [(-3.0, 3.0)] * nu_contrib
             dm_bnds = nu_bnds + [(-60., -30.)]
             like_init_nodm = Likelihood_analysis(model, coupling, mass, 0., fnfp,
                                                  exposure, element, experiment_info,
@@ -257,12 +254,11 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
             print 'Mean Q: {:.2f}\n'.format(np.mean(tstat_arr))
             print 'T-stat Array:', tstat_arr
 
-            testq = np.mean(tstat_arr)
-            #testq = np.median(tstat_arr)
+            testq = float(np.sum(tstat_arr > q_goal)) / float(len(tstat_arr))
 
             print 'testq (mean, end n cycle): {}'.format(testq)
 
-            if testq > 30:
+            if testq > 0.99:
                 print 'testq: {} --> BREAK'.format(testq)
                 print '~~~~~~~~~~~~~~~~~~~~~MOVING ON~~~~~~~~~~~~~~~~~~~~~'
                 print '\n'
@@ -275,7 +271,7 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
                     np.savetxt(file_info, np.array([np.log10(sigmap), testq]))
                 break
 
-            elif testq > 1e-3:
+            else:
                 print 'testq: {} --> WRITE'.format(testq)
                 print '~~~~~~~~~~~~~~~~~~~~~MOVING ON~~~~~~~~~~~~~~~~~~~~~'
                 print '\n'
