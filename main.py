@@ -29,14 +29,13 @@ from scipy.stats import poisson
 import time
 
 path = os.getcwd()
-
 QUIET = False
-
 xenLAB = 'LZ'
+
 
 def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
             element='germanium', exposure=1., delta=0., GF=False, time_info=False,
-            file_tag='', n_runs=20):
+            file_tag='', n_runs=20, Eth=''):
 
     #start_time = time.time()
     sig_list = np.logspace(np.log10(sig_low), np.log10(sig_high), n_sigs)
@@ -51,14 +50,18 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
     print 'Mass: {:.0f}'.format(mass)
     print '\n'
 
+    experiment_info, Qmin, Qmax = Element_Info(element)
+    labor = laboratory(element, xen=xenLAB)
+    if type(Eth) is float:
+        Qmin = Eth
+
     file_info = path + '/Saved_Files/'
     file_info += element + '_' + model + '_' + coupling + '_{:.2f}'.format(fnfp)
     file_info += '_Exposure_{:.2f}_tonyr_DM_Mass_{:.2f}_GeV'.format(exposure, mass)
-    file_info += file_tag + '.dat'
+    file_info += '_Eth_{:.2f}_'.format(Qmin) + labor + '_' + file_tag + '.dat'
     print 'Output File: ', file_info
     print '\n'
-    experiment_info, Qmin, Qmax = Element_Info(element)
-    labor = laboratory(element, xen=xenLAB)
+
 
     mindm = np.zeros(len(experiment_info[:, 0]))
     for i, iso in enumerate(experiment_info):
@@ -134,9 +137,6 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
         cdf_dm /= cdf_dm.max()
         dm_events_sim = 0.
         dm_events_sim = int(dm_rate * exposure)
-
-        if dm_events_sim < 1.:
-            continue
 
         tstat_arr = np.zeros(n_runs)
         nn = 0
