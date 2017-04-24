@@ -137,7 +137,7 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
         #
         #
         dm_spec = dRdQ(er_list, time_list, **drdq_params) * 10. ** 3. * s_to_yr
-        dm_rate = R(Qmin=Qmin, Qmax=Qmax, **drdq_params) * 10. ** 3. * s_to_yr * exposure
+        dm_rate = R(Qmin=Qmin, Qmax=Qmax, **drdq_params) * 10. ** 3. * s_to_yr
         dm_pdf = dm_spec / dm_rate
         cdf_dm = dm_pdf.cumsum()
         cdf_dm /= cdf_dm.max()
