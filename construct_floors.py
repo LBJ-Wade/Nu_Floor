@@ -41,8 +41,8 @@ def make_a_floor(element='Germanium', model='sigma_si', fnfp=1., exposure=1.,
         try:
             dim_test = load.shape[1]
             try:
-                mean = sum(load_rm0[:, 0] * load_rm0[:, 1]) / sum(load_rm0[:, 1])
-                popt, pcov = curve_fit(gauss_cdf_function, arr_l[:, 0], arr_l[:, 1], p0=[mean, 1.])
+                mean = sum(load[:, 0] * load[:, 1]) / sum(load[:, 1])
+                popt, pcov = curve_fit(gauss_cdf_function, load[:, 0], load[:, 1], p0=[mean, 1.])
                 csec = brentq(lambda x: gauss_cdf_function(x, *popt) - qaim, -60., -30.)
             except ValueError:
                 continue
