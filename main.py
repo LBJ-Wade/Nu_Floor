@@ -76,10 +76,10 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
     er_list = np.logspace(np.log10(Qmin), np.log10(Qmax), 100)
     time_list = np.zeros_like(er_list)
 
-    # nu_comp = ['b8', 'b7l1', 'b7l2', 'pepl1', 'hep', 'pp', 'o15', 'n13', 'f17', 'atmnue',
-    #            'atmnuebar', 'atmnumu', 'atmnumubar', 'dsnb3mev', 'dsnb5mev', 'dsnb8mev',
-    #            'reactor', 'geoU', 'geoTh']
-    nu_comp = ['b8', 'b7l1', 'b7l2', 'pepl1', 'hep']
+    nu_comp = ['b8', 'b7l1', 'b7l2', 'pepl1', 'hep', 'pp', 'o15', 'n13', 'f17', 'atmnue',
+               'atmnuebar', 'atmnumu', 'atmnumubar', 'dsnb3mev', 'dsnb5mev', 'dsnb8mev',
+               'reactor', 'geoU', 'geoTh']
+    # nu_comp = ['b8', 'b7l1', 'b7l2', 'pepl1', 'hep']
 
     nu_lines = ['b7l1', 'b7l2', 'pepl1']
     line_flux = [(0.1) * 5.00 * 10. ** 9., (0.9) * 5.00 * 10. ** 9., 1.44 * 10. ** 8.]
@@ -141,7 +141,6 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
         dm_pdf = dm_spec / dm_rate
         cdf_dm = dm_pdf.cumsum()
         cdf_dm /= cdf_dm.max()
-        dm_events_sim = 0.
         dm_events_sim = int(dm_rate * exposure)
 
         tstat_arr = np.zeros(n_runs)
