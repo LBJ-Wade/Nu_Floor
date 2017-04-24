@@ -61,16 +61,24 @@ def find_degeneracy2(nu_cand='b8', Emin=0.1, Emax=5., bins=20,
     elif 'dsnb' in nu_cand:
         mx_guess = 20.
     elif 'atm' in nu_cand:
-        mx_guess = 100.
+        if 'massless' in model and 'LS' not in model:
+            mx_guess = 1000.
+        else:
+            mx_guess = 100.
     else:
         mx_guess = 30.
     s_norm = dm_class.dm_spectrum(np.array([er_list[0]]), 0., mx_guess)
     sig_guess = nuspec[0] / s_norm
     guess = np.array([np.log10(sig_guess[0]), mx_guess])
     print 'Guess: ', guess
-    popt, pcov = curve_fit(dm_class.dm_spectrum, er_list, nuspec, p0=guess,
-                           sigma=nuspec, absolute_sigma=False)
-    #var_diff = nuspec - dm_class.dm_spectrum(er_list, popt[0], popt[1])
+    try:
+        popt, pcov = curve_fit(dm_class.dm_spectrum, er_list, nuspec, p0=guess,
+                               bounds=([-60., -30.],[1., 1000.]),
+                               sigma=nuspec, absolute_sigma=False)
+    except RuntimeError:
+        popt, pcov = curve_fit(lambda x,y: dm_class.dm_spectrum(x,y, 1000.), er_list, nuspec, p0=guess[0],
+                               sigma=nuspec, absolute_sigma=False)
+
     bfmass = popt[-1]
     bfcs = popt[0]
     dm = dm_class.dm_spectrum(er_list, bfcs, bfmass)
@@ -101,7 +109,6 @@ class DM_fitting_funcs(object):
     def dm_spectrum(self, eng, norm, mx):
         self.drdq_params['mass'] = mx
         return 10.**norm * dRdQ(eng, np.zeros_like(eng), **self.drdq_params)*10.**3.*s_to_yr
-
 
 
 def find_degeneracy(nu_cand='b8', Emin=0.1, Emax=5., bins=20,
@@ -280,6 +287,8 @@ def plt_model_degeneracy(nu_cand='b8', Emin=0.1, Emax=7., bins=10,
         plt.ylim(ymin=10. ** 0., ymax=3*10. ** 3.)
     elif nu_cand == 'atmnumu':
         plt.ylim(ymin=10. ** -5., ymax=5.*10.**-3.)
+    elif nu_cand == 'dsnb8mev':
+        plt.ylim(ymin=10. ** -5., ymax=5. * 10. ** -3.)
     ax.set_xscale("log")
     ax.set_yscale("log")
 
@@ -323,37 +332,36 @@ def plt_inelastic_degeneracy(nu_cand='b8', Emin=1., Emax=7., bins=15,
     bfits = np.zeros(len(delta) * 3).reshape((len(delta), 3))
     dm_spec = np.zeros(len(delta) * len(ergs)).reshape((len(delta), len(ergs)))
     for i,dd in enumerate(delta):
-        minmass = v_leq_vesc(dd, experiment_info[0,0], vesc=533.+232.)
-        if minmass < 0:
-            minmass = 0.1
-        width = brentq(lambda x: ERplus(x, experiment_info[0,0], 533.+232., dd) -
-                         ERminus(x, experiment_info[-1,0], 533.+232., dd) - (Emax - Emin), minmass, 2000.)
-        minEmin = ERminus(width, experiment_info[-1,0], 533.+232., dd)
-        maxEmin = ERminus(2000., experiment_info[-1, 0], 533. + 232., dd)
-
-        if minEmin > Emin:
-            print 'Delta not compatible.'
-            print 'Min mass {:.2f}, MinEmin {:.2f}'.format(width, minEmin)
-            continue
-
-        if maxEmin > Emin:
-            maxmass = brentq(lambda x: ERminus(x, experiment_info[-1,0], 533.+232., dd) - Emin, width, 2000.)
-        else:
-            maxmass = 100.
-        #mlow, mhigh = mxRange(dd, experiment_info[:,0], Emin, Emax, vesc=533.+232.)
+        # minmass = v_leq_vesc(dd, experiment_info[0,0], vesc=533.+232.)
+        # if minmass < 0:
+        #     minmass = 0.1
+        # width = brentq(lambda x: ERplus(x, experiment_info[0,0], 533.+232., dd) -
+        #                  ERminus(x, experiment_info[-1,0], 533.+232., dd) - (Emax - Emin), minmass, 2000.)
+        # minEmin = ERminus(width, experiment_info[-1,0], 533.+232., dd)
+        # maxEmin = ERminus(2000., experiment_info[-1, 0], 533. + 232., dd)
         #
-        # if mhigh <= 1.:
+        # if minEmin > Emin:
+        #     print 'Delta not compatible.'
+        #     print 'Min mass {:.2f}, MinEmin {:.2f}'.format(width, minEmin)
         #     continue
-        # if mlow <= 0.:
-        #     mlow = 0.1
-        print 'For delta: {:.1f}, Mass range: [{:.2f}, {:.2f}]'.format(dd, minmass, maxmass)
+        #
+        # if maxEmin > Emin:
+        #     maxmass = brentq(lambda x: ERminus(x, experiment_info[-1,0], 533.+232., dd) - Emin, width, 2000.)
+        # else:
+        #     maxmass = 100.
+
+        # print 'For delta: {:.1f}, Mass range: [{:.2f}, {:.2f}]'.format(dd, minmass, maxmass)
         label = str(dd) + ' keV'
         coupling = "fnfp" + model[5:]
 
-        mass, cs, like = find_degeneracy(nu_cand='b8', Emin=Emin, Emax=Emax, bins=bins,
-                                   Mmin=minmass, Mmax=maxmass, Mnum=Mnum, element=element,
-                                   model=model, fnfp=fnfp,
-                                   delta=dd, GF=GF, time_info=time_info, xenlab=xenlab)
+        # mass, cs, like = find_degeneracy(nu_cand='b8', Emin=Emin, Emax=Emax, bins=bins,
+        #                            Mmin=minmass, Mmax=maxmass, Mnum=Mnum, element=element,
+        #                            model=model, fnfp=fnfp,
+        #                            delta=dd, GF=GF, time_info=time_info, xenlab=xenlab)
+        mass, cs, like = find_degeneracy2(nu_cand=nu_cand, Emin=Emin, Emax=Emax, bins=bins,
+                                         Mmin=minmass, Mmax=maxmass, Mnum=Mnum, element=element,
+                                         model=model, fnfp=fnfp,
+                                         delta=dd, GF=GF, time_info=time_info, xenlab=xenlab)
         bfits[i] = [mass, cs, like]
         drdq_params = default_rate_parameters.copy()
         drdq_params['element'] = element
