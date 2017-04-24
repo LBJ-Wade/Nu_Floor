@@ -89,11 +89,12 @@ class Likelihood_analysis(object):
         sig_dm = norms[-1]
         return self.likelihood(nu_norm, sig_dm, return_grad=False)
 
-    def like_dmONLY_wrapper(self, sig_dm, grad=False):
-        return self.likelihood(np.array([-100.]), sig_dm, return_grad=False)
-
-    def likegrad_dmONLY_wrapper(self, sig_dm, grad=False):
-        return self.like_gradi(np.array([-100.]), sig_dm, ret_just_nu=False, ret_just_dm=True)
+    def test_num_events(self, nu_norm, sig_dm):
+        print 'DM events Predicted: ', 10. ** sig_dm * self.dm_integ * self.exposure
+        for i in range(self.nu_spec):
+            nu_events = 10. ** nu_norm[i] * self.exposure * self.nu_int_resp[i]
+            print 'Events from ' + self.nu_names[i] + ': ', nu_events
+        return
 
     def likelihood(self, nu_norm, sig_dm, return_grad=False):
         # - 2 log likelihood

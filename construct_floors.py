@@ -2,9 +2,10 @@ import numpy as np
 import glob
 import os
 from scipy.interpolate import interp1d
-from scipy.optimize import brentq
+from scipy.optimize import brentq, curve_fit
 from scipy.stats import gaussian_kde as kde
 from statsmodels.nonparametric.smoothers_lowess import lowess
+from helpers import gauss_cdf_function
 
 path = os.getcwd()
 
@@ -36,9 +37,9 @@ def make_a_floor(element='germanium', model='sigma_si', fnfp=1., exposure=1.,
         try:
             dim_test = load.shape[1]
             try:
-                load_rm0 = load[load[:, 1] > 0.]
-                csec = brentq(lambda x: interp1d(load_rm0[:, 0], load_rm0[:, 1], bounds_error=False,
-                                                 fill_value='extrapolate')(x) - qaim, -60., -30.)
+                mean = sum(load_rm0[:, 0] * load_rm0[:, 1]) / sum(load_rm0[:, 1])
+                popt, pcov = curve_fit(gauss_cdf_function, arr_l[:, 0], arr_l[:, 1], p0=[mean, 1.])
+                csec = brentq(lambda x: gauss_cdf_function(x, *popt) - qaim, -60., -30.)
             except ValueError:
                 continue
             print 'DM mass: {:.2f}, Cross Sec {:.2e}'.format(mx, 10.**csec)

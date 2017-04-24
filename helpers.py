@@ -2,7 +2,9 @@ import numpy as np
 import os
 from scipy.interpolate import interp1d
 from scipy.special import erf
-from scipy.optimize import brentq
+from scipy.optimize import brentq, curve_fit
+from scipy.stats import norm
+import numpy.random as random
 #from scipy.interpolate import griddata,interp1d,interp2d
 
 path = os.getcwd()
@@ -307,4 +309,39 @@ def zeta(v_min, v_esc, v_rms, v_lag):
     return res
 
 
+def adaptive_samples(sig_min, sig_max, list):
+    arr_l = np.asarray(list)
+
+    if len(list) == 0:
+        return np.mean(np.array([sig_min, sig_max])), False
+    if len(list) == 1:
+        if list[0][1] < 0.9:
+            return np.mean(np.array([list[0][0], sig_max])), False
+        else:
+            return np.mean(np.array([list[0][0], sig_min])), False
+    if np.sum((arr_l[:, 1] > 0.5) & (arr_l[:, 1] < 0.95)) > 5:
+        print 'Enough points in [0.5, 0.95]'
+        print arr_l
+        return sig_min, True
+    high = np.sum(arr_l[:, 1] > 0.9)
+    low = np.sum(arr_l[:, 1] < 0.9)
+    #print 'High, Low', high, low
+    if low == 0:
+        return np.mean(np.array(np.min(arr_l[:, 0]), sig_min)), False
+    elif high == 0:
+        return np.mean(np.array(np.max(arr_l[:, 0]), sig_max)), False
+    else:
+        mean = sum(arr_l[:,0] * arr_l[:,1]) / sum(arr_l[:,1])
+        popt, pcov = curve_fit(gauss_cdf_function, arr_l[:,0], arr_l[:,1], p0=[mean, 1.])
+        xrag = np.linspace(sig_min, sig_max, 300)
+        ypts = gauss_cdf_function(xrag, *popt)
+        ypts /= ypts.max()
+        u = random.rand(1)
+        sig = xrag[np.absolute(ypts - u).argmin()]
+    return sig, False
+
+
+def gauss_cdf_function(x, x0, sigma):
+    z = (x - x0) / (np.sqrt(2.) * sigma)
+    return (np.pi / 2.) * sigma * (erf(z) + 1.)
 

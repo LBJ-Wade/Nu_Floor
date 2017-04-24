@@ -38,8 +38,6 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
             file_tag='', n_runs=20, Eth=''):
 
     #start_time = time.time()
-    sig_list = np.logspace(np.log10(sig_low), np.log10(sig_high), n_sigs)
-
     testq = 0
 
     print 'Run Info:'
@@ -78,9 +76,10 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
     er_list = np.logspace(np.log10(Qmin), np.log10(Qmax), 100)
     time_list = np.zeros_like(er_list)
 
-    nu_comp = ['b8', 'b7l1', 'b7l2', 'pepl1', 'hep', 'pp', 'o15', 'n13', 'f17', 'atmnue',
-               'atmnuebar', 'atmnumu', 'atmnumubar', 'dsnb3mev', 'dsnb5mev', 'dsnb8mev',
-               'reactor', 'geoU', 'geoTh']
+    # nu_comp = ['b8', 'b7l1', 'b7l2', 'pepl1', 'hep', 'pp', 'o15', 'n13', 'f17', 'atmnue',
+    #            'atmnuebar', 'atmnumu', 'atmnumubar', 'dsnb3mev', 'dsnb5mev', 'dsnb8mev',
+    #            'reactor', 'geoU', 'geoTh']
+    nu_comp = ['b8', 'b7l1', 'b7l2', 'pepl1', 'hep']
 
     nu_lines = ['b7l1', 'b7l2', 'pepl1']
     line_flux = [(0.1) * 5.00 * 10. ** 9., (0.9) * 5.00 * 10. ** 9., 1.44 * 10. ** 8.]
@@ -105,7 +104,6 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
     for i in range(nu_contrib):
         nu_rate[i] = np.trapz(nuspec[i], er_list)
 
-
         print nu_comp[i], nu_rate[i]
         if nu_rate[i] > 0.:
             nu_pdf[i] = nuspec[i] / nu_rate[i]
@@ -116,7 +114,15 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
     nevts_n = np.zeros(nu_contrib)
     print '\n \n'
 
-    for sigmap in sig_list:
+    win = False
+    sig_list = []
+    while not win:
+        print 'Sigma List: ', sig_list
+        sig, win = adaptive_samples(np.log10(sig_low), np.log10(sig_high), sig_list)
+        sigmap = 10.**sig
+        if len(sig_list) > n_sigs:
+            win = True
+            break
 
         print 'Sigma: {:.2e}'.format(sigmap)
 
@@ -181,11 +187,11 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
                 nevts_dm = 0
 
             if not QUIET:
-                print 'Predicted Number of Nu events: {}'.format(sum(Nu_events_sim))
+                print 'Predicted Number of Nu events: {}'.format(int(sum(Nu_events_sim)))
                 print 'Predicted Number of DM events: {}'.format(dm_events_sim)
 
             # Simulate events
-            print('Evaluated Events: Neutrino {:.0f}, DM {:.0f}'.format(sum(nevts_n), nevts_dm))
+            print('Evaluated Events: Neutrino {:.0f}, DM {:.0f}'.format(int(sum(nevts_n)), nevts_dm))
 
             u = random.rand(nevts_dm)
             # Generalize to rejection sampling algo for time implimentation
@@ -223,7 +229,8 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
                               tol=1e-5, method='SLSQP', bounds=dm_bnds,
                               options={'maxiter': 100}, jac=like_init_dm.likegrad_multi_wrapper)
             print 'Minimizaiton Success: ', max_nodm.success, max_dm.success
-            print 'DM Vals: ', max_dm.x
+            #print 'DM Vals: ', max_dm.x
+            #print like_init_dm.test_num_events(max_dm.x[:-1], max_dm.x[-1])
             if not max_nodm.success or not max_dm.success:
                 fails = np.append(fails, nn)
 
@@ -240,10 +247,9 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
 
         mask = np.array([(i in fails) for i in xrange(len(tstat_arr))])
         tstat_arr = tstat_arr[~mask]
-        #print 'Tstat Array'
         print tstat_arr
 
-        print 'FINISHED CYCLE \n'
+        print 'FINISHED CYCLE'
         print 'True DM mass: ', mass
         print 'True DM sigma_p: ', sigmap
         #print("--- %s seconds ---" % (time.time() - start_time))
@@ -255,34 +261,21 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
             print 'T-stat Array:', tstat_arr
 
             testq = float(np.sum(tstat_arr > q_goal)) / float(len(tstat_arr))
+            sig_list.append([sig, testq])
+            sig_list.sort(key=lambda x: x[0])
 
             print 'testq (mean, end n cycle): {}'.format(testq)
 
-            if testq > 0.99:
-                print 'testq: {} --> BREAK'.format(testq)
-                print '~~~~~~~~~~~~~~~~~~~~~MOVING ON~~~~~~~~~~~~~~~~~~~~~'
-                print '\n'
-                if os.path.exists(file_info):
-                    load_old = np.loadtxt(file_info)
-                    new_arr = np.vstack((load_old, np.array([np.log10(sigmap), testq])))
-                    new_arr = new_arr[new_arr[:, 0].argsort()]
-                    np.savetxt(file_info, new_arr)
-                else:
-                    np.savetxt(file_info, np.array([np.log10(sigmap), testq]))
-                break
-
+            print 'testq: {} --> WRITE'.format(testq)
+            print '~~~~~~~~~~~~~~~~~~~~~MOVING ON~~~~~~~~~~~~~~~~~~~~~'
+            print '\n\n'
+            if os.path.exists(file_info):
+                load_old = np.loadtxt(file_info)
+                new_arr = np.vstack((load_old, np.array([np.log10(sigmap), testq])))
+                new_arr = new_arr[new_arr[:, 0].argsort()]
+                np.savetxt(file_info, new_arr)
             else:
-                print 'testq: {} --> WRITE'.format(testq)
-                print '~~~~~~~~~~~~~~~~~~~~~MOVING ON~~~~~~~~~~~~~~~~~~~~~'
-                print '\n'
-                if os.path.exists(file_info):
-                    load_old = np.loadtxt(file_info)
-                    new_arr = np.vstack((load_old, np.array([np.log10(sigmap), testq])))
-                    new_arr = new_arr[new_arr[:, 0].argsort()]
-                    np.savetxt(file_info, new_arr)
-                else:
-                    np.savetxt(file_info, np.array([np.log10(sigmap), testq]))
-        else:
-            print 'T-stat Array does not have any non-zero values...\n \n'
+                np.savetxt(file_info, np.array([np.log10(sigmap), testq]))
+
 
     return
