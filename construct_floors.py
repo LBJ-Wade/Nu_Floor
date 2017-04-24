@@ -10,7 +10,7 @@ path = os.getcwd()
 
 
 def make_a_floor(element='germanium', model='sigma_si', fnfp=1., exposure=1.,
-                 delta=0., tag='_', qaim=9.):
+                 delta=0., tag='_', qaim=0.9):
 
     coupling = "fnfp" + model[5:]
     file_info = path + '/Saved_Files/'
