@@ -14,7 +14,7 @@ from helpers import *
 from rate_UV import *
 import numpy.random as random
 from scipy.stats import poisson
-from scipy.optimize import minimize
+from scipy.optimize import minimize, curve_fit
 from math import factorial
 
 import matplotlib.patheffects as PathEffects
@@ -31,6 +31,7 @@ mpl.rcParams['xtick.labelsize']=18
 mpl.rcParams['ytick.labelsize']=18
 
 test_plots = os.getcwd() + '/Test_Plots/'
+
 
 def find_degeneracy(nu_cand='b8', Emin=0.1, Emax=5., bins=20,
                     Mmin=5., Mmax=10., Mnum=50, element='germanium',
