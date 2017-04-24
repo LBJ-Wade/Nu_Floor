@@ -14,7 +14,7 @@ path = os.getcwd()
 def make_a_floor(element='Germanium', model='sigma_si', fnfp=1., exposure=1.,
                  delta=0., tag='_', qaim=0.9, eth=0.1, xen='LZ'):
 
-    labor = laboratory(elem, xen=xen)
+    labor = laboratory(element, xen=xen)
 
     coupling = "fnfp" + model[5:]
     file_info = path + '/Saved_Files/'
