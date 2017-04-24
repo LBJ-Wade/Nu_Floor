@@ -12,15 +12,16 @@ path = os.getcwd()
 
 
 def make_a_floor(element='Germanium', model='sigma_si', fnfp=1., exposure=1.,
-                 delta=0., tag='_', qaim=0.9, eth=0.1, xen='LZ'):
+                 delta=0., tag='_', qaim=0.9, eth=0.1, xen='LZ', lab=''):
 
-    labor = laboratory(element, xen=xen)
+    if len(lab) == 0:
+        lab = laboratory(element, xen=xen)
 
     coupling = "fnfp" + model[5:]
     file_info = path + '/Saved_Files/'
     file_info += element + '_' + model + '_' + coupling + '_{:.2f}'.format(fnfp)
     file_info += '_Exposure_{:.2f}_tonyr_DM_Mass_*_GeV'.format(exposure)
-    file_info += '_Eth_{:.2f}_'.format(eth) + labor + '_' + tag + '.dat'
+    file_info += '_Eth_{:.2f}_'.format(eth) + lab + '_' + tag + '.dat'
 
     file_sv = path + '/Floors/' + element + '_' + model + '_' + coupling + '_{:.2f}'.format(fnfp)
     file_sv += '_Exposure_{:.2f}_tonyr_QGoal_{:.2f}'.format(exposure, qaim)
