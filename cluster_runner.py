@@ -19,7 +19,7 @@ parser.add_argument('--n_sigs', type=int, default=20)  # number of cross-section
 parser.add_argument('--model', default="sigma_si") 
 parser.add_argument('--masses', nargs='+', default=mass_arr, type=float,)
 parser.add_argument('--fnfp', type=float, default=1.)
-parser.add_argument('--element', nargs='+', default=['xenon'])
+parser.add_argument('--element', nargs='+', default=['Xenon'])
 parser.add_argument('--exposure', type=float, default=1.0)  # Ton-yr
 parser.add_argument('--ethresh', type=float, default=-1.)
 parser.add_argument('--delta', type=float, default=0.)  # FIX for now

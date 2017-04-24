@@ -181,7 +181,7 @@ def neutrino_spectrum(lab='Snolab', Emin=0.1, Emax=1000., fs=18, save=True):
     return
 
 
-def neutrino_recoils(Emin=0.001, Emax=100., element='germanium', fs=18, save=True,
+def neutrino_recoils(Emin=0.001, Emax=100., element='Germanium', fs=18, save=True,
                      mass=6., sigmap=4.*10**-45., model='sigma_si', fnfp=1.,
                      delta=0., GF=False, time_info=False, xenlab='LZ'):
     coupling = "fnfp" + model[5:]

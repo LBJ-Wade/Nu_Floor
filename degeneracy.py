@@ -32,9 +32,74 @@ mpl.rcParams['ytick.labelsize']=18
 
 test_plots = os.getcwd() + '/Test_Plots/'
 
+def find_degeneracy2(nu_cand='b8', Emin=0.1, Emax=5., bins=20,
+                    Mmin=5., Mmax=10., Mnum=50, element='Germanium',
+                    model='sigma_si', fnfp=1.,
+                    delta=0., GF=False, time_info=False, xenlab='LZ'):
+
+    mass_list = np.logspace(np.log10(Mmin), np.log10(Mmax), Mnum)
+
+    coupling = "fnfp" + model[5:]
+    er_list = np.logspace(np.log10(Emin), np.log10(Emax), 500)
+
+    experiment_info, Qmin, Qmax = Element_Info(element)
+    labor = laboratory(element, xen=xenlab)
+
+    nuspec = np.zeros_like(er_list)
+    for iso in experiment_info:
+        nuspec += Nu_spec(labor).nu_rate(nu_cand, erlist2, iso)
+
+    store_arr = np.zeros(Mnum * 3).reshape((Mnum, 3))
+    minMassarr = np.zeros_like(mass_list)
+    for j,mass in  enumerate(mass_list):
+        hold = np.zeros(len(experiment_info))
+        if delta == 0:
+            for i,iso in enumerate(experiment_info):
+                hold[i] = MinDMMass(iso[0], delta, Emin, vesc=533.+232.)
+            minMassarr[j] = np.min(hold)
+
+    for i,mass in enumerate(mass_list):
+        if mass < minMassarr[i]:
+            continue
+
+        drdq_params = default_rate_parameters.copy()
+        drdq_params['element'] = element
+        drdq_params[model] = 1.
+        drdq_params[coupling] = fnfp
+        drdq_params['delta'] = delta
+        drdq_params['GF'] = GF
+        drdq_params['time_info'] = time_info
+
+        popt, pcov = curve_fit(dm_spectrum, arr_l[:,0], arr_l[:,1], p0=[-45., 10.])
+
+        store_arr[i] = [popt[-1], popt[0], np.sqrt(np.diag(pcov))]
+
+    store_arr = store_arr[store_arr[:,0] > 0.]
+    #print store_arr
+    bf_index = np.argmin(store_arr[:, 1])
+    bfmass = store_arr[bf_index, 0]
+    bfcs = store_arr[bf_index, 2]
+
+    print 'Element: ', element
+    print 'Model: ', model
+    print 'Coupling: ', fnfp
+    print 'Delta: ', delta
+    print 'DM Mass: ', bfmass
+    print 'Best Fit Cross Section: ', bfcs
+
+    return bfmass, bfcs, store_arr[bf_index, 1]
+
+
+def dm_spectrum(eng, norm, mx):
+    drdq_params['mass'] = mx
+    print drdq_params
+    exit()
+    return 10.**norm * dRdQ(eng, np.zeros_like(eng), **drdq_params)*10.**3.*s_to_yr
+
+
 
 def find_degeneracy(nu_cand='b8', Emin=0.1, Emax=5., bins=20,
-                    Mmin=5., Mmax=10., Mnum=50, element='germanium',
+                    Mmin=5., Mmax=10., Mnum=50, element='Germanium',
                     model='sigma_si', fnfp=1.,
                     delta=0., GF=False, time_info=False, xenlab='LZ'):
 
@@ -114,7 +179,7 @@ def find_degeneracy(nu_cand='b8', Emin=0.1, Emax=5., bins=20,
 
 
 def plt_model_degeneracy(nu_cand='b8', Emin=0.1, Emax=7., bins=10,
-                         Mmin=5., Mmax=14., Mnum=100, element='germanium',
+                         Mmin=5., Mmax=14., Mnum=100, element='Germanium',
                          fnfp=1., delta=0., GF=False, time_info=False, xenlab='LZ',
                          models=np.array(['sigma_si','sigma_sd','sigma_anapole','sigma_elecdip',
                                           'sigma_magdip','sigma_LS', 'sigma_si_massless', 'sigma_sd_massless',
@@ -214,7 +279,7 @@ def plt_model_degeneracy(nu_cand='b8', Emin=0.1, Emax=7., bins=10,
 
 
 def plt_inelastic_degeneracy(nu_cand='b8', Emin=1., Emax=7., bins=15,
-                            Mnum=100, element='germanium',
+                            Mnum=100, element='Germanium',
                             fnfp=1., delta=np.array([-40., -20., -10., 10., 20., 40., 100.]),
                             GF=False, time_info=False, xenlab='LZ',
                             model='sigma_si', fs=18,

@@ -71,18 +71,18 @@ def Element_Info(element):
 
 
 def laboratory(elem, xen='LZ'):
-    if elem == 'germanium' or 'silicon' or 'fluorine' or 'argon':
+    if elem == 'Germanium' or 'Fluorine' or 'Argon':
         lab = 'Snolab'
-    elif elem == 'xenon':
+    elif elem == 'Xenon':
         if xen == 'LZ':
             lab = 'SURF'
         elif xen == 'X':
             lab = 'GS'
         else:
             raise ValueError
-    elif elem == 'argon':
+    elif elem == 'Argon':
         lab = 'GS'
-    elif elem == 'Na' or elem == 'I':
+    elif elem == 'Sodium' or elem == 'Iodine':
         lab = 'GS'
     else:
         raise ValueError

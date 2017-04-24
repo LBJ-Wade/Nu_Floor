@@ -7,7 +7,7 @@ Model options: [sigma_si, sigma_sd, sigma_anapole, sigma_magdip, sigma_elecdip,
 				sigma_elecdip_massless, sigma_LS_massless, sigma_f1_massless,
 				sigma_f2_massless, sigma_f3_massless]
 
-Element options:  ['germanium', 'xenon', 'argon', 'sodium', 'fluorine', 'iodine', 'neon']
+Element options:  ['Germanium', 'Xenon', 'Argon', 'Sodium', 'Fluorine', 'Iodine', 'Neon']
 
 Exposure in Ton-year
 
@@ -34,7 +34,7 @@ xenLAB = 'LZ'
 
 
 def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
-            element='germanium', exposure=1., delta=0., GF=False, time_info=False,
+            element='Germanium', exposure=1., delta=0., GF=False, time_info=False,
             file_tag='', n_runs=20, Eth=''):
 
     #start_time = time.time()
