@@ -32,6 +32,7 @@ mpl.rcParams['ytick.labelsize']=18
 
 test_plots = os.getcwd() + '/Test_Plots/'
 
+
 def find_degeneracy2(nu_cand='b8', Emin=0.1, Emax=5., bins=20,
                     Mmin=5., Mmax=10., Mnum=50, element='Germanium',
                     model='sigma_si', fnfp=1.,
@@ -40,45 +41,41 @@ def find_degeneracy2(nu_cand='b8', Emin=0.1, Emax=5., bins=20,
     mass_list = np.logspace(np.log10(Mmin), np.log10(Mmax), Mnum)
 
     coupling = "fnfp" + model[5:]
-    er_list = np.logspace(np.log10(Emin), np.log10(Emax), 500)
+    er_list = np.logspace(np.log10(Emin), np.log10(Emax), 1000)
 
     experiment_info, Qmin, Qmax = Element_Info(element)
     labor = laboratory(element, xen=xenlab)
 
     nuspec = np.zeros_like(er_list)
     for iso in experiment_info:
-        nuspec += Nu_spec(labor).nu_rate(nu_cand, erlist2, iso)
+        nuspec += Nu_spec(labor).nu_rate(nu_cand, er_list, iso)
 
-    store_arr = np.zeros(Mnum * 3).reshape((Mnum, 3))
-    minMassarr = np.zeros_like(mass_list)
-    for j,mass in  enumerate(mass_list):
-        hold = np.zeros(len(experiment_info))
-        if delta == 0:
-            for i,iso in enumerate(experiment_info):
-                hold[i] = MinDMMass(iso[0], delta, Emin, vesc=533.+232.)
-            minMassarr[j] = np.min(hold)
+    er_list = er_list[nuspec > 0.]
+    nuspec = nuspec[nuspec > 0.]
 
-    for i,mass in enumerate(mass_list):
-        if mass < minMassarr[i]:
-            continue
+    dm_class = DM_fitting_funcs(element, model, coupling, fnfp=fnfp,
+                                delta=delta, GF=GF, time_info=time_info)
 
-        drdq_params = default_rate_parameters.copy()
-        drdq_params['element'] = element
-        drdq_params[model] = 1.
-        drdq_params[coupling] = fnfp
-        drdq_params['delta'] = delta
-        drdq_params['GF'] = GF
-        drdq_params['time_info'] = time_info
+    if nu_cand == 'b8':
+        mx_guess = 6.
+    elif 'dsnb' in nu_cand:
+        mx_guess = 20.
+    elif 'atm' in nu_cand:
+        mx_guess = 100.
+    else:
+        mx_guess = 30.
+    s_norm = dm_class.dm_spectrum(np.array([er_list[0]]), 0., mx_guess)
+    sig_guess = nuspec[0] / s_norm
+    guess = np.array([np.log10(sig_guess[0]), mx_guess])
+    print 'Guess: ', guess
+    popt, pcov = curve_fit(dm_class.dm_spectrum, er_list, nuspec, p0=guess,
+                           sigma=nuspec, absolute_sigma=False)
+    #var_diff = nuspec - dm_class.dm_spectrum(er_list, popt[0], popt[1])
+    bfmass = popt[-1]
+    bfcs = popt[0]
+    dm = dm_class.dm_spectrum(er_list, bfcs, bfmass)
 
-        popt, pcov = curve_fit(dm_spectrum, arr_l[:,0], arr_l[:,1], p0=[-45., 10.])
-
-        store_arr[i] = [popt[-1], popt[0], np.sqrt(np.diag(pcov))]
-
-    store_arr = store_arr[store_arr[:,0] > 0.]
-    #print store_arr
-    bf_index = np.argmin(store_arr[:, 1])
-    bfmass = store_arr[bf_index, 0]
-    bfcs = store_arr[bf_index, 2]
+    chisq = gauss_reg2(0., dm, nuspec)
 
     print 'Element: ', element
     print 'Model: ', model
@@ -87,14 +84,23 @@ def find_degeneracy2(nu_cand='b8', Emin=0.1, Emax=5., bins=20,
     print 'DM Mass: ', bfmass
     print 'Best Fit Cross Section: ', bfcs
 
-    return bfmass, bfcs, store_arr[bf_index, 1]
+    return bfmass, bfcs, chisq
 
 
-def dm_spectrum(eng, norm, mx):
-    drdq_params['mass'] = mx
-    print drdq_params
-    exit()
-    return 10.**norm * dRdQ(eng, np.zeros_like(eng), **drdq_params)*10.**3.*s_to_yr
+class DM_fitting_funcs(object):
+
+    def __init__(self, element, model, coupling, fnfp=1., delta=0., GF=False, time_info=False):
+        self.drdq_params = default_rate_parameters.copy()
+        self.drdq_params['element'] = element
+        self.drdq_params[model] = 1.
+        self.drdq_params[coupling] = fnfp
+        self.drdq_params['delta'] = delta
+        self.drdq_params['GF'] = GF
+        self.drdq_params['time_info'] = time_info
+
+    def dm_spectrum(self, eng, norm, mx):
+        self.drdq_params['mass'] = mx
+        return 10.**norm * dRdQ(eng, np.zeros_like(eng), **self.drdq_params)*10.**3.*s_to_yr
 
 
 
@@ -234,10 +240,16 @@ def plt_model_degeneracy(nu_cand='b8', Emin=0.1, Emax=7., bins=10,
         else:
             massmin = Mmin
             massmax = Mmax
-        mass, cs, like = find_degeneracy(nu_cand=nu_cand, Emin=Emin, Emax=Emax, bins=bins,
-                                   Mmin=massmin, Mmax=massmax, Mnum=Mnum, element=element,
-                                   model=mm, fnfp=fnfp,
-                                   delta=delta, GF=GF, time_info=time_info, xenlab=xenlab)
+        # mass, cs, like = find_degeneracy(nu_cand=nu_cand, Emin=Emin, Emax=Emax, bins=bins,
+        #                            Mmin=massmin, Mmax=massmax, Mnum=Mnum, element=element,
+        #                            model=mm, fnfp=fnfp,
+        #                            delta=delta, GF=GF, time_info=time_info, xenlab=xenlab)
+
+        mass, cs, like = find_degeneracy2(nu_cand=nu_cand, Emin=Emin, Emax=Emax, bins=bins,
+                                         Mmin=massmin, Mmax=massmax, Mnum=Mnum, element=element,
+                                         model=mm, fnfp=fnfp,
+                                         delta=delta, GF=GF, time_info=time_info, xenlab=xenlab)
+
         bfits[i] = [mass, cs, like]
         drdq_params = default_rate_parameters.copy()
         drdq_params['element'] = element
@@ -382,4 +394,12 @@ def gauss_reg(sig, dm, nu):
         else:
             ret += ((rates[i] - nu[i])**2. / rates[i])
 
+    return ret
+
+def gauss_reg2(sig, dm, nu):
+    rates = 10.**sig * dm
+    ret = 0.
+    for i in range(len(nu)):
+        if nu[i] > 0:
+            ret += ((rates[i] - nu[i])**2. / nu[i])
     return ret
