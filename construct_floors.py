@@ -39,7 +39,7 @@ def make_a_floor(element='Germanium', model='sigma_si', fnfp=1., exposure=1.,
         mx = float(f[f.find('DM_Mass_')+8:f.find('_GeV')])
         load = np.loadtxt(f)
         try:
-            print 'DM mass: {:.2f}, Cross Sec {:.2e}'.format(mx)
+            print 'DM mass: {:.2f}'.format(mx)
             dim_test = load.shape[1]
             rm_ind = [idx for idx, item in enumerate(load[:,0]) if item in load[:,0][:idx]]
             useable = np.delete(load, rm_ind, axis=0)
