@@ -357,7 +357,7 @@ def gauss_cdf_function(x, x0, sigma):
 
 def guess_x0(sig_min, sig_max, data):
     #print 'trying...', sig_min, sig_max, data
-    x0 = np.linspace(sig_min, sig_max, 50)
+    x0 = np.linspace(sig_min, sig_max, 100)
     looker = np.zeros_like(x0)
     for j in range(len(x0)):
         for i in range(len(data[:,0])):
@@ -365,6 +365,6 @@ def guess_x0(sig_min, sig_max, data):
 
     looker[looker == 0.] = 1.
     #print np.column_stack((x0, looker))
-    sig = x0[np.argmin(looker)]
+    sig = x0[np.argmin(looker)] + 0.3
     return sig
 
