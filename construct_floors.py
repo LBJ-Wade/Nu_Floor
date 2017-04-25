@@ -53,7 +53,7 @@ def make_a_floor(element='Germanium', model='sigma_si', fnfp=1., exposure=1.,
                 popt, pcov = curve_fit(gauss_cdf_function, useable[:, 0], useable[:, 1], p0=[mean, 1.])
                 csec = brentq(lambda x: gauss_cdf_function(x, *popt) - qaim, -60., -30.)
                 print 'DM mass: {:.2f}, Cross Sec {:.2e}'.format(mx, 10. ** csec)
-            except ValueError:
+            except:
                 continue
 
             if os.path.exists(file_sv):
