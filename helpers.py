@@ -6,6 +6,10 @@ from scipy.optimize import brentq, curve_fit
 from scipy.stats import norm
 import numpy.random as random
 #from scipy.interpolate import griddata,interp1d,interp2d
+import warnings
+from scipy.optimize import OptimizeWarning
+
+warnings.simplefilter("ignore", OptimizeWarning)
 
 path = os.getcwd()
 
@@ -331,19 +335,19 @@ def adaptive_samples(sig_min, sig_max, list):
     elif high == 0:
         return np.mean(np.array([np.max(arr_l[:, 0]), sig_max])), False
     else:
-        if len(arr_l[:,0]) > 2.:
-            mean = sum(arr_l[:,0] * arr_l[:,1]) / sum(arr_l[:,1])
-            popt, pcov = curve_fit(gauss_cdf_function, arr_l[:,0], arr_l[:,1], p0=[mean, 1.],
-                                   bounds=([arr_l[0, 0], arr_l[-1, 0]], [1e-4, 10.]))
-            xrag = np.linspace(sig_min, sig_max, 300)
-            ypts = gauss_cdf_function(xrag, *popt)
-            ypts /= ypts.max()
-            u = random.rand(1)
-            sig = xrag[np.absolute(ypts - u).argmin()]
-        else:
-            low_v = np.max(arr_l[arr_l[:, 1] == 0.][:, 0])
-            high_v = np.min(arr_l[arr_l[:, 1] == 1.][:, 0])
-            sig = np.mean(np.array([low_v, high_v]))
+
+        mean = sum(arr_l[:,0] * arr_l[:,1]) / sum(arr_l[:,1])
+        popt, pcov = curve_fit(gauss_cdf_function, arr_l[:,0], arr_l[:,1], p0=[mean, 1.],
+                               bounds=([arr_l[0, 0], arr_l[-1, 0]], [1e-4, 10.]))
+        xrag = np.linspace(sig_min, sig_max, 300)
+        ypts = gauss_cdf_function(xrag, *popt)
+        ypts /= ypts.max()
+        u = random.rand(1)
+        sig = xrag[np.absolute(ypts - u).argmin()]
+        # else:
+        #     low_v = np.max(arr_l[arr_l[:, 1] == 0.][:, 0])
+        #     high_v = np.min(arr_l[arr_l[:, 1] == 1.][:, 0])
+        #     sig = np.mean(np.array([low_v, high_v]))
     return sig, False
 
 
