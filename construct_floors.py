@@ -7,6 +7,7 @@ from scipy.stats import gaussian_kde as kde
 from statsmodels.nonparametric.smoothers_lowess import lowess
 from helpers import gauss_cdf_function
 from experiments import *
+import warnings
 from scipy.optimize import OptimizeWarning
 
 warnings.simplefilter("ignore", OptimizeWarning)
