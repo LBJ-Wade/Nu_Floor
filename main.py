@@ -67,7 +67,7 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
         mindm[i] = MinDMMass(iso[0], delta, Qmin, vesc=533.+232.)
     MinDM = np.min(mindm)
     print 'Minimum DM mass: ', MinDM
-    if mass < MinDM:
+    if mass < MinDM + 0.5:
         print 'Mass too small...'
         exit()
     # 3\sigma for Chi-square Dist with 1 DoF means q = 9.0

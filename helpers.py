@@ -323,7 +323,7 @@ def adaptive_samples(sig_min, sig_max, list):
             return np.mean(np.array([list[0][0], sig_max])), False
         else:
             return np.mean(np.array([list[0][0], sig_min])), False
-    if np.sum((arr_l[:, 1] > 0.15) & (arr_l[:, 1] < 0.95)) > 5:
+    if np.sum((arr_l[:, 1] > 0.15) & (arr_l[:, 1] < 0.95)) > 3:
         print 'Enough points in [0.5, 0.95]'
         print arr_l
         return sig_min, True
@@ -335,28 +335,19 @@ def adaptive_samples(sig_min, sig_max, list):
     elif high == 0:
         return np.mean(np.array([np.max(arr_l[:, 0]), sig_max])), False
     else:
-        # try:
-        #     mean = sum(arr_l[:,0] * arr_l[:,1]) / sum(arr_l[:,1])
-        #     popt, pcov = curve_fit(gauss_cdf_function, arr_l[:,0], arr_l[:,1], p0=[mean, 0.5],
-        #                            bounds=([sig_min,sig_max], [0.01, 10.]))
-        #     xrag = np.linspace(sig_min, sig_max, 300)
-        #     ypts = gauss_cdf_function(xrag, *popt)
-        #     ypts /= ypts.max()
-        #     u = random.rand(1)
-        #     sig = xrag[np.absolute(ypts - u).argmin()]
-        # except:
-        #     print 'Optimize failed.'
-        #     sig = guess_x0(sig_min, sig_max, arr_l)
-
         upper = arr_l[arr_l[:, 1] > 0.9]
         lower = arr_l[arr_l[:, 1] < 0.9]
         lbnd = lower[np.argmax(lower[:, 1]), 0]
         ubnd = upper[np.argmin(upper[:, 1]), 0]
         diff = ubnd - lbnd
+        mean = np.mean(np.array([lbnd, ubnd]))
         u = random.rand(1)[0]
-        sig = lbnd + u * diff
-        #print lbnd, ubnd, diff, u, sig
+        # sig = lbnd + u * diff
+        x = np.linspace(sig_min, sig_max, 100)
+        tab = gauss_cdf_function(x, mean, diff/2.)
+        sig = x[np.absolute(tab - u).argmin()]
     return sig, False
+
 
 
 def gauss_cdf_function(x, x0, sigma):
