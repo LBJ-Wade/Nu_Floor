@@ -113,7 +113,7 @@ def ERplus(mx, mT, v, delta):
     if delta > 1e6 * (v/c_lgt)**2. * r_mass/2.:
         return 0.
     sqt_t = np.sqrt(1. - 2. * delta * 1e-6 * c_lgt**2. / (r_mass * v**2.))
-    return (v/c_lgt)**2. * r_mass**2. /(2.*mT) * 1e6 * (1. + sqt_t)**2.
+    return (v/c_lgt)**2. * r_mass**2. / (2.*mT) * 1e6 * (1. + sqt_t)**2.
 
 def ERminus(mx, mT, v, delta):
     r_mass = mx * mT / (mx + mT)
@@ -327,9 +327,9 @@ def adaptive_samples(sig_min, sig_max, list):
     low = np.sum(arr_l[:, 1] < 0.9)
     #print 'High, Low', high, low
     if low == 0:
-        return np.mean(np.array(np.min(arr_l[:, 0]), sig_min)), False
+        return np.mean(np.array([np.min(arr_l[:, 0]), sig_min])), False
     elif high == 0:
-        return np.mean(np.array(np.max(arr_l[:, 0]), sig_max)), False
+        return np.mean(np.array([np.max(arr_l[:, 0]), sig_max])), False
     else:
         mean = sum(arr_l[:,0] * arr_l[:,1]) / sum(arr_l[:,1])
         popt, pcov = curve_fit(gauss_cdf_function, arr_l[:,0], arr_l[:,1], p0=[mean, 1.])

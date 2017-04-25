@@ -39,6 +39,7 @@ def make_a_floor(element='Germanium', model='sigma_si', fnfp=1., exposure=1.,
         mx = float(f[f.find('DM_Mass_')+8:f.find('_GeV')])
         load = np.loadtxt(f)
         try:
+            print 'DM mass: {:.2f}, Cross Sec {:.2e}'.format(mx, 10. ** csec)
             dim_test = load.shape[1]
             rm_ind = [idx for idx, item in enumerate(load[:,0]) if item in load[:,0][:idx]]
             useable = np.delete(load, rm_ind, axis=0)
@@ -48,7 +49,6 @@ def make_a_floor(element='Germanium', model='sigma_si', fnfp=1., exposure=1.,
                 csec = brentq(lambda x: gauss_cdf_function(x, *popt) - qaim, -60., -30.)
             except ValueError:
                 continue
-            print 'DM mass: {:.2f}, Cross Sec {:.2e}'.format(mx, 10.**csec)
 
             if os.path.exists(file_sv):
                 load_old = np.loadtxt(file_sv)

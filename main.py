@@ -27,6 +27,7 @@ from helpers import *
 import os
 from scipy.stats import poisson
 import time
+from test_plots import *
 
 path = os.getcwd()
 QUIET = False
@@ -34,8 +35,8 @@ xenLAB = 'LZ'
 
 
 def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
-            element='Germanium', exposure=1., delta=0., GF=False, time_info=False,
-            file_tag='', n_runs=20, Eth=''):
+             element='Germanium', exposure=1., delta=0., GF=False, time_info=False,
+             file_tag='', n_runs=20, Eth=''):
 
     #start_time = time.time()
     testq = 0
@@ -73,13 +74,13 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
     q_goal = 9.0
 
     # make sure there are enough points for numerical accuracy/stability
-    er_list = np.logspace(np.log10(Qmin), np.log10(Qmax), 100)
+    er_list = np.logspace(np.log10(Qmin), np.log10(Qmax), 200)
     time_list = np.zeros_like(er_list)
 
-    nu_comp = ['b8', 'b7l1', 'b7l2', 'pepl1', 'hep', 'pp', 'o15', 'n13', 'f17', 'atmnue',
-               'atmnuebar', 'atmnumu', 'atmnumubar', 'dsnb3mev', 'dsnb5mev', 'dsnb8mev',
-               'reactor', 'geoU', 'geoTh']
-    # nu_comp = ['b8', 'b7l1', 'b7l2', 'pepl1', 'hep']
+    # nu_comp = ['b8', 'b7l1', 'b7l2', 'pepl1', 'hep', 'pp', 'o15', 'n13', 'f17', 'atmnue',
+    #            'atmnuebar', 'atmnumu', 'atmnumubar', 'dsnb3mev', 'dsnb5mev', 'dsnb8mev',
+    #            'reactor', 'geoU', 'geoTh']
+    nu_comp = ['b8', 'b7l1', 'b7l2', 'pepl1', 'hep']
 
     nu_lines = ['b7l1', 'b7l2', 'pepl1']
     line_flux = [(0.1) * 5.00 * 10. ** 9., (0.9) * 5.00 * 10. ** 9., 1.44 * 10. ** 8.]
@@ -100,14 +101,16 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
         for i in range(nu_contrib):
             nuspec[i] += Nu_spec(labor).nu_rate(nu_comp[i], er_list, iso)
 
-
     for i in range(nu_contrib):
         nu_rate[i] = np.trapz(nuspec[i], er_list)
 
         print nu_comp[i], nu_rate[i]
         if nu_rate[i] > 0.:
             nu_pdf[i] = nuspec[i] / nu_rate[i]
-            cdf_nu[i] = nu_pdf[i].cumsum()
+            cdf_nu[i] = np.zeros_like(nu_pdf[i])
+            for j in range(len(nu_pdf[i])):
+                cdf_nu[i][j] = np.trapz(nu_pdf[i][:j],er_list[:j])
+
             cdf_nu[i] /= cdf_nu[i].max()
             Nu_events_sim[i] = int(nu_rate[i] * exposure)
 
@@ -134,12 +137,14 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
         drdq_params['delta'] = delta
         drdq_params['GF'] = GF
         drdq_params['time_info'] = time_info
-        #
-        #
+
         dm_spec = dRdQ(er_list, time_list, **drdq_params) * 10. ** 3. * s_to_yr
         dm_rate = R(Qmin=Qmin, Qmax=Qmax, **drdq_params) * 10. ** 3. * s_to_yr
         dm_pdf = dm_spec / dm_rate
-        cdf_dm = dm_pdf.cumsum()
+
+        cdf_dm = np.zeros_like(dm_pdf)
+        for i in range(len(cdf_dm)):
+            cdf_dm[i] = np.trapz(dm_pdf[:i],er_list[:i])
         cdf_dm /= cdf_dm.max()
         dm_events_sim = int(dm_rate * exposure)
 
@@ -191,21 +196,19 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
 
             # Simulate events
             print('Evaluated Events: Neutrino {:.0f}, DM {:.0f}'.format(int(sum(nevts_n)), nevts_dm))
-
             u = random.rand(nevts_dm)
             # Generalize to rejection sampling algo for time implimentation
-
-
+            e_sim2 = np.zeros(nevts_dm)
             for i in range(nevts_dm):
-                 e_sim = np.append(e_sim, er_list[np.absolute(cdf_dm - u[i]).argmin()])
+                 e_sim2[i] = er_list[np.absolute(cdf_dm - u[i]).argmin()]
 
+            e_sim = np.concatenate((e_sim, e_sim2))
             times = np.zeros_like(e_sim)
-            #print e_sim
 
             if not QUIET:
                 print 'Running Likelihood Analysis...'
             # Minimize likelihood -- MAKE SURE THIS MINIMIZATION DOESNT FAIL. CONSIDER USING GRADIENT INFO
-            nu_bnds = [(-3.0, 3.0)] * nu_contrib
+            nu_bnds = [(-5.0, 3.0)] * nu_contrib
             dm_bnds = nu_bnds + [(-60., -30.)]
             like_init_nodm = Likelihood_analysis(model, coupling, mass, 0., fnfp,
                                                  exposure, element, experiment_info,
@@ -228,7 +231,8 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
                               tol=1e-5, method='SLSQP', bounds=dm_bnds,
                               options={'maxiter': 100}, jac=like_init_dm.likegrad_multi_wrapper)
             print 'Minimizaiton Success: ', max_nodm.success, max_dm.success
-            #print 'DM Vals: ', max_dm.x
+            #print 'DM Vals: ', max_dm
+            #print 'No DM: ', max_nodm
             #print like_init_dm.test_num_events(max_dm.x[:-1], max_dm.x[-1])
             if not max_nodm.success or not max_dm.success:
                 fails = np.append(fails, nn)

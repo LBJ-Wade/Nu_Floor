@@ -373,7 +373,6 @@ class Nu_spec(object):
         #	print ('nuspec check, component: {}'.format(nu_component))
 
         diff_rate = np.zeros_like(er)
-        diff_rate2 = np.zeros_like(er)
         for i,e in enumerate(er):
             e_nu_min = np.sqrt(mT * e / 2.)
 

@@ -264,3 +264,25 @@ def neutrino_recoils(Emin=0.001, Emax=100., element='Germanium', fs=18, save=Tru
     if save:
         plt.savefig(filename)
     return
+
+
+def test_sims(esim, e_list, dm, nu):
+    pl.figure()
+    ax = pl.gca()
+    ax.set_xlabel(r'Recoil Energy  [keV]', fontsize=18)
+    ax.set_ylabel(r'Event Rate  [${\rm ton}^{-1} {\rm yr}^{-1} {\rm keV}^{-1}$]', fontsize=18)
+
+    pl.plot(e_list, dm, 'r', lw=1, label='Dark Matter')
+    pl.plot(e_list, nu, 'blue', lw=1, label='Neutrino')
+
+
+    bin = np.linspace(np.min(e_list), 2., 100)
+    ax.hist(esim, bins=bin, normed=True, histtype='step', fc=None, ec='Black', lw=2)
+
+    plt.tight_layout()
+
+    plt.xlim(xmin=np.min(e_list), xmax=2.)
+    ax.set_xscale("log")
+
+    plt.savefig(test_plots + 'TEST.pdf')
+    return
