@@ -10,7 +10,6 @@ import warnings
 from scipy.optimize import OptimizeWarning
 
 warnings.simplefilter("error", OptimizeWarning)
-warnings.simplefilter("error", RuntimeError)
 
 path = os.getcwd()
 
@@ -336,18 +335,27 @@ def adaptive_samples(sig_min, sig_max, list):
     elif high == 0:
         return np.mean(np.array([np.max(arr_l[:, 0]), sig_max])), False
     else:
-        try:
-            mean = sum(arr_l[:,0] * arr_l[:,1]) / sum(arr_l[:,1])
-            popt, pcov = curve_fit(gauss_cdf_function, arr_l[:,0], arr_l[:,1], p0=[mean, 0.5],
-                                   bounds=([sig_min,sig_max], [0.01, 10.]))
-            xrag = np.linspace(sig_min, sig_max, 300)
-            ypts = gauss_cdf_function(xrag, *popt)
-            ypts /= ypts.max()
-            u = random.rand(1)
-            sig = xrag[np.absolute(ypts - u).argmin()]
-        except OptimizeWarning or RuntimeError:
-            print 'Optimize failed.'
-            sig = guess_x0(sig_min, sig_max, arr_l)
+        # try:
+        #     mean = sum(arr_l[:,0] * arr_l[:,1]) / sum(arr_l[:,1])
+        #     popt, pcov = curve_fit(gauss_cdf_function, arr_l[:,0], arr_l[:,1], p0=[mean, 0.5],
+        #                            bounds=([sig_min,sig_max], [0.01, 10.]))
+        #     xrag = np.linspace(sig_min, sig_max, 300)
+        #     ypts = gauss_cdf_function(xrag, *popt)
+        #     ypts /= ypts.max()
+        #     u = random.rand(1)
+        #     sig = xrag[np.absolute(ypts - u).argmin()]
+        # except:
+        #     print 'Optimize failed.'
+        #     sig = guess_x0(sig_min, sig_max, arr_l)
+
+        upper = arr_l[arr_l[:, 1] > 0.9]
+        lower = arr_l[arr_l[:, 1] < 0.9]
+        lbnd = lower[np.argmax(lower[:, 1]), 0]
+        ubnd = upper[np.argmin(upper[:, 1]), 0]
+        diff = ubnd - lbnd
+        u = random.rand(1)[0]
+        sig = lbnd + u * diff
+        #print lbnd, ubnd, diff, u, sig
     return sig, False
 
 
