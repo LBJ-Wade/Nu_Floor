@@ -331,9 +331,10 @@ def adaptive_samples(sig_min, sig_max, list):
     elif high == 0:
         return np.mean(np.array([np.max(arr_l[:, 0]), sig_max])), False
     else:
-        if np.sum((arr_l[:, 1] > 0.) & (arr_l[:, 1] < 1.)) > 1:
+        if len(arr_l[:,0]) > 2.:
             mean = sum(arr_l[:,0] * arr_l[:,1]) / sum(arr_l[:,1])
-            popt, pcov = curve_fit(gauss_cdf_function, arr_l[:,0], arr_l[:,1], p0=[mean, 1.])
+            popt, pcov = curve_fit(gauss_cdf_function, arr_l[:,0], arr_l[:,1], p0=[mean, 1.],
+                                   bounds=([arr_l[0, 0], arr_l[-1, 0]], [1e-4, 10.]))
             xrag = np.linspace(sig_min, sig_max, 300)
             ypts = gauss_cdf_function(xrag, *popt)
             ypts /= ypts.max()
