@@ -40,9 +40,11 @@ def make_a_floor(element='Germanium', model='sigma_si', fnfp=1., exposure=1.,
         load = np.loadtxt(f)
         try:
             dim_test = load.shape[1]
+            rm_ind = [idx for idx, item in enumerate(load[:,0]) if item in load[:,0][:idx]]
+            useable = np.delete(load, rm_ind, axis=0)
             try:
-                mean = sum(load[:, 0] * load[:, 1]) / sum(load[:, 1])
-                popt, pcov = curve_fit(gauss_cdf_function, load[:, 0], load[:, 1], p0=[mean, 1.])
+                mean = sum(useable[:, 0] * useable[:, 1]) / sum(useable[:, 1])
+                popt, pcov = curve_fit(gauss_cdf_function, useable[:, 0], useable[:, 1], p0=[mean, 1.])
                 csec = brentq(lambda x: gauss_cdf_function(x, *popt) - qaim, -60., -30.)
             except ValueError:
                 continue
