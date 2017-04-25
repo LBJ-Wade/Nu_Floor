@@ -30,7 +30,7 @@ def make_a_floor(element='Germanium', model='sigma_si', fnfp=1., exposure=1.,
 
     file_sv = path + '/Floors/' + element + '_' + model + '_' + coupling + '_{:.2f}'.format(fnfp)
     file_sv += '_Exposure_{:.2f}_tonyr_QGoal_{:.2f}'.format(exposure, qaim)
-    file_sv += tag + '.dat'
+    file_sv += '_Eth_{:.2f}_'.format(eth) + lab + '_' + tag + '.dat'
 
     try:
         os.remove(file_sv)
@@ -71,13 +71,13 @@ def make_a_floor(element='Germanium', model='sigma_si', fnfp=1., exposure=1.,
         except IndexError:
             pass
 
-    # try:
-    #     load = np.loadtxt(file_sv)
-    #     if len(load) > 3:
-    #         new_arr = lowess(load[:,1], load[:,0], frac=0.2, return_sorted=True)
-    #         np.savetxt(file_sv, new_arr)
-    # except IOError:
-    #     print 'No Files Found.'
+    try:
+        load = np.loadtxt(file_sv)
+        if len(load) > 3:
+            new_arr = lowess(load[:,1], load[:,0], frac=0.2, return_sorted=True)
+            np.savetxt(file_sv, new_arr)
+    except IOError:
+        print 'No Files Found.'
     return
 
 
