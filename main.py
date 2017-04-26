@@ -28,6 +28,7 @@ import os
 from scipy.stats import poisson
 import time
 from test_plots import *
+from constants import *
 
 path = os.getcwd()
 QUIET = False
@@ -74,19 +75,19 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
     q_goal = 9.0
 
     # make sure there are enough points for numerical accuracy/stability
-    er_list = np.logspace(np.log10(Qmin), np.log10(Qmax), 200)
+    er_list = np.logspace(np.log10(Qmin), np.log10(Qmax), 300)
     time_list = np.zeros_like(er_list)
 
     nu_comp = ['b8', 'b7l1', 'b7l2', 'pepl1', 'hep', 'pp', 'o15', 'n13', 'f17', 'atmnue',
                'atmnuebar', 'atmnumu', 'atmnumubar', 'dsnb3mev', 'dsnb5mev', 'dsnb8mev',
                'reactor', 'geoU', 'geoTh']
-    # nu_comp = ['b8', 'b7l1', 'b7l2', 'pepl1', 'hep']
-
-    nu_lines = ['b7l1', 'b7l2', 'pepl1']
-    line_flux = [(0.1) * 5.00 * 10. ** 9., (0.9) * 5.00 * 10. ** 9., 1.44 * 10. ** 8.]
-    e_lines = [0.380, 0.860, 1.440]
-
+    keep_nus = []
+    for i in range(len(nu_comp)):
+        if Nu_spec(Nu_spec).max_er_from_nu(NEUTRINO_EMAX[nu_comp[i]], experiment_info[0][0]) > Qmin:
+            keep_nus.append(i)
+    nu_comp = [x for i,x in enumerate(nu_comp) if i in keep_nus]
     nu_contrib = len(nu_comp)
+    print 'Neutrinos Considered: ', nu_comp
 
     nuspec = np.zeros(nu_contrib, dtype=object)
     nu_rate = np.zeros(nu_contrib, dtype=object)
