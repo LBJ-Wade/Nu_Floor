@@ -129,6 +129,9 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
             break
 
         print 'Sigma: {:.2e}'.format(sigmap)
+        check = np.loadtxt(file_info)
+        if np.log10(sigmap) in check[:, 0]:
+            continue
 
         drdq_params = default_rate_parameters.copy()
         drdq_params['element'] = element
