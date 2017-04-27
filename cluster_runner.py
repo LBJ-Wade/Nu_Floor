@@ -78,7 +78,11 @@ for i in range(count):
 
 fout = open('current_runs/commandrunner_{}.sh'.format(TAG), 'w')
 fout.write('#! /bin/bash\n')
-fout.write('#$ -l h_rt=24:00:00,h_data=2G\n')
+if exposure > 30.:
+    data = 2
+else:
+    data = 1
+fout.write('#$ -l h_rt=24:00:00,h_data='+str(data)+'G\n')
 fout.write('#$ -cwd\n')
 fout.write('#$ -t 1-{}\n'.format(count))
 fout.write('#$ -V\n')

@@ -95,6 +95,10 @@ geo_nu = np.loadtxt(path + '/Nu_Flux/Geo_nu.dat')
 geoU_spectrum = interp1d(geo_nu[:,0], geo_nu[:,1], kind='linear', fill_value=0., bounds_error=False)
 geoTh_spectrum = interp1d(geo_nu[:,0], geo_nu[:,2], kind='linear', fill_value=0., bounds_error=False)
 
+
+def atm_spectrum(x):
+    return atmnue_spectrum(x) + atmnumu_spectrum(x) + atmnumubar_spectrum(x) + atmnuebar_spectrum(x)
+
 NEUTRINO_EMAX = {"b8": 16.18,
                  "b7l1": 0.39,
                  "b7l2": 0.87,
@@ -113,7 +117,9 @@ NEUTRINO_EMAX = {"b8": 16.18,
                  "dsnb8mev": 81.91,
                  "reactor": 10.,
                  "geoU": 3.99,
-                 "geoTh": 2.26}
+                 "geoTh": 2.26,
+                 "atm": 9.44*10**2.
+                 }
 
 
 NEUTRINO_MEANF = {"b8": 5.58 * 10. ** 6.,
@@ -132,6 +138,7 @@ NEUTRINO_MEANF = {"b8": 5.58 * 10. ** 6.,
                   "dsnb3mev": 4.55 * 10. ** 1,
                   "dsnb5mev": 2.73 * 10. ** 1,
                   "dsnb8mev": 1.75 * 10. ** 1,
+                  "atm": (1.27 + 1.17 + 2.46 + 2.45) * 10.
                   }
 
 NEUTRINO_SIG = {"b8": 5.58 * 10. ** 6. * 0.14,
@@ -150,6 +157,7 @@ NEUTRINO_SIG = {"b8": 5.58 * 10. ** 6. * 0.14,
                   "dsnb3mev": 0.5 * 4.55 * 10. ** 1,
                   "dsnb5mev": 0.5 * 2.73 * 10. ** 1,
                   "dsnb8mev": 0.5 * 1.75 * 10. ** 1,
+                  "atm": 0.5 * (1.27 + 1.17 + 2.46 +2.45) * 10.
                   }
 NEUTRINO_SPEC = {"b8": b8nu_spectrum,
                   "hep": hepnu_spectrum,
@@ -166,7 +174,8 @@ NEUTRINO_SPEC = {"b8": b8nu_spectrum,
                   "dsnb8mev": dsnb8mevnu_spectrum,
                   "reactor": reactor_nu_spectrum,
                   "geoU": geoU_spectrum,
-                  "geoTh": geoTh_spectrum
+                  "geoTh": geoTh_spectrum,
+                  "atm": atm_spectrum
                   }
 
 nu_lines = ['b7l1', 'b7l2', 'pepl1']
