@@ -286,7 +286,7 @@ def adaptive_samples(sig_min, sig_max, list):
         u = random.rand(1)[0]
         # sig = lbnd + u * diff
         x = np.linspace(sig_min, sig_max, 100)
-        tab = gauss_cdf_function(x, mean, diff/2.)
+        tab = gauss_cdf_function(x, mean, np.max(np.array([diff/2., 0.3])))
         sig = x[np.absolute(tab - u).argmin()]
     return sig, False
 
