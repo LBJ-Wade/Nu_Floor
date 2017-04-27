@@ -18,10 +18,10 @@ import numpy as np
 from experiments import *
 import numpy.random as random
 from likelihood import *
-from scipy.optimize import minimize, basinhopping
+from scipy.optimize import minimize
 from scipy.stats import chi2
 from scipy.integrate import quad
-from scipy.interpolate import interp1d, RectBivariateSpline
+from scipy.interpolate import interp1d
 from rate_UV import *
 from helpers import *
 import os
@@ -29,6 +29,7 @@ from scipy.stats import poisson
 import time
 from test_plots import *
 from constants import *
+from scipy.stats import gaussian_kde
 
 path = os.getcwd()
 QUIET = False
@@ -262,8 +263,15 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
             print 'Median Q: {:.2f}'.format(np.median(tstat_arr))
             print 'Mean Q: {:.2f}\n'.format(np.mean(tstat_arr))
             print 'T-stat Array:', tstat_arr
-
-            testq = float(np.sum(tstat_arr > q_goal)) / float(len(tstat_arr))
+            testqsimp = float(np.sum(tstat_arr > q_goal)) / float(len(tstat_arr))
+            if testqsimp == 1.:
+                testq = 1.
+            else:
+                #testq = float(np.sum(tstat_arr > q_goal)) / float(len(tstat_arr))
+                kernel = gaussian_kde(tstat_arr)
+                xprob = np.linspace(0., np.max(tstat_arr), 200)
+                testq = np.trapz(kernel(xprob[xprob > q_goal]), xprob[xprob > q_goal]) / \
+                        np.trapz(kernel(xprob),xprob)
             sig_list.append([sig, testq])
             sig_list.sort(key=lambda x: x[0])
 
