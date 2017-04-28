@@ -38,14 +38,14 @@ def neutrino_spectrum(lab='Snolab', Emin=0.1, Emax=1000., fs=18, save=True):
 
     nu_comp = ['b8', 'b7l1', 'b7l2', 'pepl1', 'hep', 'pp', 'o15', 'n13', 'f17', 'atmnue',
                'atmnuebar', 'atmnumu', 'atmnumubar', 'dsnb3mev', 'dsnb5mev', 'dsnb8mev',
-               'reactor', 'geoU', 'geoTh']
+               'reactor', 'geoU', 'geoTh','geoK']
     color_list = ['#800080', '#000080', '#000080', '#8A2BE2', '#A52A2A', '#A0522D', '#DC143C', '#B8860B',
                   '#8B008B', '#556B2F', '#FF8C00', '#9932CC', '#E9967A', '#FF1493', '#696969', '#228B22',
-                  '#40E0D0', '#CD5C5C', '#90EE90', ]
+                  '#40E0D0', '#CD5C5C', '#90EE90', '#90EE90']
     nu_labels = ['8B', '7B [384.3 keV]', '7B [861.3 keV]', 'pep', 'hep', 'pp', '15O', '13N', '17F',
                  r'atm $\nu_e$', r'atm $\nu_{\bar e}$', r'atm $\nu_\mu$',
                  r'atm $\nu_{\bar \mu}$', 'DSN 3 MeV',
-                 'DSN 5 MeV', 'DSN 8 MeV', 'Reactor', 'Geo U', 'Geo Th']
+                 'DSN 5 MeV', 'DSN 8 MeV', 'Reactor', 'Geo U', 'Geo Th','Geo K']
 
     pl.figure()
     ax = pl.gca()
@@ -91,12 +91,12 @@ def neutrino_recoils(Emin=0.001, Emax=100., element='Germanium', fs=18, save=Tru
 
     nu_comp = ['b8', 'b7l1', 'b7l2', 'pepl1', 'hep', 'pp', 'o15', 'n13', 'f17', 'atmnue',
                'atmnuebar', 'atmnumu', 'atmnumubar', 'dsnb3mev', 'dsnb5mev', 'dsnb8mev',
-               'reactor', 'geoU', 'geoTh']
+               'reactor', 'geoU', 'geoTh','geoK']
 
     nu_labels = ['8B', '7B [384.3 keV]', '7B [861.3 keV]', 'pep', 'hep', 'pp', '15O', '13N', '17F',
                  r'atm $\nu_e$', r'atm $\nu_{\bar e}$', r'atm $\nu_\mu$',
                  r'atm $\nu_{\bar \mu}$', 'DSN 3 MeV',
-                 'DSN 5 MeV', 'DSN 8 MeV', 'Reactor', 'Geo U', 'Geo Th']
+                 'DSN 5 MeV', 'DSN 8 MeV', 'Reactor', 'Geo U', 'Geo Th','Geo K']
 
     nu_lines = ['b7l1', 'b7l2', 'pepl1']
     line_flux = [(0.1) * 5.00 * 10. ** 9., (0.9) * 5.00 * 10. ** 9., 1.44 * 10. ** 8.]
@@ -104,8 +104,8 @@ def neutrino_recoils(Emin=0.001, Emax=100., element='Germanium', fs=18, save=Tru
 
     color_list = ['#800080', '#000080', '#000080', '#8A2BE2', '#A52A2A', '#A0522D', '#DC143C', '#B8860B',
                   '#8B008B', '#556B2F', '#FF8C00', '#9932CC', '#E9967A', '#FF1493', '#696969', '#228B22',
-                  '#40E0D0', '#CD5C5C', '#90EE90',]
-    line_list = ['-', '--', '--', '-', '-','-', '-','-', '-','-', '-','-', '-','-', '-','-', '-','-', '-']
+                  '#40E0D0', '#CD5C5C', '#90EE90','#90EE90']
+    line_list = ['-', '--', '--', '-', '-','-', '-','-', '-','-', '-','-', '-','-', '-','-', '-','-', '-','-']
 
     nu_contrib = len(nu_comp)
 

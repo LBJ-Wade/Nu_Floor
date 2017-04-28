@@ -91,9 +91,12 @@ reactor_nu = np.loadtxt(path + '/Nu_Flux/Reactor_Spectrum.dat')
 reactor_nu_spectrum = interp1d(reactor_nu[:,0], reactor_nu[:,1], kind='cubic', fill_value=0., bounds_error=False)
 
 # Geo nus
-geo_nu = np.loadtxt(path + '/Nu_Flux/Geo_nu.dat')
-geoU_spectrum = interp1d(geo_nu[:,0], geo_nu[:,1], kind='linear', fill_value=0., bounds_error=False)
-geoTh_spectrum = interp1d(geo_nu[:,0], geo_nu[:,2], kind='linear', fill_value=0., bounds_error=False)
+geo_u = np.loadtxt(path + '/Nu_Flux/GeoU.dat')
+geo_th = np.loadtxt(path + '/Nu_Flux/GeoTh.dat')
+geo_k = np.loadtxt(path + '/Nu_Flux/GeoK.dat')
+geoU_spectrum = interp1d(geo_u[:,0], geo_u[:,1], kind='linear', fill_value=0., bounds_error=False)
+geoTh_spectrum = interp1d(geo_th[:,0], geo_th[:,1], kind='linear', fill_value=0., bounds_error=False)
+geoK_spectrum = interp1d(geo_k[:,0], geo_k[:,1], kind='linear', fill_value=0., bounds_error=False)
 
 
 def atm_spectrum(x):
@@ -118,6 +121,7 @@ NEUTRINO_EMAX = {"b8": 16.18,
                  "reactor": 10.,
                  "geoU": 3.99,
                  "geoTh": 2.26,
+                 "geoK": 1.32,
                  "atm": 9.44*10**2.
                  }
 
@@ -175,6 +179,7 @@ NEUTRINO_SPEC = {"b8": b8nu_spectrum,
                   "reactor": reactor_nu_spectrum,
                   "geoU": geoU_spectrum,
                   "geoTh": geoTh_spectrum,
+                  "geoK": geoK_spectrum,
                   "atm": atm_spectrum
                   }
 

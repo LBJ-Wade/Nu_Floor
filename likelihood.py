@@ -190,6 +190,8 @@ class Likelihood_analysis(object):
             nu_mean_f, nu_sig = geo_flux(loc=self.lab, el='U')
         elif nu_component == "geoTh":
             nu_mean_f, nu_sig = geo_flux(loc=self.lab, el='Th')
+        elif nu_component == "geoK":
+            nu_mean_f, nu_sig = geo_flux(loc=self.lab, el='K')
         else:
             nu_mean_f = NEUTRINO_MEANF[nu_component]
             nu_sig = NEUTRINO_SIG[nu_component]
@@ -227,6 +229,8 @@ class Nu_spec(object):
             nu_mean_f = geo_flux(loc=self.lab, el='U')[0]
         elif nu_component == "geoTh":
             nu_mean_f = geo_flux(loc=self.lab, el='Th')[0]
+        elif nu_component == "geoK":
+            nu_mean_f = geo_flux(loc=self.lab, el='K')[0]
         else:
             nu_mean_f = NEUTRINO_MEANF[nu_component]
 
@@ -235,7 +239,7 @@ class Nu_spec(object):
         else:
             for i in range(len(self.line)):
                 if nu_component == self.nu_lines[i]:
-                    return np.array([self.line[i],self.line[i]+1e-5]), np.array([nu_mean_f,nu_mean_f])
+                    return np.array([self.line[i],self.line[i]+1e-5,self.line[i]-1e-5]), np.array([0.,nu_mean_f,0.])
 
 
     def nu_rate(self, nu_component, er, element_info):
@@ -261,6 +265,8 @@ class Nu_spec(object):
                 nu_mean_f = geo_flux(loc=self.lab, el='U')[0]
             elif nu_component == "geoTh":
                 nu_mean_f = geo_flux(loc=self.lab, el='Th')[0]
+            elif nu_component == "geoK":
+                nu_mean_f = geo_flux(loc=self.lab, el='K')[0]
             else:
                 nu_mean_f = NEUTRINO_MEANF[nu_component]
 

@@ -143,7 +143,7 @@ def reactor_flux(loc='Snolab'):
 
 def geo_flux(loc='Snolab', el='U'):
     #print loc, el
-    # element is either 'U' or 'Th'
+    # element is either 'U' or 'Th' or 'K'
     if loc == 'Snolab':
         if el == 'U':
             flux = 4.9 * 10 ** 6.
@@ -151,6 +151,9 @@ def geo_flux(loc='Snolab', el='U'):
         elif el == 'Th':
             flux = 4.55 * 10 ** 6.
             flx_err = 1.17 * 10 ** 6.
+        elif el == 'K':
+            flux = 21.88 * 10 ** 6.
+            flx_err = 3.67 * 10 ** 6.
         return flux, flx_err
     elif loc == 'SURF':
         if el == 'U':
@@ -159,6 +162,9 @@ def geo_flux(loc='Snolab', el='U'):
         elif el == 'Th':
             flux = 4.90 * 10**6.
             flx_err = 1.34 * 10**6.
+        elif el == 'K':
+            flux = 22.68 * 10 ** 6.
+            flx_err = 4.37 * 10 ** 6.
         return flux, flx_err
     elif loc == 'GS':
         if el == 'U':
@@ -167,5 +173,8 @@ def geo_flux(loc='Snolab', el='U'):
         elif el == 'Th':
             flux = 4.23 * 10**6.
             flx_err = 1.26 * 10 **6.
+        elif el == 'K':
+            flux = 20.54 * 10 ** 6.
+            flx_err = 3.99 * 10 ** 6.
         return flux, flx_err
 
