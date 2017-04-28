@@ -53,6 +53,8 @@ def make_a_floor(element='Germanium', model='sigma_si', fnfp=1., exposure=1.,
                 popt, pcov = curve_fit(gauss_cdf_function, useable[:, 0], useable[:, 1], p0=[mean, 1.])
                 csec = brentq(lambda x: gauss_cdf_function(x, *popt) - qaim, -60., -30.)
                 print 'DM mass: {:.2f}, Cross Sec {:.2e}'.format(mx, 10. ** csec)
+                print 'Array: ', useable
+                print 'Best Fit: ', popt
             except:
                 continue
 
@@ -71,13 +73,13 @@ def make_a_floor(element='Germanium', model='sigma_si', fnfp=1., exposure=1.,
         except IndexError:
             pass
 
-    try:
-        load = np.loadtxt(file_sv)
-        if len(load) > 3:
-            new_arr = lowess(load[:,1], load[:,0], frac=0.2, return_sorted=True)
-            np.savetxt(file_sv, new_arr)
-    except IOError:
-        print 'No Files Found.'
+#    try:
+#        load = np.loadtxt(file_sv)
+#        if len(load) > 3:
+#            new_arr = lowess(load[:,1], load[:,0], frac=0.1, return_sorted=True)
+#            np.savetxt(file_sv, new_arr)
+#    except IOError:
+#        print 'No Files Found.'
     return
 
 
