@@ -42,6 +42,7 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
 
     #start_time = time.time()
     testq = 0
+    file_info = path + '/Saved_Files/'
 
     print 'Run Info:'
     print 'Experiment: ', element
@@ -49,6 +50,7 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
     coupling = "fnfp" + model[5:]
     print 'Coupling: ', coupling, fnfp
     print 'Mass: {:.0f}'.format(mass)
+
     print '\n'
 
     experiment_info, Qmin, Qmax = Element_Info(element)
@@ -56,7 +58,6 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
     if Eth > 0:
         Qmin = Eth
 
-    file_info = path + '/Saved_Files/'
     file_info += element + '_' + model + '_' + coupling + '_{:.2f}'.format(fnfp)
     file_info += '_Exposure_{:.2f}_tonyr_DM_Mass_{:.2f}_GeV'.format(exposure, mass)
     file_info += '_Eth_{:.2f}_'.format(Qmin) + labor + '_' + file_tag + '.dat'

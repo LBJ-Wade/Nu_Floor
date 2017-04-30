@@ -9,6 +9,7 @@ import matplotlib
 matplotlib.use('agg')
 import argparse
 from main import *
+from identify_nuetrinos import *
 
 path = os.getcwd()
 
@@ -28,6 +29,7 @@ parser.add_argument('--time_info')
 parser.add_argument('--GF')
 parser.add_argument('--file_tag')
 parser.add_argument('--n_runs', type=int)
+parser.add_argument('--DARK',default='T')
 
 args = parser.parse_args()
 
@@ -39,11 +41,18 @@ if args.GF == 'T':
     GF = True
 elif args.GF == 'F':
     GF = False
+if args.DARK == 'T':
+    DARK = True
+else:
+    DARK = False
 
+if DARK:
+    nu_floor(args.sig_low, args.sig_high, n_sigs=args.n_sigs, model=args.model,
+             mass=args.mass, fnfp=args.fnfp, element=args.element, exposure=args.exposure,
+             delta=args.delta, GF=False, time_info=time, file_tag=args.file_tag, n_runs=args.n_runs,
+             Eth=args.e_th)
 
-
-nu_floor(args.sig_low, args.sig_high, n_sigs=args.n_sigs, model=args.model,
-         mass=args.mass, fnfp=args.fnfp, element=args.element, exposure=args.exposure,
-         delta=args.delta, GF=False, time_info=time, file_tag=args.file_tag, n_runs=args.n_runs,
-         Eth=args.e_th)
+else:
+    identify_nu(exposure_low=1., exposure_high=100., expose_num=args.n_sigs, element=args.element,
+                file_tag=args.file_tag, n_runs=args.n_runs, Eth=args.e_th, identify=np.array(['reactor']))
 

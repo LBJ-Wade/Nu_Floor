@@ -26,7 +26,8 @@ s_to_yr = 3.154*10.**7.
 class Likelihood_analysis(object):
 
     def __init__(self, model, coupling, mass, dm_sigp, fnfp, exposure, element, isotopes,
-                 energies, times, nu_names, lab, nu_spec, Qmin, Qmax, time_info=False, GF=False):
+                 energies, times, nu_names, lab, nu_spec, Qmin, Qmax, time_info=False, GF=False,
+                 DARK=True):
 
         self.nu_lines = ['b7l1', 'b7l2', 'pepl1']
         self.line = [0.380, 0.860, 1.440]
@@ -63,10 +64,12 @@ class Likelihood_analysis(object):
         like_params['GF'] = GF
         like_params['time_info'] = time_info
 
-
-        self.dm_recoils = dRdQ(energies, times, **like_params) * 10.**3. * s_to_yr
-
-        self.dm_integ = R(Qmin=self.Qmin, Qmax=self.Qmax, **like_params) * 10.**3. * s_to_yr
+        if DARK:
+            self.dm_recoils = dRdQ(energies, times, **like_params) * 10.**3. * s_to_yr
+            self.dm_integ = R(Qmin=self.Qmin, Qmax=self.Qmax, **like_params) * 10.**3. * s_to_yr
+        else:
+            self.dm_recoils = np.zeros_like(energies)
+            self.dm_integ = 0.
 
         eng_lge = np.logspace(np.log10(self.Qmin), np.log10(self.Qmax), 200)
 

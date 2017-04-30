@@ -20,15 +20,16 @@ parser.add_argument('--n_sigs', type=int, default=20)  # number of cross-section
 parser.add_argument('--model', default="sigma_si") 
 parser.add_argument('--masses', nargs='+', default=np.array([9.]), type=float,)
 parser.add_argument('--fnfp', type=float, default=1.)
-parser.add_argument('--element', nargs='+', default=['Xenon'])
-parser.add_argument('--exposure', type=float, default=1.0)  # Ton-yr
-parser.add_argument('--ethresh', type=float, default=-1.)
+parser.add_argument('--element', nargs='+', default=['Germanium'])
+parser.add_argument('--exposure', type=float, default=2.0)  # Ton-yr
+parser.add_argument('--ethresh', type=float, default=-0.1)
 parser.add_argument('--delta', type=float, default=0.)  # FIX for now
 parser.add_argument('--time_info',default='F')  # FIX for now
 parser.add_argument('--GF', default='F')  # FIX for now
 parser.add_argument('--file_tag',default='_')
 parser.add_argument('--n_runs', type=int, default=5)  # number of realizations of data
 parser.add_argument('--tag',default='')
+parser.add_argument('--DARK',default='F')
 
 args = parser.parse_args()
 sig_h = args.sig_high
@@ -44,6 +45,8 @@ file_tag = args.file_tag
 n_runs = args.n_runs
 TAG = args.tag
 ethresh = args.ethresh
+DARK = args.DARK
+
 
 MASSES = args.masses
 EXPERIMENTS = args.element
@@ -63,7 +66,8 @@ for experiment in SINGLE_EXPERIMENTS:
               '--sig_high {} --sig_low {} --n_sigs {} '.format(sig_h, sig_l, nsig) +\
               '--model {} --mass {} --fnfp {} --element {} '.format(model, mass, fnfp, experiment) +\
               '--exposure {} --delta {} --time_info {} --GF {} '.format(exposure, delta, time_info, GF) +\
-              '--file_tag {} --n_runs {} --e_th {} '.format(file_tag, n_runs, ethresh)
+              '--file_tag {} --n_runs {} --e_th {} '.format(file_tag, n_runs, ethresh) +\
+              '--DARK {}'.format(DARK)
 
         cmds.append(cmd)
         count += 1
