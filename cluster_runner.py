@@ -17,12 +17,13 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--sig_high', type=float, default=10.**-43.)  # x-sec range
 parser.add_argument('--sig_low', type=float, default=10.**-48.)  # x-sec range
 parser.add_argument('--n_sigs', type=int, default=20)  # number of cross-section tests in x-sec range
-parser.add_argument('--model', default="sigma_si") 
+parser.add_argument('--model', default="sigma_si")
+#parser.add_argument('--masses', nargs='+', default=mass_arr, type=float,)
 parser.add_argument('--masses', nargs='+', default=np.array([9.]), type=float,)
 parser.add_argument('--fnfp', type=float, default=1.)
 parser.add_argument('--element', nargs='+', default=['Germanium'])
 parser.add_argument('--exposure', type=float, default=2.0)  # Ton-yr
-parser.add_argument('--ethresh', type=float, default=-0.1)
+parser.add_argument('--ethresh', type=float, default=0.01)
 parser.add_argument('--delta', type=float, default=0.)  # FIX for now
 parser.add_argument('--time_info',default='F')  # FIX for now
 parser.add_argument('--GF', default='F')  # FIX for now
@@ -82,10 +83,10 @@ for i in range(count):
 
 fout = open('current_runs/commandrunner_{}.sh'.format(TAG), 'w')
 fout.write('#! /bin/bash\n')
-if exposure > 30.:
+if DARK == 'F':
     data = 2
 else:
-    data = 1
+    data = 2
 fout.write('#$ -l h_rt=24:00:00,h_data='+str(data)+'G\n')
 fout.write('#$ -cwd\n')
 fout.write('#$ -t 1-{}\n'.format(count))
