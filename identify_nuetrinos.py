@@ -99,6 +99,17 @@ def identify_nu(exposure_low=1., exposure_high=100., expose_num=30., element='Ge
     for i, MT in enumerate(exposure_list):
         print 'Exposure, ', MT
 
+        try:
+            check = np.loadtxt(file_info)
+            try:
+                if MT in check[:, 0]:
+                    continue
+            except IndexError:
+                if MT == check[0]:
+                    continue
+        except IOError:
+            pass
+
         for i in range(nu_contrib):
             nu_rate[i] = np.trapz(nuspec[i], er_list)
             print nu_comp[i], nu_rate[i]*MT
@@ -236,7 +247,8 @@ def identify_nu(exposure_low=1., exposure_high=100., expose_num=30., element='Ge
                                jac=like_init_tot.like_gradi)
 
             print 'Minimizaiton Success: ', max_bkg.success, max_tot.success
-
+            print 'Values: ', max_bkg.fun, max_tot.fun
+            
             if not max_bkg.success or not max_tot.success:
                 fails = np.append(fails, nn)
 
