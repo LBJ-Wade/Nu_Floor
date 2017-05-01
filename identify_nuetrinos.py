@@ -263,9 +263,12 @@ def identify_nu(exposure_low=1., exposure_high=100., expose_num=30., element='Ge
             print 'Median Q: {:.2f}'.format(np.median(tstat_arr))
             print 'Mean Q: {:.2f}\n'.format(np.mean(tstat_arr))
             print 'T-stat Array:', tstat_arr
+
             testqsimp = float(np.sum(tstat_arr > q_goal)) / float(len(tstat_arr))
             if testqsimp == 1.:
                 testq = 1.
+            elif np.all(test_stat == 0.):
+                testq = 0.
             else:
                 kernel = gaussian_kde(tstat_arr)
                 xprob = np.linspace(0., np.max(tstat_arr), 200)

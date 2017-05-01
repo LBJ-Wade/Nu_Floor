@@ -174,7 +174,6 @@ class Likelihood_analysis(object):
                 for j in range(len(lg_vle)):
                     grad_nu[i] += -2. * np.log(10.) * diff_nu[i][j] * 10**nu_norm[i] / lg_vle[j]
 
-
         if ret_just_nu:
             return grad_nu
         else:
