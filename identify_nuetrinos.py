@@ -55,6 +55,7 @@ def identify_nu(exposure_low=1., exposure_high=100., expose_num=30., element='Ge
 
     nu_comp = ['b8', 'b7l1', 'b7l2', 'pepl1', 'hep', 'pp', 'o15', 'n13', 'f17', 'atm',
                'dsnb3mev', 'dsnb5mev', 'dsnb8mev', 'reactor', 'geoU', 'geoTh', 'geoK']
+
     keep_nus = []
     for i in range(len(nu_comp)):
         if nu_comp[i] in identify:
@@ -100,7 +101,7 @@ def identify_nu(exposure_low=1., exposure_high=100., expose_num=30., element='Ge
 
         for i in range(nu_contrib):
             nu_rate[i] = np.trapz(nuspec[i], er_list)
-            print nu_comp[i], nu_rate[i]
+            print nu_comp[i], nu_rate[i]*MT
             if nu_rate[i] > 0.:
                 nu_pdf[i] = nuspec[i] / nu_rate[i]
                 cdf_nu[i] = np.zeros_like(nu_pdf[i])
@@ -112,7 +113,7 @@ def identify_nu(exposure_low=1., exposure_high=100., expose_num=30., element='Ge
 
         for i in range(len(identify)):
             nu_rateLOOK[i] = np.trapz(nuspecLOOK[i], er_list)
-            print identify[i], nu_rateLOOK[i]
+            print identify[i], nu_rateLOOK[i]*MT
             if nu_rateLOOK[i] > 0.:
                 nu_pdfLOOK[i] = nuspecLOOK[i] / nu_rateLOOK[i]
                 cdf_nuLOOK[i] = np.zeros_like(nu_pdfLOOK[i])
@@ -157,8 +158,6 @@ def identify_nu(exposure_low=1., exposure_high=100., expose_num=30., element='Ge
                     np.savetxt(file_info, new_arr)
                 else:
                     np.savetxt(file_info, np.array([MT, 0.]))
-
-
 
             u = random.rand(Nevents)
             e_sim = np.zeros(Nevents)
@@ -212,8 +211,8 @@ def identify_nu(exposure_low=1., exposure_high=100., expose_num=30., element='Ge
             if not QUIET:
                 print 'Running Likelihood Analysis...'
 
-            nu_bnds = [(-5.0, 3.0)] * nu_contrib
-            full_bnds = [(-5.0, 3.0)] * (nu_contrib + len(identify))
+            nu_bnds = [(-10.0, 3.0)] * nu_contrib
+            full_bnds = [(-10.0, 3.0)] * (nu_contrib + len(identify))
 
             like_init_bkg = Likelihood_analysis('sigma_si', 'fnfp_si', 10., 0., 1.,
                                                  MT, element, experiment_info,
@@ -241,7 +240,7 @@ def identify_nu(exposure_low=1., exposure_high=100., expose_num=30., element='Ge
             if not max_bkg.success or not max_tot.success:
                 fails = np.append(fails, nn)
 
-            test_stat = np.max([max_tot.fun - max_bkg.fun, 0.])
+            test_stat = np.max([max_bkg.fun - max_tot.fun, 0.])
 
             pval = chi2.sf(test_stat, 1)
 

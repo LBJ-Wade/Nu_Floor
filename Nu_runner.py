@@ -53,6 +53,6 @@ if DARK:
              Eth=args.e_th)
 
 else:
-    identify_nu(exposure_low=1., exposure_high=100., expose_num=args.n_sigs, element=args.element,
+    identify_nu(exposure_low=1., exposure_high=1000., expose_num=20, element=args.element,
                 file_tag=args.file_tag, n_runs=args.n_runs, Eth=args.e_th, identify=np.array(['reactor']))
 
