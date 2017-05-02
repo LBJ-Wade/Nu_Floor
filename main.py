@@ -161,7 +161,7 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
 
         cdf_dm = np.zeros_like(dm_pdf)
         for i in range(len(cdf_dm)):
-            cdf_dm[i] = np.trapz(dm_pdf[:i],er_list[:i])
+            cdf_dm[i] = np.trapz(dm_pdf[:i], er_list[:i])
         cdf_dm /= cdf_dm.max()
         dm_events_sim = int(dm_rate * exposure)
 

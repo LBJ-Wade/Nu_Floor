@@ -5,11 +5,13 @@
 import time
 #start = time.time()
 
-import matplotlib 
+import matplotlib
 matplotlib.use('agg')
 import argparse
 from main import *
 from identify_nuetrinos import *
+from constants import *
+from experiments import *
 
 path = os.getcwd()
 
@@ -34,9 +36,9 @@ parser.add_argument('--DARK',default='T')
 args = parser.parse_args()
 
 if args.time_info == 'T':
-    time = True
+    timeT = True
 elif args.time_info == 'F':
-    time = False
+    timeT = False
 if args.GF == 'T':
     GF = True
 elif args.GF == 'F':
@@ -49,10 +51,21 @@ else:
 if DARK:
     nu_floor(args.sig_low, args.sig_high, n_sigs=args.n_sigs, model=args.model,
              mass=args.mass, fnfp=args.fnfp, element=args.element, exposure=args.exposure,
-             delta=args.delta, GF=False, time_info=time, file_tag=args.file_tag, n_runs=args.n_runs,
+             delta=args.delta, GF=False, time_info=timeT, file_tag=args.file_tag, n_runs=args.n_runs,
              Eth=args.e_th)
 
 else:
+    identify = np.array(['reactor'])
+    maxE = 0.
+    uncert = 1.0
+    for i in identify:
+        elem, Qmax, Qmin = Element_Info(args.element)
+        maxER = Nu_spec(lab='Snolab').max_er_from_nu(NEUTRINO_EMAX[i], elem[0,0])
+        if maxER > maxE:
+            maxE = maxER
+    print 'Maximum Energy:', maxE
+    print 'Uncertainty Multiplier', uncert
     identify_nu(exposure_low=1., exposure_high=1000., expose_num=20, element=args.element,
-                file_tag=args.file_tag, n_runs=args.n_runs, Eth=args.e_th, identify=np.array(['reactor']))
+                file_tag=args.file_tag, n_runs=args.n_runs, Eth=args.e_th, Ehigh=maxE,
+                identify=identify, red_uncer=uncert)
 

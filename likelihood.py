@@ -27,14 +27,15 @@ class Likelihood_analysis(object):
 
     def __init__(self, model, coupling, mass, dm_sigp, fnfp, exposure, element, isotopes,
                  energies, times, nu_names, lab, nu_spec, Qmin, Qmax, time_info=False, GF=False,
-                 DARK=True):
+                 DARK=True, reduce_uncer=1.):
 
         self.nu_lines = ['b7l1', 'b7l2', 'pepl1']
         self.line = [0.380, 0.860, 1.440]
+        self.reduce_uncer = reduce_uncer
 
+        nu_resp_h = np.zeros(nu_spec, dtype=object)
 
-        nu_resp = np.zeros(nu_spec, dtype=object)
-
+        self.nu_diff_evals = np.zeros(nu_spec, dtype=object)
         self.nu_resp = np.zeros(nu_spec, dtype=object)
         self.nu_int_resp = np.zeros(nu_spec, dtype=object)
 
@@ -71,19 +72,25 @@ class Likelihood_analysis(object):
             self.dm_recoils = np.zeros_like(energies)
             self.dm_integ = 0.
 
-        eng_lge = np.logspace(np.log10(self.Qmin), np.log10(self.Qmax), 200)
+        eng_lge = np.logspace(np.log10(self.Qmin), np.log10(self.Qmax), 300)
 
         for i in range(nu_spec):
-            nu_resp[i] = np.zeros_like(eng_lge)
+            nu_resp_h[i] = np.zeros_like(eng_lge)
 
         for iso in isotopes:
             for j in range(nu_spec):
-                nu_resp[j] += Nu_spec(self.lab).nu_rate(nu_names[j], eng_lge, iso)
+                nu_resp_h[j] += Nu_spec(self.lab).nu_rate(nu_names[j], eng_lge, iso)
 
         for i in range(nu_spec):
-            #linear interpolation for the 3 lines
-            self.nu_resp[i] = interp1d(eng_lge, np.abs(nu_resp[i]), kind='cubic', bounds_error=False, fill_value=0.)
+            er = eng_lge[nu_resp_h[i] > 0]
+            nu_resp_h[i] = nu_resp_h[i][nu_resp_h[i] > 0]
+
+            self.nu_resp[i] = lambda x: 10. ** interp1d(np.log10(er), np.log10(nu_resp_h[i]),
+                                                      kind='cubic', bounds_error=False,
+                                                      fill_value=0.)(np.log10(x))
+
             self.nu_int_resp[i] = np.trapz(self.nu_resp[i](eng_lge), eng_lge)
+            self.nu_diff_evals[i] = self.nu_resp[i](energies)
 
 
     def like_multi_wrapper(self, norms, grad=False):
@@ -91,7 +98,7 @@ class Likelihood_analysis(object):
         for i in range(self.nu_spec):
             nu_norm[i] = norms[i]
         sig_dm = norms[-1]
-        return self.likelihood(nu_norm, sig_dm, return_grad=False)
+        return self.likelihood(nu_norm, sig_dm)
 
     def test_num_events(self, nu_norm, sig_dm):
         print 'DM events Predicted: ', 10. ** sig_dm * self.dm_integ * self.exposure
@@ -100,7 +107,7 @@ class Likelihood_analysis(object):
             print 'Events from ' + self.nu_names[i] + ': ', nu_events
         return
 
-    def likelihood(self, nu_norm, sig_dm, return_grad=False):
+    def likelihood(self, nu_norm, sig_dm, skip_index=np.array([-1])):
         # - 2 log likelihood
         # nu_norm in units of cm^-2 s^-1, sig_dm in units of cm^2
         like = 0.
@@ -114,27 +121,27 @@ class Likelihood_analysis(object):
         for i in range(self.nu_spec):
             nu_events[i] = 10. ** nu_norm[i] * self.exposure * self.nu_int_resp[i]
 
+        #print 'Nobs {:.0f}, Nu Events: {:.2f}'.format(n_obs, np.sum(nu_events))
         like += 2. * (dm_events + sum(nu_events))
 
         # nu normalization contribution
         for i in range(self.nu_spec):
-            like += self.nu_gaussian(self.nu_names[i], nu_norm[i])
+            if np.all(skip_index) >= 0 and skip_index.dtype == 'int64' and i not in skip_index:
+                like += self.nu_gaussian(self.nu_names[i], nu_norm[i])
 
-        if self.element == 'fluorine':
+        if self.element == 'Fluorine':
             return like
 
         # Differential contribution
         diff_dm = self.dm_recoils * self.exposure
 
+        lg_vle = (10. ** sig_dm * diff_dm)
         for i in range(self.nu_spec):
-            diff_nu[i] = self.nu_resp[i](self.events) * self.exposure
-
-        lg_vle = (10. ** sig_dm * diff_dm + np.dot(list(map(lambda x:10**x,nu_norm)),diff_nu)) #nu norm array
+            diff_nu[i] = self.nu_diff_evals[i] * self.exposure * 10.**nu_norm[i]
+            lg_vle += diff_nu[i]
 
         for i in range(len(lg_vle)):
-            if lg_vle[i] > 0.:
                 like += -2. * np.log(lg_vle[i])
-
         return like
 
     def likegrad_multi_wrapper(self, norms):
@@ -144,7 +151,8 @@ class Likelihood_analysis(object):
         sig_dm = norms[-1]
         return self.like_gradi(nu_norm, sig_dm, ret_just_nu=False)
 
-    def like_gradi(self, nu_norm, sig_dm, ret_just_nu=True, ret_just_dm=False):
+    def like_gradi(self, nu_norm, sig_dm, skip_index=np.array([-1]), ret_just_nu=True, ret_just_dm=False):
+
         grad_x = 0.
         diff_nu = np.zeros(self.nu_spec, dtype=object)
         grad_nu = np.zeros(self.nu_spec)
@@ -153,26 +161,27 @@ class Likelihood_analysis(object):
         n_obs = len(self.events)
 
         dm_events = 10. ** sig_dm * self.dm_integ * self.exposure
-
         grad_x += 2. * np.log(10.) * dm_events
+
         for i in range(self.nu_spec):
             grad_nu[i] += 2. * np.log(10.) * 10. ** nu_norm[i] * self.exposure * self.nu_int_resp[i]
 
         for i in range(self.nu_spec):
-            grad_nu[i] += self.nu_gaussian(self.nu_names[i], nu_norm[i], return_deriv=True)
+            if np.all(skip_index) >= 0 and skip_index.dtype == 'int64' and i not in skip_index:
+                grad_nu[i] += self.nu_gaussian(self.nu_names[i], nu_norm[i], return_deriv=True)
 
         if self.element != 'fluorine':
             diff_dm = self.dm_recoils * self.exposure
+            lg_vle = (10. ** sig_dm * diff_dm)
             for i in range(self.nu_spec):
-                diff_nu[i] = self.nu_resp[i](self.events) * self.exposure
-
-            lg_vle = (10. ** sig_dm * diff_dm + np.dot(list(map(lambda x: 10 ** x, nu_norm)), diff_nu))
+                diff_nu[i] = self.nu_diff_evals[i] * self.exposure * 10.**nu_norm[i]
+                lg_vle += diff_nu[i]
 
             for i in range(len(lg_vle)):
                 grad_x += -2. * np.log(10.) * diff_dm[i] * 10. ** sig_dm / lg_vle[i]
             for i in range(self.nu_spec):
                 for j in range(len(lg_vle)):
-                    grad_nu[i] += -2. * np.log(10.) * diff_nu[i][j] * 10**nu_norm[i] / lg_vle[j]
+                    grad_nu[i] += -2. * np.log(10.) * diff_nu[i][j] / lg_vle[j]
 
         if ret_just_nu:
             return grad_nu
@@ -198,6 +207,7 @@ class Likelihood_analysis(object):
             nu_mean_f = NEUTRINO_MEANF[nu_component]
             nu_sig = NEUTRINO_SIG[nu_component]
 
+        nu_sig *= self.reduce_uncer
         if return_deriv:
             return nu_mean_f**2./nu_sig**2.*(10.**flux_n - 1.)* \
                        np.log(10.)*2.**(flux_n + 1.)*5.**flux_n
@@ -250,7 +260,6 @@ class Nu_spec(object):
         conversion_factor = xi / mT * s_to_yr * (0.938 / (1.66 * 10.**-27.)) \
                             * 10**-3. / (0.51 * 10.**14.)**2.
 
-
         diff_rate = np.zeros_like(er)
         for i,e in enumerate(er):
             if 'atm' in nu_component:
@@ -273,9 +282,9 @@ class Nu_spec(object):
                 nu_mean_f = NEUTRINO_MEANF[nu_component]
 
             if nu_component not in self.nu_lines:
-                ergs = np.logspace(np.log10(e_nu_min), np.log10(e_nu_max), 100)
-                diff_rate[i] = np.trapz(self.nu_recoil_spec(ergs, e, mT, Z, A, nu_component), ergs)
-                #diff_rate[i] = romberg(self.nu_recoil_spec, e_nu_min, e_nu_max, args=(e, mT, Z, A, nu_component))
+                #ergs = np.logspace(np.log10(e_nu_min), np.log10(e_nu_max), 100)
+                #diff_rate[i] = np.trapz(self.nu_recoil_spec(ergs, e, mT, Z, A, nu_component), ergs)
+                diff_rate[i] = romberg(self.nu_recoil_spec, e_nu_min, e_nu_max, args=(e, mT, Z, A, nu_component))
 
             else:
                 for j in range(len(self.line)):
