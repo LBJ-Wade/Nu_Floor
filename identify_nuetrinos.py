@@ -39,6 +39,7 @@ def identify_nu(exposure_low=1., exposure_high=100., expose_num=30, element='Ger
     if Eth > 0:
         Qmin = Eth
     Qmax = Ehigh
+    print 'Qmin: {:.2f}, Qmax: {:.2f}'.format(Qmin, Qmax)
 
     file_info += 'Identifying_'
     for nu in identify:
@@ -122,7 +123,7 @@ def identify_nu(exposure_low=1., exposure_high=100., expose_num=30, element='Ger
                 nu_pdf[i] = nuspec[i] / nu_rate[i]
                 cdf_nu[i] = np.zeros_like(nu_pdf[i])
                 for j in range(len(nu_pdf[i])):
-                    cdf_nu[i][j] = np.trapz(nu_pdf[i][:j],er_list[:j])
+                    cdf_nu[i][j] = np.trapz(nu_pdf[i][:j], er_list[:j])
 
                 cdf_nu[i] /= cdf_nu[i].max()
                 Nu_events_sim[i] = int(nu_rate[i] * MT)
@@ -191,29 +192,14 @@ def identify_nu(exposure_low=1., exposure_high=100., expose_num=30, element='Ger
                 if i < sum(nevts_n):
                     for j in range(nu_contrib + 1):
                         if sum_nu_evts[j] <= i < sum_nu_evts[j + 1]:
-                            if nu_comp[j] not in nu_lines:
-                                e_sim[i] = er_list[np.absolute(cdf_nu[j] - u[i]).argmin()]
-                            else:
-                                if nu_comp[j] == nu_lines[0]:
-                                    e_sim[i] = e_lines[0]
-                                elif nu_comp[j] == nu_lines[1]:
-                                    e_sim[i] = e_lines[1]
-                                elif nu_comp[j] == nu_lines[2]:
-                                    e_sim[i] = e_lines[2]
+                            e_sim[i] = er_list[np.absolute(cdf_nu[j] - u[i]).argmin()]
+
 
             for i in range(NeventsLOOK):
                 if i < sum(nevts_nLOOK):
                     for j in range(len(identify) + 1):
                         if sum_nu_evtsLOOK[j] <= i < sum_nu_evtsLOOK[j + 1]:
-                            if identify[j] not in nu_lines:
-                                e_simLOOK[i] = er_list[np.absolute(cdf_nuLOOK[j] - uLOOK[i]).argmin()]
-                            else:
-                                if identify[j] == nu_lines[0]:
-                                    e_simLOOK[i] = e_lines[0]
-                                elif identify[j] == nu_lines[1]:
-                                    e_simLOOK[i] = e_lines[1]
-                                elif identify[j] == nu_lines[2]:
-                                    e_simLOOK[i] = e_lines[2]
+                            e_simLOOK[i] = er_list[np.absolute(cdf_nuLOOK[j] - uLOOK[i]).argmin()]
 
             e_sim = np.concatenate((e_sim, e_simLOOK))
 
@@ -235,6 +221,10 @@ def identify_nu(exposure_low=1., exposure_high=100., expose_num=30, element='Ger
                                 args=(np.array([-100.])), tol=1e-6, method='SLSQP',
                                 options={'maxiter': 100}, bounds=nu_bnds,
                                 jac=like_init_bkg.like_gradi)
+            # max_bkg = minimize(like_init_bkg.neutrino_poisson_likelihood, np.zeros(nu_contrib),
+            #                    args=(10,), tol=1e-6, method='SLSQP',
+            #                    options={'maxiter': 100}, bounds=nu_bnds,
+            #                    jac=like_init_bkg.neutrino_poisson_grad)
 
             like_init_tot = Likelihood_analysis('sigma_si', 'fnfp_si', 10., 0., 1.,
                                                MT, element, experiment_info, e_sim, np.zeros_like(e_sim),
@@ -243,21 +233,26 @@ def identify_nu(exposure_low=1., exposure_high=100., expose_num=30, element='Ger
                                                Qmin, Qmax, reduce_uncer=red_uncer)
 
             max_tot = minimize(like_init_tot.likelihood, np.zeros(nu_contrib + len(identify)),
-                               args=(np.array([-100.]), np.arange(nu_contrib, nu_contrib + len(identify)),),
+                               args=(np.array([-100.]),),
                                tol=1e-6, method='SLSQP',
                                options={'maxiter': 100}, bounds=full_bnds,
                                jac=like_init_tot.like_gradi)
+            # max_tot = minimize(like_init_tot.neutrino_poisson_likelihood, np.zeros(nu_contrib + len(identify)),
+            #                    args=(10,), tol=1e-6, method='SLSQP',
+            #                    options={'maxiter': 100}, bounds=full_bnds,
+            #                    jac=like_init_tot.neutrino_poisson_grad)
 
             print 'Minimizaiton Success: ', max_bkg.success, max_tot.success
             print 'Values: ', max_bkg.fun, max_tot.fun
-            #print max_bkg
-            #print max_tot
+            # print max_bkg
+            # print max_tot
 
             if not max_bkg.success or not max_tot.success:
                 fails = np.append(fails, nn)
 
             test_stat = np.max([max_bkg.fun - max_tot.fun, 0.])
-
+            if test_stat > 0:
+                print e_simLOOK
             pval = chi2.sf(test_stat, 1)
 
             if not QUIET:

@@ -81,16 +81,17 @@ class Likelihood_analysis(object):
             for j in range(nu_spec):
                 nu_resp_h[j] += Nu_spec(self.lab).nu_rate(nu_names[j], eng_lge, iso)
 
+        er = np.zeros(nu_spec, dtype=object)
         for i in range(nu_spec):
-            er = eng_lge[nu_resp_h[i] > 0]
+            er[i] = eng_lge[nu_resp_h[i] > 0]
             nu_resp_h[i] = nu_resp_h[i][nu_resp_h[i] > 0]
-            self.nu_resp[i] = lambda x: 10. ** interp1d(np.log10(er), np.log10(nu_resp_h[i]),
-                                                      kind='cubic', bounds_error=False,
-                                                      fill_value=-100.)(np.log10(x))
 
-            self.nu_int_resp[i] = np.trapz(self.nu_resp[i](eng_lge), eng_lge)
-            self.nu_diff_evals[i] = self.nu_resp[i](energies)
-            #print self.nu_names[i], self.nu_resp[i](0.5), self.nu_resp[i](0.7)
+            self.nu_resp[i] = interp1d(np.log10(er[i]), np.log10(nu_resp_h[i]),
+                                                      kind='cubic', bounds_error=False,
+                                                      fill_value=-100.)
+
+            self.nu_int_resp[i] = np.trapz(10.**self.nu_resp[i](np.log10(eng_lge)), eng_lge)
+            self.nu_diff_evals[i] = 10.**self.nu_resp[i](np.log10(energies))
 
 
     def like_multi_wrapper(self, norms, grad=False):
@@ -110,7 +111,7 @@ class Likelihood_analysis(object):
     def likelihood(self, nu_norm, sig_dm, skip_index=np.array([-1])):
         # - 2 log likelihood
         # nu_norm in units of cm^-2 s^-1, sig_dm in units of cm^2
-        #print 'Skip Arr:', skip_index
+
         like = 0.
         diff_nu = np.zeros(self.nu_spec, dtype=object)
         nu_events = np.zeros(self.nu_spec, dtype=object)
@@ -127,8 +128,7 @@ class Likelihood_analysis(object):
 
         # nu normalization contribution
         for i in range(self.nu_spec):
-            if np.all(skip_index) >= 0 and skip_index.dtype == 'int64' and i not in skip_index:
-                like += self.nu_gaussian(self.nu_names[i], nu_norm[i])
+            like += self.nu_gaussian(self.nu_names[i], nu_norm[i])
 
         if self.element == 'Fluorine':
             return like
@@ -168,8 +168,8 @@ class Likelihood_analysis(object):
             grad_nu[i] += 2. * np.log(10.) * 10. ** nu_norm[i] * self.exposure * self.nu_int_resp[i]
 
         for i in range(self.nu_spec):
-            if np.all(skip_index) >= 0 and skip_index.dtype == 'int64' and i not in skip_index:
-                grad_nu[i] += self.nu_gaussian(self.nu_names[i], nu_norm[i], return_deriv=True)
+            # if np.all(skip_index) >= 0 and skip_index.dtype == 'int64' and i not in skip_index:
+            grad_nu[i] += self.nu_gaussian(self.nu_names[i], nu_norm[i], return_deriv=True)
 
         if self.element != 'fluorine':
             diff_dm = self.dm_recoils * self.exposure
@@ -191,6 +191,44 @@ class Likelihood_analysis(object):
                 return np.array([grad_x])
             else:
                 return np.concatenate((grad_nu, np.array([grad_x])))
+
+    def neutrino_poisson_likelihood(self, nu_norm, bins=10):
+        # - 2 log likelihood
+        # nu_norm in units of cm^-2 s^-1, sig_dm in units of cm^2
+
+        bedge = np.linspace(self.Qmin, self.Qmax, bins+1)
+
+        n_count = np.zeros(bins)
+        pred = np.zeros(bins)
+        like = 0.
+        for i in range(bins):
+            erg = np.logspace(np.log10(bedge[i]), np.log10(bedge[i + 1]), 100)
+
+            n_count[i] = ((self.events > bedge[i]) & (bedge[i+1] > self.events)).sum()
+            for j in range(self.nu_spec):
+                pred[i] += 10.**nu_norm[j] * self.exposure * np.trapz(10.**self.nu_resp[j](np.log10(erg)), erg)
+
+        like = 2. * (pred - n_count * np.log(pred)).sum()
+        return like
+
+    def neutrino_poisson_grad(self, nu_norm, bins=10):
+        # - 2 log likelihood
+        # nu_norm in units of cm^-2 s^-1, sig_dm in units of cm^2
+        bedge = np.linspace(self.Qmin, self.Qmax, bins+1)
+        n_count = np.zeros(bins)
+        pred = np.zeros(bins*len(nu_norm)).reshape((bins, len(nu_norm)))
+        deriv = np.zeros(len(nu_norm))
+        for i in range(bins):
+            erg = np.logspace(np.log10(bedge[i]), np.log10(bedge[i+1]), 100)
+            n_count[i] = len(self.events[(self.events > bedge[i]) & (bedge[i+1] < self.events)])
+            for j in range(self.nu_spec):
+                pred[i, j] += 10.**nu_norm[j] * self.exposure * np.trapz(10.**self.nu_resp[j](np.log10(erg)), erg)
+
+        prefactor = 2. * (1. - n_count / np.sum(pred, axis=1))
+        for j in range(self.nu_spec):
+            deriv[j] += np.dot(prefactor, pred[:, j] * np.log(10.))
+
+        return deriv
 
 
     def nu_gaussian(self, nu_component, flux_n, return_deriv=False):
