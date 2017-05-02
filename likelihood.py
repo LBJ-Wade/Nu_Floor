@@ -85,10 +85,14 @@ class Likelihood_analysis(object):
         for i in range(nu_spec):
             er[i] = eng_lge[nu_resp_h[i] > 0]
             nu_resp_h[i] = nu_resp_h[i][nu_resp_h[i] > 0]
-
-            self.nu_resp[i] = interp1d(np.log10(er[i]), np.log10(nu_resp_h[i]),
-                                                      kind='cubic', bounds_error=False,
-                                                      fill_value=-100.)
+            try:
+                self.nu_resp[i] = interp1d(np.log10(er[i]), np.log10(nu_resp_h[i]),
+                                                          kind='cubic', bounds_error=False,
+                                                          fill_value=-100.)
+            except ValueError:
+                self.nu_resp[i] = interp1d(np.log10(er[i]), np.log10(nu_resp_h[i]),
+                                           kind='linear', bounds_error=False,
+                                           fill_value='extrapolate')
 
             self.nu_int_resp[i] = np.trapz(10.**self.nu_resp[i](np.log10(eng_lge)), eng_lge)
             self.nu_diff_evals[i] = 10.**self.nu_resp[i](np.log10(energies))
