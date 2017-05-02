@@ -1,0 +1,3 @@
+# Disable line break normalization for all files
+
+* -text

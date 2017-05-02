@@ -20,8 +20,9 @@ QUIET = False
 xenLAB = 'LZ'
 
 
-def identify_nu(exposure_low=1., exposure_high=100., expose_num=30., element='Germanium',
-                file_tag='', n_runs=20, Eth='', identify=np.array(['reactor'])):
+def identify_nu(exposure_low=1., exposure_high=100., expose_num=30, element='Germanium',
+                file_tag='', n_runs=20, Eth='', Ehigh=6., identify=np.array(['reactor']),
+                red_uncer=1.):
 
     exposure_list = np.logspace(np.log10(exposure_low), np.log10(exposure_high), expose_num)
 
@@ -37,6 +38,7 @@ def identify_nu(exposure_low=1., exposure_high=100., expose_num=30., element='Ge
     labor = laboratory(element, xen=xenLAB)
     if Eth > 0:
         Qmin = Eth
+    Qmax = Ehigh
 
     file_info += 'Identifying_'
     for nu in identify:
@@ -52,9 +54,11 @@ def identify_nu(exposure_low=1., exposure_high=100., expose_num=30., element='Ge
 
     # make sure there are enough points for numerical accuracy/stability
     er_list = np.logspace(np.log10(Qmin), np.log10(Qmax), 300)
+    #er_list = np.linspace(Qmin, Qmax, 500)
 
-    nu_comp = ['b8', 'b7l1', 'b7l2', 'pepl1', 'hep', 'pp', 'o15', 'n13', 'f17', 'atm',
-               'dsnb3mev', 'dsnb5mev', 'dsnb8mev', 'reactor', 'geoU', 'geoTh', 'geoK']
+    nu_comp = ['b8', 'b7l1', 'b7l2', 'pepl1', 'hep', 'pp', 'o15', 'n13', 'f17',
+               'reactor', 'geoU', 'geoTh', 'geoK']
+
 
     keep_nus = []
     for i in range(len(nu_comp)):
@@ -95,8 +99,9 @@ def identify_nu(exposure_low=1., exposure_high=100., expose_num=30., element='Ge
         for i in range(len(identify)):
             nuspecLOOK[i] += Nu_spec(labor).nu_rate(identify[i], er_list, iso)
 
-    tstat_arr = np.zeros(n_runs)
+
     for i, MT in enumerate(exposure_list):
+        tstat_arr = np.zeros(n_runs)
         print 'Exposure, ', MT
 
         try:
@@ -162,13 +167,9 @@ def identify_nu(exposure_low=1., exposure_high=100., expose_num=30., element='Ge
                 print 'ZERO EVENTS IN NU SPECIES OF INTEREST'
                 print '~~~~~~~~~~~~~~~~~~~~~MOVING ON~~~~~~~~~~~~~~~~~~~~~'
                 print '\n\n'
-                if os.path.exists(file_info):
-                    load_old = np.loadtxt(file_info)
-                    new_arr = np.vstack((load_old, np.array([MT, 0.])))
-                    new_arr = new_arr[new_arr[:, 0].argsort()]
-                    np.savetxt(file_info, new_arr)
-                else:
-                    np.savetxt(file_info, np.array([MT, 0.]))
+                tstat_arr[nn] = 0.
+                nn += 1
+                continue
 
             u = random.rand(Nevents)
             e_sim = np.zeros(Nevents)
@@ -222,33 +223,36 @@ def identify_nu(exposure_low=1., exposure_high=100., expose_num=30., element='Ge
             if not QUIET:
                 print 'Running Likelihood Analysis...'
 
-            nu_bnds = [(-10.0, 3.0)] * nu_contrib
-            full_bnds = [(-10.0, 3.0)] * (nu_contrib + len(identify))
+            nu_bnds = [(-20.0, 3.0)] * nu_contrib
+            full_bnds = [(-20.0, 3.0)] * (nu_contrib + len(identify))
 
             like_init_bkg = Likelihood_analysis('sigma_si', 'fnfp_si', 10., 0., 1.,
                                                  MT, element, experiment_info,
                                                  e_sim, np.zeros_like(e_sim), nu_comp, labor,
-                                                 nu_contrib, Qmin, Qmax)
+                                                 nu_contrib, Qmin, Qmax, reduce_uncer=red_uncer)
 
             max_bkg = minimize(like_init_bkg.likelihood, np.zeros(nu_contrib),
-                                args=(np.array([-100.])), tol=1e-5, method='SLSQP',
+                                args=(np.array([-100.])), tol=1e-6, method='SLSQP',
                                 options={'maxiter': 100}, bounds=nu_bnds,
                                 jac=like_init_bkg.like_gradi)
 
             like_init_tot = Likelihood_analysis('sigma_si', 'fnfp_si', 10., 0., 1.,
                                                MT, element, experiment_info, e_sim, np.zeros_like(e_sim),
                                                np.concatenate((nu_comp, identify)), labor,
-                                               nu_contrib+len(identify),
-                                               Qmin, Qmax)
+                                               (nu_contrib+len(identify)),
+                                               Qmin, Qmax, reduce_uncer=red_uncer)
 
             max_tot = minimize(like_init_tot.likelihood, np.zeros(nu_contrib + len(identify)),
-                               args=(np.array([-100.])), tol=1e-5, method='SLSQP',
+                               args=(np.array([-100.]), np.arange(nu_contrib, nu_contrib + len(identify)),),
+                               tol=1e-6, method='SLSQP',
                                options={'maxiter': 100}, bounds=full_bnds,
                                jac=like_init_tot.like_gradi)
 
             print 'Minimizaiton Success: ', max_bkg.success, max_tot.success
             print 'Values: ', max_bkg.fun, max_tot.fun
-            
+            #print max_bkg
+            #print max_tot
+
             if not max_bkg.success or not max_tot.success:
                 fails = np.append(fails, nn)
 
@@ -279,7 +283,7 @@ def identify_nu(exposure_low=1., exposure_high=100., expose_num=30., element='Ge
             testqsimp = float(np.sum(tstat_arr > q_goal)) / float(len(tstat_arr))
             if testqsimp == 1.:
                 testq = 1.
-            elif np.all(test_stat == 0.):
+            elif np.all(tstat_arr == 0.):
                 testq = 0.
             else:
                 kernel = gaussian_kde(tstat_arr)

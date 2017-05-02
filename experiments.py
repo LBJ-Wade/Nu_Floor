@@ -137,9 +137,9 @@ def reactor_flux(loc='Snolab'):
         flux += Nfiss * reactor[2] * joule_to_MeV * 1e6/Efiss * reac_runtime / \
                 (4. * np.pi * ((reactor[1] * miles_to_m)**2. + depth**2.))/100.**2.
         err += (Nfiss * reactor[2] * joule_to_MeV * 1e6 / (Efiss + 0.6) * (reac_runtime - rntime_err) /
-                (4. * np.pi * (((reactor[1] + 30.) * miles_to_m)**2. + depth**2.))/100.**2.)
+                (4. * np.pi * (((reactor[1] + 25.) * miles_to_m)**2. + depth**2.))/100.**2.)
 
-    return flux, err
+    return flux, (flux - err)
 
 def geo_flux(loc='Snolab', el='U'):
     #print loc, el
