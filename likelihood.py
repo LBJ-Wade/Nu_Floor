@@ -84,13 +84,13 @@ class Likelihood_analysis(object):
         for i in range(nu_spec):
             er = eng_lge[nu_resp_h[i] > 0]
             nu_resp_h[i] = nu_resp_h[i][nu_resp_h[i] > 0]
-
             self.nu_resp[i] = lambda x: 10. ** interp1d(np.log10(er), np.log10(nu_resp_h[i]),
                                                       kind='cubic', bounds_error=False,
-                                                      fill_value=0.)(np.log10(x))
+                                                      fill_value=-100.)(np.log10(x))
 
             self.nu_int_resp[i] = np.trapz(self.nu_resp[i](eng_lge), eng_lge)
             self.nu_diff_evals[i] = self.nu_resp[i](energies)
+            #print self.nu_names[i], self.nu_resp[i](0.5), self.nu_resp[i](0.7)
 
 
     def like_multi_wrapper(self, norms, grad=False):
@@ -110,6 +110,7 @@ class Likelihood_analysis(object):
     def likelihood(self, nu_norm, sig_dm, skip_index=np.array([-1])):
         # - 2 log likelihood
         # nu_norm in units of cm^-2 s^-1, sig_dm in units of cm^2
+        #print 'Skip Arr:', skip_index
         like = 0.
         diff_nu = np.zeros(self.nu_spec, dtype=object)
         nu_events = np.zeros(self.nu_spec, dtype=object)
