@@ -44,8 +44,8 @@ def identify_nu(exposure_low=1., exposure_high=100., expose_num=30, element='Ger
     file_info += 'Identifying_'
     for nu in identify:
         file_info += nu + '_'
-    file_info += element + '_Eth_{:.2f}_'.format(Qmin) + labor + '_' + file_tag 
-    file_info += 'Reduce_Err_{.2e}.dat'.format(red_uncer)
+    file_info += element + '_Eth_{:.2f}_'.format(Qmin) + labor + '_' + file_tag
+    file_info += 'Reduce_Err_{:.2e}.dat'.format(red_uncer)
 
     print 'Output File: ', file_info
     print '\n'
@@ -58,8 +58,9 @@ def identify_nu(exposure_low=1., exposure_high=100., expose_num=30, element='Ger
     er_list = np.logspace(np.log10(Qmin), np.log10(Qmax), 300)
     #er_list = np.linspace(Qmin, Qmax, 500)
 
-    nu_comp = ['b8', 'b7l1', 'b7l2', 'pepl1', 'hep', 'pp', 'o15', 'n13', 'f17',
-               'reactor', 'geoU', 'geoTh', 'geoK']
+    # nu_comp = ['b8', 'b7l1', 'b7l2', 'pepl1', 'hep', 'pp', 'o15', 'n13', 'f17',
+    #            'reactor', 'geoU', 'geoTh', 'geoK']
+    nu_comp = ['b8']
 
 
     keep_nus = []
