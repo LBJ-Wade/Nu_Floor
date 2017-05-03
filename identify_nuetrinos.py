@@ -44,7 +44,8 @@ def identify_nu(exposure_low=1., exposure_high=100., expose_num=30, element='Ger
     file_info += 'Identifying_'
     for nu in identify:
         file_info += nu + '_'
-    file_info += element + '_Eth_{:.2f}_'.format(Qmin) + labor + '_' + file_tag + '.dat'
+    file_info += element + '_Eth_{:.2f}_'.format(Qmin) + labor + '_' + file_tag 
+    file_info += 'Reduce_Err_{.2e}.dat'.format(red_uncer)
 
     print 'Output File: ', file_info
     print '\n'
@@ -251,8 +252,7 @@ def identify_nu(exposure_low=1., exposure_high=100., expose_num=30, element='Ger
                 fails = np.append(fails, nn)
 
             test_stat = np.max([max_bkg.fun - max_tot.fun, 0.])
-            if test_stat > 0:
-                print e_simLOOK
+
             pval = chi2.sf(test_stat, 1)
 
             if not QUIET:
