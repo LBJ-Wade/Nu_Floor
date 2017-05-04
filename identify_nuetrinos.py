@@ -233,7 +233,7 @@ def identify_nu(exposure_low=1., exposure_high=100., expose_num=30, element='Ger
                                                Qmin, Qmax, reduce_uncer=red_uncer)
 
             max_tot = minimize(like_init_tot.likelihood, np.zeros(nu_contrib + len(identify)),
-                               args=(np.array([-100.]),),
+                               args=(np.array([-100.]), range(nu_contrib, nu_contrib + len(identify))),
                                tol=1e-6, method='SLSQP',
                                options={'maxiter': 100}, bounds=full_bnds,
                                jac=like_init_tot.like_gradi)

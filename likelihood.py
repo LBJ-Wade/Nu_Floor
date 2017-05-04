@@ -132,7 +132,8 @@ class Likelihood_analysis(object):
 
         # nu normalization contribution
         for i in range(self.nu_spec):
-            like += self.nu_gaussian(self.nu_names[i], nu_norm[i])
+            if i not in skip_index:
+                like += self.nu_gaussian(self.nu_names[i], nu_norm[i])
 
         if self.element == 'Fluorine':
             return like
@@ -172,8 +173,8 @@ class Likelihood_analysis(object):
             grad_nu[i] += 2. * np.log(10.) * 10. ** nu_norm[i] * self.exposure * self.nu_int_resp[i]
 
         for i in range(self.nu_spec):
-            # if np.all(skip_index) >= 0 and skip_index.dtype == 'int64' and i not in skip_index:
-            grad_nu[i] += self.nu_gaussian(self.nu_names[i], nu_norm[i], return_deriv=True)
+            if i not in skip_index:
+                grad_nu[i] += self.nu_gaussian(self.nu_names[i], nu_norm[i], return_deriv=True)
 
         if self.element != 'fluorine':
             diff_dm = self.dm_recoils * self.exposure
