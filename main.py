@@ -77,7 +77,7 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
     q_goal = 9.0
 
     # make sure there are enough points for numerical accuracy/stability
-    er_list = np.logspace(np.log10(Qmin), np.log10(Qmax), 300)
+    er_list = np.logspace(np.log10(Qmin), np.log10(Qmax), 100)
     time_list = np.zeros_like(er_list)
 
     nu_comp = ['b8', 'b7l1', 'b7l2', 'pepl1', 'hep', 'pp', 'o15', 'n13', 'f17', 'atm',

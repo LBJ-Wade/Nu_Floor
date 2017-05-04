@@ -72,7 +72,7 @@ class Likelihood_analysis(object):
             self.dm_recoils = np.zeros_like(energies)
             self.dm_integ = 0.
 
-        eng_lge = np.logspace(np.log10(self.Qmin), np.log10(self.Qmax), 300)
+        eng_lge = np.logspace(np.log10(self.Qmin), np.log10(self.Qmax), 100)
 
         for i in range(nu_spec):
             nu_resp_h[i] = np.zeros_like(eng_lge)
@@ -325,9 +325,9 @@ class Nu_spec(object):
                 nu_mean_f = NEUTRINO_MEANF[nu_component]
 
             if nu_component not in self.nu_lines:
-                #ergs = np.logspace(np.log10(e_nu_min), np.log10(e_nu_max), 100)
-                #diff_rate[i] = np.trapz(self.nu_recoil_spec(ergs, e, mT, Z, A, nu_component), ergs)
-                diff_rate[i] = romberg(self.nu_recoil_spec, e_nu_min, e_nu_max, args=(e, mT, Z, A, nu_component))
+                ergs = np.logspace(np.log10(e_nu_min), np.log10(e_nu_max), 100)
+                diff_rate[i] = np.trapz(self.nu_recoil_spec(ergs, e, mT, Z, A, nu_component), ergs)
+                #diff_rate[i] = romberg(self.nu_recoil_spec, e_nu_min, e_nu_max, args=(e, mT, Z, A, nu_component))
 
             else:
                 for j in range(len(self.line)):
