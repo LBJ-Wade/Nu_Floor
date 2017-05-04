@@ -135,11 +135,13 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
             check = np.loadtxt(file_info)
             try:
                 if np.log10(sigmap) in check[:, 0]:
+                    print 'Check', check
                     fill = check[np.log10(sigmap) == check[:, 0]]
                     sig_list.append(fill)
                     continue
             except IndexError:
                 if np.log10(sigmap) == check[0]:
+                    print 'Check', check
                     sig_list.append(check)
                     continue
 
