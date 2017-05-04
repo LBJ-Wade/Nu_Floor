@@ -37,7 +37,7 @@ args = parser.parse_args()
 
 if args.time_info == 'T':
     timeT = True
-elif args.time_info == 'F':
+else:
     timeT = False
 if args.GF == 'T':
     GF = True
@@ -55,9 +55,9 @@ if DARK:
              Eth=args.e_th)
 
 else:
-    identify = np.array(['reactor'])
+    identify = np.array(['geoK','geoTh','geoU'])
     maxE = 0.
-    uncert = 1.0
+    uncert = 1.
     for i in identify:
         elem, Qmax, Qmin = Element_Info(args.element)
         maxER = Nu_spec(lab='Snolab').max_er_from_nu(NEUTRINO_EMAX[i], elem[0,0])
@@ -65,7 +65,7 @@ else:
             maxE = maxER
     print 'Maximum Energy:', maxE
     print 'Uncertainty Multiplier', uncert
-    identify_nu(exposure_low=1., exposure_high=1000., expose_num=20, element=args.element,
+    identify_nu(exposure_low=1., exposure_high=1000., expose_num=10, element=args.element,
                 file_tag=args.file_tag, n_runs=args.n_runs, Eth=args.e_th, Ehigh=maxE,
                 identify=identify, red_uncer=uncert)
 
