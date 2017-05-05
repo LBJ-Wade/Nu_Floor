@@ -276,7 +276,7 @@ class Nu_spec(object):
         else:
             e_nu_min = emin
 
-        e_nu_max = NEUTRINO_EMAX[nu_component] + 10.
+        e_nu_max = NEUTRINO_EMAX[nu_component] + 1.
 
         e_list = np.logspace(np.log10(e_nu_min), np.log10(e_nu_max), 500)
         if nu_component == "reactor":
