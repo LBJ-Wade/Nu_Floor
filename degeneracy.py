@@ -68,7 +68,11 @@ def find_degeneracy2(nu_cand='b8', Emin=0.1, Emax=5., bins=20,
     else:
         mx_guess = 30.
     s_norm = dm_class.dm_spectrum(np.array([er_list[0]]), 0., mx_guess)
-    sig_guess = nuspec[0] / s_norm
+    if s_norm > 0:
+        sig_guess = nuspec[0] / s_norm
+    else:
+        sig_guess = np.array([10.**-44.])
+
     guess = np.array([np.log10(sig_guess[0]), mx_guess])
     print 'Guess: ', guess
     try:
@@ -195,9 +199,12 @@ def plt_model_degeneracy(nu_cand='b8', Emin=0.1, Emax=7., bins=10,
                          Mmin=5., Mmax=14., Mnum=100, element='Germanium',
                          fnfp=1., delta=0., GF=False, time_info=False, xenlab='LZ',
                          models=np.array(['sigma_si','sigma_sd','sigma_anapole','sigma_elecdip',
-                                          'sigma_magdip','sigma_LS', 'sigma_si_massless', 'sigma_sd_massless',
+                                          'sigma_magdip','sigma_LS',
+                                          'sigma_f1','sigma_f2','sigma_f3',
+                                          'sigma_si_massless', 'sigma_sd_massless',
                                           'sigma_anapole_massless', 'sigma_magdip_massless',
-                                          'sigma_elecdip_massless', 'sigma_LS_massless']),
+                                          'sigma_elecdip_massless', 'sigma_LS_massless',
+                                          'sigma_f1_massless','sigma_f2_massless','sigma_f3_massless']),
                          fs=18,
                          c_list=np.array(['blue', 'green','red','violet','aqua','magenta','orange',
                                           'brown', 'goldenrod', 'salmon', 'grey', 'indianred']),
@@ -270,7 +277,13 @@ def plt_model_degeneracy(nu_cand='b8', Emin=0.1, Emax=7., bins=10,
         dm_spec[i] = dRdQ(ergs, np.zeros_like(ergs), **drdq_params) * 10. ** 3. * s_to_yr
         dmevts = np.trapz(dm_spec[i], ergs)
         dm_spec[i] *= nu_events/dmevts
-        pl.plot(ergs, dm_spec[i], c_list[i], lw=1, ls='--', label=label)
+        if 'massless' in mm:
+            ls = '--'
+            jj = i - len(c_list)
+        else:
+            ls = '-'
+            jj = i
+        pl.plot(ergs, dm_spec[i], c_list[jj], lw=1, ls=ls, label=label)
     bfits = bfits.T
 
     print 'Saving File to: ', svfile

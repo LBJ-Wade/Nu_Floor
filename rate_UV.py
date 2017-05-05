@@ -685,7 +685,7 @@ def dRdQf1(Er, time, V0, v_lag, v_esc, mx, sigp, fnfp, elt, rho_x=0.3, delta=0.,
         q_squared = 2.*weight*mN*q
         ff = formUV.factor_PS_S(element_name,y_harm,fnfp)
         if not GF:
-            val_eta = eta(v_min,v_esc,v_rms,v_lag_pass)
+            val_eta = eta(v_min,v_esc,V0,v_lag_pass)
         elif GF:
             val_eta = eta_GF(v_min, time, time_info)
         tot = v_independent * q_squared/qref**2 * val_eta * ff
@@ -729,7 +729,7 @@ def dRdQf1_massless(Er, time, V0, v_lag, v_esc, mx, sigp, fnfp, elt, rho_x=0.3, 
         q_squared = 2.*weight*mN*q
         ff = formUV.factor_PS_S(element_name,y_harm,fnfp)
         if not GF:
-            val_eta = eta(v_min,v_esc,v_rms,v_lag_pass)
+            val_eta = eta(v_min,v_esc,V0,v_lag_pass)
         elif GF:
             val_eta = eta_GF(v_min, time, time_info)
         tot = v_independent * (qref**2./q_squared) * val_eta * ff
@@ -772,7 +772,7 @@ def dRdQf2(Er, time, V0, v_lag, v_esc, mx, sigp, fnfp, elt, rho_x=0.3, delta=0.,
         q_squared = 2.*weight*mN*q
         ff = formUV.factor_S_PS(element_name,y_harm,fnfp)
         if not GF:
-            val_eta = eta(v_min,v_esc,v_rms,v_lag_pass)
+            val_eta = eta(v_min,v_esc,V0,v_lag_pass)
         elif GF:
             val_eta = eta_GF(v_min, time, time_info)
         tot = v_independent * q_squared/qref**2 * val_eta * ff
@@ -814,7 +814,7 @@ def dRdQf2_massless(Er, time, V0, v_lag, v_esc, mx, sigp, fnfp, elt, rho_x=0.3, 
         q_squared = 2.*weight*mN*q
         ff = formUV.factor_S_PS(element_name,y_harm,fnfp)
         if not GF:
-            val_eta = eta(v_min,v_esc,v_rms,v_lag_pass)
+            val_eta = eta(v_min,v_esc,V0,v_lag_pass)
         elif GF:
             val_eta = eta_GF(v_min, time, time_info)
         tot = v_independent * qref**2./q_squared * val_eta * ff
@@ -857,7 +857,7 @@ def dRdQf3(Er, time, V0, v_lag, v_esc, mx, sigp, fnfp, elt, rho_x=0.3, delta=0.,
         q_squared = 2.*weight*mN*q
         ff = formUV.factor_PS_PS(element_name,y_harm,fnfp)
         if not GF:
-            val_eta = eta(v_min,v_esc,v_rms,v_lag_pass)
+            val_eta = eta(v_min,v_esc,V0,v_lag_pass)
         elif GF:
             val_eta = eta_GF(v_min, time, time_info)
         tot = v_independent * (q_squared/(qref**2.))**2. * val_eta * ff
@@ -898,7 +898,7 @@ def dRdQf3_massless(Er, time, V0, v_lag, v_esc, mx, sigp, fnfp, elt, rho_x=0.3, 
 
         ff = formUV.factor_PS_PS(element_name,y_harm,fnfp)
         if not GF:
-            val_eta = eta(v_min,v_esc,v_rms,v_lag_pass)
+            val_eta = eta(v_min,v_esc,V0,v_lag_pass)
         elif GF:
             val_eta = eta_GF(v_min, time, time_info)
         tot = v_independent * val_eta * ff

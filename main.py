@@ -267,8 +267,8 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
             tstat_arr[nn] = test_stat
             nn += 1
 
-        mask = np.array([(i in fails) for i in xrange(len(tstat_arr))])
-        tstat_arr = tstat_arr[~mask]
+        # mask = np.array([(i in fails) for i in xrange(len(tstat_arr))])
+        # tstat_arr = tstat_arr[~mask]
         print tstat_arr
 
         print 'FINISHED CYCLE'
