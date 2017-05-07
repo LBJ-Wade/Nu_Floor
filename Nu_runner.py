@@ -4,7 +4,6 @@
 """
 import time
 #start = time.time()
-
 import matplotlib
 matplotlib.use('agg')
 import argparse
@@ -12,6 +11,10 @@ from main import *
 from identify_nuetrinos import *
 from constants import *
 from experiments import *
+import numpy as np
+import glob
+from construct_floors import *
+
 
 path = os.getcwd()
 
@@ -47,6 +50,7 @@ if args.DARK == 'T':
     DARK = True
 else:
     DARK = False
+
 
 if DARK:
     nu_floor(args.sig_low, args.sig_high, n_sigs=args.n_sigs, model=args.model,

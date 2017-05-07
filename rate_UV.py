@@ -34,7 +34,7 @@ def dRdQSI(Er, time, V0, v_lag, v_esc, mx, sigp, fnfp, elt, rho_x=0.3, delta=0.,
     :param Er:
         An array of keV energies
     :type Er: ``ndarray``
-        
+
     :param V0:
         Velocity in km/s
     :type V0: ``float``
@@ -55,7 +55,7 @@ def dRdQSI(Er, time, V0, v_lag, v_esc, mx, sigp, fnfp, elt, rho_x=0.3, delta=0.,
         Dark-matter-proton scattering cross section normalized to
         give about 1 count at LUX when set to 1.
     :type sigp: ``float``
-        
+
     :param fnfp:
         Dimensionless ratio of neutron to proton coupling.
     :type fnfp: ``float``
@@ -76,9 +76,9 @@ def dRdQSI(Er, time, V0, v_lag, v_esc, mx, sigp, fnfp, elt, rho_x=0.3, delta=0.,
     :param rho_x:
         Local dark matter density in GeV/cm^3. Optional, default 0.3
     :type rho_x: ``float``
-    
+
     """
-    
+
     npts = len(Er)
     out = np.zeros(npts)
     element_name = str(elt.title())
@@ -103,7 +103,7 @@ def dRdQSI(Er, time, V0, v_lag, v_esc, mx, sigp, fnfp, elt, rho_x=0.3, delta=0.,
         v_min = 1./np.sqrt(2.*weight*mN*q)*np.abs(weight*mN*q/(weight*mN*mx/(weight*mN+mx))+delta*10**-6.)*3.*10.**5
 
         ff = formUV.factor_SI(element_name,y_harm,fnfp)
-        
+
         if not GF:
             val_eta = eta(v_min, v_esc, V0, v_lag_pass)
         elif GF:
@@ -118,9 +118,9 @@ def dRdQSI_massless(Er, time, V0, v_lag, v_esc, mx, sigp, fnfp, elt, rho_x=0.3, 
     """
     This is the rate from the spin-independent (scalar-scalar) scattering cross section *with massless mediator* in units of cts/keV/kg/s.
 
-    Takes same parameters as :func:`dRdQSI` 
+    Takes same parameters as :func:`dRdQSI`
     """
-    
+
     npts = len(Er)
     out = np.zeros(npts)
     element_name = str(elt.title())
@@ -147,7 +147,7 @@ def dRdQSI_massless(Er, time, V0, v_lag, v_esc, mx, sigp, fnfp, elt, rho_x=0.3, 
 
         q_squared = 2.*weight*mN*q
         ff = formUV.factor_SI(element_name,y_harm,fnfp)
-        
+
         if not GF:
             val_eta = eta(v_min,v_esc,V0,v_lag_pass)
         elif GF:
@@ -163,13 +163,13 @@ def dRdQSD(Er, time, V0, v_lag, v_esc, mx, sigp, fnfp, elt, rho_x=0.3, delta=0.,
     This is the rate from the spin-dependent (axial-axial) scattering cross section in units of cts/keV/kg/s.
 
     Takes same parameters as :func:`dRdQSI`.
-    
+
     """
 
     npts = len(Er)
     out = np.zeros(npts)
     element_name = str(elt.title())
-    
+
     mod_amp = 29.8 * 0.49
     mod_phase = 0.42
 
@@ -204,13 +204,13 @@ def dRdQSD_neutron(Er, time, V0, v_lag, v_esc, mx, sigp, fnfp, elt, rho_x=0.3, d
     This is the rate from the spin-dependent (axial-axial) scattering cross section in units of cts/keV/kg/s.
 
     Takes same parameters as :func:`dRdQSI`.
-    
+
     """
 
     npts = len(Er)
     out = np.zeros(npts)
     element_name = str(elt.title())
-    
+
     mod_amp = 29.8 * 0.49
     mod_phase = 0.42
 
@@ -231,7 +231,7 @@ def dRdQSD_neutron(Er, time, V0, v_lag, v_esc, mx, sigp, fnfp, elt, rho_x=0.3, d
         v_min = 1./np.sqrt(2.*weight*mN*q)*np.abs(weight*mN*q/(weight*mN*mx/(weight*mN+mx))+delta*10**-6.)*3.*10.**5
 
         ff = formUV.factor_SD_neutron(element_name,y_harm)
-        
+
         if not GF:
             val_eta = eta(v_min,v_esc,V0,v_lag_pass)
         elif GF:
@@ -252,7 +252,7 @@ def dRdQSD_massless(Er, time, V0, v_lag, v_esc, mx, sigp, fnfp, elt, rho_x=0.3, 
     npts = len(Er)
     out = np.zeros(npts)
     element_name = str(elt.title())
-    
+
     mod_amp = 29.8 * 0.49
     mod_phase = 0.42
 
@@ -290,13 +290,13 @@ def dRdQana(Er, time, V0, v_lag, v_esc, mx, sigp, fnfp, elt, rho_x=0.3, delta=0.
     This is the rate from the anapole moment scattering cross section in units of cts/keV/kg/s.
 
     Takes same parameters as :func:`dRdQSI`.
-    
+
     """
 
     npts = len(Er)
     out = np.zeros(npts)
     element_name = str(elt.title())
-    
+
     mod_amp = 29.8 * 0.49
     mod_phase = 0.42
 
@@ -338,13 +338,13 @@ def dRdQana_massless(Er, time, V0, v_lag, v_esc, mx, sigp, fnfp, elt, rho_x=0.3,
     This is the rate from the anapole moment *with massless mediator* scattering cross section in units of cts/keV/kg/s.
 
     Takes same parameters as :func:`dRdQSI`.
-    
+
     """
-    
+
     npts = len(Er)
     out = np.zeros(npts)
     element_name = str(elt.title())
-    
+
     mod_amp = 29.8 * 0.49
     mod_phase = 0.42
 
@@ -390,7 +390,7 @@ def dRdQmagdip(Er, time, V0, v_lag, v_esc, mx, sigp, fnfp, elt, rho_x=0.3, delta
     npts = len(Er)
     out = np.zeros(npts)
     element_name = str(elt.title())
-    
+
     mod_amp = 29.8 * 0.49
     mod_phase = 0.42
 
@@ -441,7 +441,7 @@ def dRdQmagdip_massless(Er, time, V0, v_lag, v_esc, mx, sigp, fnfp, elt, rho_x=0
     npts = len(Er)
     out = np.zeros(npts)
     element_name = str(elt.title())
-    
+
     mod_amp = 29.8 * 0.49
     mod_phase = 0.42
 
@@ -483,11 +483,11 @@ def dRdQelecdip(Er, time, V0, v_lag, v_esc, mx, sigp, fnfp, elt, rho_x=0.3, delt
 
     Takes same parameters as :func:`dRdQSI`.
     """
-    
+
     npts = len(Er)
     out = np.zeros(npts)
     element_name = str(elt.title())
-    
+
     mod_amp = 29.8 * 0.49
     mod_phase = 0.42
 
@@ -530,7 +530,7 @@ def dRdQelecdip_massless(Er, time, V0, v_lag, v_esc, mx, sigp, fnfp, elt, rho_x=
     npts = len(Er)
     out = np.zeros(npts)
     element_name = str(elt.title())
-    
+
     mod_amp = 29.8 * 0.49
     mod_phase = 0.42
 
@@ -573,7 +573,7 @@ def dRdQLS(Er, time, V0, v_lag, v_esc, mx, sigp, fnfp, elt, rho_x=0.3, delta=0.,
     npts = len(Er)
     out = np.zeros(npts)
     element_name = str(elt.title())
-    
+
     mod_amp = 29.8 * 0.49
     mod_phase = 0.42
 
@@ -590,7 +590,7 @@ def dRdQLS(Er, time, V0, v_lag, v_esc, mx, sigp, fnfp, elt, rho_x=0.3, delta=0.,
     for i in range(npts):
         q = Er[i]*10**-6. #converting Er from keV-->GeV.
         q_squared = 2.*weight*mN*q
-        y_harm = weight*mN*q*b_harm**2/2. #this takes q in [GeV].    
+        y_harm = weight*mN*q*b_harm**2/2. #this takes q in [GeV].
 
         #v_min = ((2.*weight*mN*q))**0.5/(2.*weight*mN*mx/(weight*mN+mx)) *3.*10.**5
         v_min = 1./np.sqrt(2.*weight*mN*q)*np.abs(weight*mN*q/(weight*mN*mx/(weight*mN+mx))+delta*10**-6.)*3.*10.**5
@@ -619,7 +619,7 @@ def dRdQLS_massless(Er, time, V0, v_lag, v_esc, mx, sigp, fnfp, elt, rho_x=0.3, 
     npts = len(Er)
     out = np.zeros(npts)
     element_name = str(elt.title())
-    
+
     mod_amp = 29.8 * 0.49
     mod_phase = 0.42
 
@@ -635,7 +635,7 @@ def dRdQLS_massless(Er, time, V0, v_lag, v_esc, mx, sigp, fnfp, elt, rho_x=0.3, 
     v_independent = ratenorm * rho_x * sigp / (2 * mx * m_reduced_sq) * (qref**2./(mN**2))**2
     for i in range(npts):
         q = Er[i]*10**-6. #converting Er from keV-->GeV.
-        y_harm = weight*mN*q*b_harm**2/2. #this takes q in [GeV].    
+        y_harm = weight*mN*q*b_harm**2/2. #this takes q in [GeV].
 
         #v_min = ((2.*weight*mN*q))**0.5/(2.*weight*mN*mx/(weight*mN+mx)) *3.*10.**5
         v_min = 1./np.sqrt(2.*weight*mN*q)*np.abs(weight*mN*q/(weight*mN*mx/(weight*mN+mx))+delta*10**-6.)*3.*10.**5
@@ -661,7 +661,7 @@ def dRdQf1(Er, time, V0, v_lag, v_esc, mx, sigp, fnfp, elt, rho_x=0.3, delta=0.,
     npts = len(Er)
     out = np.zeros(npts)
     element_name = str(elt.title())
-    
+
     mod_amp = 29.8 * 0.49
     mod_phase = 0.42
 
@@ -705,7 +705,7 @@ def dRdQf1_massless(Er, time, V0, v_lag, v_esc, mx, sigp, fnfp, elt, rho_x=0.3, 
     npts = len(Er)
     out = np.zeros(npts)
     element_name = str(elt.title())
-    
+
     mod_amp = 29.8 * 0.49
     mod_phase = 0.42
 
@@ -748,7 +748,7 @@ def dRdQf2(Er, time, V0, v_lag, v_esc, mx, sigp, fnfp, elt, rho_x=0.3, delta=0.,
     npts = len(Er)
     out = np.zeros(npts)
     element_name = str(elt.title())
-    
+
     mod_amp = 29.8 * 0.49
     mod_phase = 0.42
 
@@ -790,7 +790,7 @@ def dRdQf2_massless(Er, time, V0, v_lag, v_esc, mx, sigp, fnfp, elt, rho_x=0.3, 
     npts = len(Er)
     out = np.zeros(npts)
     element_name = str(elt.title())
-    
+
     mod_amp = 29.8 * 0.49
     mod_phase = 0.42
 
@@ -905,7 +905,7 @@ def dRdQf3_massless(Er, time, V0, v_lag, v_esc, mx, sigp, fnfp, elt, rho_x=0.3, 
         out[i]=tot
     return out
 
-#######################  "Master" rate functions. 
+#######################  "Master" rate functions.
 
 def dRdQ(Q, T, mass=50., sigma_si=0., sigma_sd=0., sigma_sd_neutron=0.,
          sigma_anapole=0., sigma_magdip=0., sigma_elecdip=0., sigma_LS=0.,
@@ -923,7 +923,7 @@ def dRdQ(Q, T, mass=50., sigma_si=0., sigma_sd=0., sigma_sd_neutron=0.,
     """
     This is the main differential nuclear-recoil rate function. Its output (in units of cts/keV/kg/s) is computed for any one of 28 different scattering operators, by setting the appropriate ``sigma_*`` parameter to a non-zero value.
 
-    
+
     :param Q:
         Nuclear recoil energies [keV]
     :type Q: ``ndarray``
@@ -971,7 +971,7 @@ def dRdQ(Q, T, mass=50., sigma_si=0., sigma_sd=0., sigma_sd_neutron=0.,
 
     Parameter suffixes:
     -------
-    
+
     =========   ============================= ===== =====
     Suffix      Meaning                       norm  norm (massless)
     =========   ============================= ===== =====
@@ -989,9 +989,9 @@ def dRdQ(Q, T, mass=50., sigma_si=0., sigma_sd=0., sigma_sd_neutron=0.,
 
     In all suffixes, the mediator is specified to be "massless" by appending _massless.
 
-      
 
-    :return: 
+
+    :return:
       array of differential recoil energy spectrum in counts/keV/kg/sec
 
     """
@@ -1055,7 +1055,7 @@ def dRdQ(Q, T, mass=50., sigma_si=0., sigma_sd=0., sigma_sd_neutron=0.,
         sum += dRdQf3_massless(Q, T, v_rms, v_lag, v_esc, mass, sigma_f3_massless, fnfp_f3_massless, element,
                                rho_x=rho_x, delta=delta, GF=GF, time_info=time_info)
     return sum
-    
+
 
 
 def R(mass=50.,
@@ -1072,13 +1072,13 @@ def R(mass=50.,
       fnfp_anapole_massless=1.,  fnfp_magdip_massless=1.,  fnfp_elecdip_massless=1.,
       fnfp_LS_massless=1.,  fnfp_f1_massless=1.,  fnfp_f2_massless=1.,  fnfp_f3_massless=1.,
       v_lag=220.,  v_rms=220.,  v_esc=533.,  rho_x=0.3,
-     element='xenon',  Qmin=2.,  Qmax=30.,  delta=0., GF=False, time_info=False):
+      element='xenon',  Qmin=2.,  Qmax=30.,  delta=0., GF=False, time_info=False):
     """
     Theoretical total integrated recoil-energy rate.
 
     Integrates :func:`dRdQ` between ``Qmin`` and ``Qmax`` using
     trapezoidal integration over 100 points.
-    
+
     :param efficiency_fn:
       Fractional efficiency as a function of energy.
       Efficiencies available:
@@ -1097,16 +1097,16 @@ def R(mass=50.,
     :param Qmax:
         Upper bound of nuclear-recoil energy window of experiment [keVNR]. *Optional*, default 30.
     :type Qmax: ``float``
-    
+
     For reference on other parameters, see :func:`dRdQ`.
-      
+
 
     :return:
       total recoil energy rate in counts/kg/sec
     """
-    npoints = 100
-    
-    
+    npoints = 300
+
+
     expQmin = np.log10(Qmin)
     expQmax = np.log10(Qmax)
     expQstep = (expQmax - expQmin)/(npoints - 1)
@@ -1118,23 +1118,23 @@ def R(mass=50.,
         Qs[i] = 10**expQ
 
     dRdQs = dRdQ(Qs, Ts, mass=mass, v_lag=v_lag, v_rms=v_rms, v_esc= v_esc, rho_x=rho_x,
-                element=element, fnfp_si=fnfp_si, fnfp_sd=fnfp_sd, fnfp_sd_neutron=fnfp_sd_neutron,
-                fnfp_si_massless=fnfp_si_massless, fnfp_sd_massless=fnfp_sd_massless,
-                fnfp_anapole=fnfp_anapole, fnfp_magdip=fnfp_magdip, fnfp_elecdip=fnfp_elecdip,
-                fnfp_anapole_massless=fnfp_anapole_massless, fnfp_magdip_massless=fnfp_magdip_massless,
-                fnfp_elecdip_massless=fnfp_elecdip_massless,
-                fnfp_LS=fnfp_LS, fnfp_f1=fnfp_f1, fnfp_f2=fnfp_f2, fnfp_f3=fnfp_f3,
-                fnfp_LS_massless=fnfp_LS_massless, fnfp_f1_massless=fnfp_f1_massless,
-                fnfp_f2_massless=fnfp_f2_massless, fnfp_f3_massless=fnfp_f3_massless,
-                sigma_si= sigma_si, sigma_sd=sigma_sd, sigma_sd_neutron=sigma_sd_neutron,
-                sigma_si_massless= sigma_si_massless, sigma_sd_massless=sigma_sd_massless,
-                sigma_anapole=sigma_anapole, sigma_magdip=sigma_magdip, sigma_elecdip=sigma_elecdip,
-                sigma_anapole_massless=sigma_anapole_massless, sigma_magdip_massless=sigma_magdip_massless,
-                sigma_elecdip_massless=sigma_elecdip_massless,
-                sigma_LS=sigma_LS, sigma_f1=sigma_f1, sigma_f2=sigma_f2, sigma_f3=sigma_f3,
-                sigma_LS_massless=sigma_LS_massless, sigma_f1_massless=sigma_f1_massless,
-                sigma_f2_massless=sigma_f2_massless, sigma_f3_massless=sigma_f3_massless,
-                GF=GF, time_info=False, delta=delta)
+                 element=element, fnfp_si=fnfp_si, fnfp_sd=fnfp_sd, fnfp_sd_neutron=fnfp_sd_neutron,
+                 fnfp_si_massless=fnfp_si_massless, fnfp_sd_massless=fnfp_sd_massless,
+                 fnfp_anapole=fnfp_anapole, fnfp_magdip=fnfp_magdip, fnfp_elecdip=fnfp_elecdip,
+                 fnfp_anapole_massless=fnfp_anapole_massless, fnfp_magdip_massless=fnfp_magdip_massless,
+                 fnfp_elecdip_massless=fnfp_elecdip_massless,
+                 fnfp_LS=fnfp_LS, fnfp_f1=fnfp_f1, fnfp_f2=fnfp_f2, fnfp_f3=fnfp_f3,
+                 fnfp_LS_massless=fnfp_LS_massless, fnfp_f1_massless=fnfp_f1_massless,
+                 fnfp_f2_massless=fnfp_f2_massless, fnfp_f3_massless=fnfp_f3_massless,
+                 sigma_si= sigma_si, sigma_sd=sigma_sd, sigma_sd_neutron=sigma_sd_neutron,
+                 sigma_si_massless= sigma_si_massless, sigma_sd_massless=sigma_sd_massless,
+                 sigma_anapole=sigma_anapole, sigma_magdip=sigma_magdip, sigma_elecdip=sigma_elecdip,
+                 sigma_anapole_massless=sigma_anapole_massless, sigma_magdip_massless=sigma_magdip_massless,
+                 sigma_elecdip_massless=sigma_elecdip_massless,
+                 sigma_LS=sigma_LS, sigma_f1=sigma_f1, sigma_f2=sigma_f2, sigma_f3=sigma_f3,
+                 sigma_LS_massless=sigma_LS_massless, sigma_f1_massless=sigma_f1_massless,
+                 sigma_f2_massless=sigma_f2_massless, sigma_f3_massless=sigma_f3_massless,
+                 GF=GF, time_info=False, delta=delta)
 
     result = np.trapz(dRdQs,Qs)
     if result < 0.:
@@ -1145,38 +1145,38 @@ def R(mass=50.,
 
 
 def loglikelihood(Q, tim,
-          mass=50.,  delta = 0.,
-          sigma_si=0., sigma_sd=0.,
-          sigma_anapole=0., sigma_magdip=0.,  sigma_elecdip=0.,
-          sigma_LS=0.,  sigma_f1=0.,  sigma_f2=0.,  sigma_f3=0.,
-          sigma_si_massless=0., sigma_sd_massless=0.,
-          sigma_anapole_massless=0., sigma_magdip_massless=0.,  sigma_elecdip_massless=0.,
-          sigma_LS_massless=0.,  sigma_f1_massless=0.,  sigma_f2_massless=0.,
-          sigma_f3_massless=0.,
-          fnfp_si=1.,  fnfp_sd=1.,
-          fnfp_anapole=1.,  fnfp_magdip=1.,  fnfp_elecdip=1.,
-          fnfp_LS=1.,  fnfp_f1=1.,  fnfp_f2=1.,  fnfp_f3=1.,
-          fnfp_si_massless=1.,  fnfp_sd_massless=1.,
-          fnfp_anapole_massless=1.,  fnfp_magdip_massless=1.,
-          fnfp_elecdip_massless=1.,
-          fnfp_LS_massless=1.,  fnfp_f1_massless=1.,
-          fnfp_f2_massless=1.,
-          fnfp_f3_massless=1.,
-          v_lag=220.,  v_rms=220.,  v_esc=533.,  rho_x=0.3,
-          element='xenon',  Qmin=2.,  Qmax=30.,  exposure=1., energy_resolution=True,
-          GF=False, time_info=False,
-          TIMEONLY=False):
+                  mass=50.,  delta = 0.,
+                  sigma_si=0., sigma_sd=0.,
+                  sigma_anapole=0., sigma_magdip=0.,  sigma_elecdip=0.,
+                  sigma_LS=0.,  sigma_f1=0.,  sigma_f2=0.,  sigma_f3=0.,
+                  sigma_si_massless=0., sigma_sd_massless=0.,
+                  sigma_anapole_massless=0., sigma_magdip_massless=0.,  sigma_elecdip_massless=0.,
+                  sigma_LS_massless=0.,  sigma_f1_massless=0.,  sigma_f2_massless=0.,
+                  sigma_f3_massless=0.,
+                  fnfp_si=1.,  fnfp_sd=1.,
+                  fnfp_anapole=1.,  fnfp_magdip=1.,  fnfp_elecdip=1.,
+                  fnfp_LS=1.,  fnfp_f1=1.,  fnfp_f2=1.,  fnfp_f3=1.,
+                  fnfp_si_massless=1.,  fnfp_sd_massless=1.,
+                  fnfp_anapole_massless=1.,  fnfp_magdip_massless=1.,
+                  fnfp_elecdip_massless=1.,
+                  fnfp_LS_massless=1.,  fnfp_f1_massless=1.,
+                  fnfp_f2_massless=1.,
+                  fnfp_f3_massless=1.,
+                  v_lag=220.,  v_rms=220.,  v_esc=533.,  rho_x=0.3,
+                  element='xenon',  Qmin=2.,  Qmax=30.,  exposure=1., energy_resolution=True,
+                  GF=False, time_info=False,
+                  TIMEONLY=False):
 
     """
     This is the main log(likelihood) for any combination of UV models.
-    
+
     For reference on free parameters, see :func:`dRdQ` and :func:`R`.
-      
+
 
     :return:
       log(likelihood) for an arbitrary rate to produce an observed array of recoil events
     """
-    
+
     Nevents = len(Q)
 
     event_inf = 0.
@@ -1192,23 +1192,23 @@ def loglikelihood(Q, tim,
     Qs = np.zeros(npoints)
 
     Rate = R(mass=mass, v_rms=v_rms, v_lag=v_lag, v_esc=v_esc, rho_x=rho_x,
-            fnfp_si=fnfp_si, fnfp_sd=fnfp_sd,
-            fnfp_anapole=fnfp_anapole, fnfp_magdip=fnfp_magdip, fnfp_elecdip=fnfp_elecdip,
-            fnfp_LS=fnfp_LS, fnfp_f1=fnfp_f1, fnfp_f2=fnfp_f2, fnfp_f3=fnfp_f3,
-            sigma_si= sigma_si, sigma_sd=sigma_sd,
-            sigma_anapole=sigma_anapole, sigma_magdip=sigma_magdip, sigma_elecdip=sigma_elecdip,
-            sigma_LS=sigma_LS, sigma_f1=sigma_f1, sigma_f2=sigma_f2, sigma_f3=sigma_f3,
-            fnfp_si_massless=fnfp_si_massless, fnfp_sd_massless=fnfp_sd_massless,
-            fnfp_anapole_massless=fnfp_anapole_massless, fnfp_magdip_massless=fnfp_magdip_massless,
-            fnfp_elecdip_massless=fnfp_elecdip_massless,
-            fnfp_LS_massless=fnfp_LS_massless, fnfp_f1_massless=fnfp_f1_massless,
-            fnfp_f2_massless=fnfp_f2_massless, fnfp_f3_massless=fnfp_f3_massless,
-            sigma_si_massless = sigma_si_massless, sigma_sd_massless=sigma_sd_massless,
-            sigma_anapole_massless=sigma_anapole_massless, sigma_magdip_massless=sigma_magdip_massless,
-            sigma_elecdip_massless=sigma_elecdip_massless,
-            sigma_LS_massless=sigma_LS_massless, sigma_f1_massless=sigma_f1_massless,
-            sigma_f2_massless=sigma_f2_massless, sigma_f3_massless=sigma_f3_massless,
-            GF=GF, Qmin=Qmin, Qmax=Qmax, delta=delta, element=element, time_info=False)
+             fnfp_si=fnfp_si, fnfp_sd=fnfp_sd,
+             fnfp_anapole=fnfp_anapole, fnfp_magdip=fnfp_magdip, fnfp_elecdip=fnfp_elecdip,
+             fnfp_LS=fnfp_LS, fnfp_f1=fnfp_f1, fnfp_f2=fnfp_f2, fnfp_f3=fnfp_f3,
+             sigma_si= sigma_si, sigma_sd=sigma_sd,
+             sigma_anapole=sigma_anapole, sigma_magdip=sigma_magdip, sigma_elecdip=sigma_elecdip,
+             sigma_LS=sigma_LS, sigma_f1=sigma_f1, sigma_f2=sigma_f2, sigma_f3=sigma_f3,
+             fnfp_si_massless=fnfp_si_massless, fnfp_sd_massless=fnfp_sd_massless,
+             fnfp_anapole_massless=fnfp_anapole_massless, fnfp_magdip_massless=fnfp_magdip_massless,
+             fnfp_elecdip_massless=fnfp_elecdip_massless,
+             fnfp_LS_massless=fnfp_LS_massless, fnfp_f1_massless=fnfp_f1_massless,
+             fnfp_f2_massless=fnfp_f2_massless, fnfp_f3_massless=fnfp_f3_massless,
+             sigma_si_massless = sigma_si_massless, sigma_sd_massless=sigma_sd_massless,
+             sigma_anapole_massless=sigma_anapole_massless, sigma_magdip_massless=sigma_magdip_massless,
+             sigma_elecdip_massless=sigma_elecdip_massless,
+             sigma_LS_massless=sigma_LS_massless, sigma_f1_massless=sigma_f1_massless,
+             sigma_f2_massless=sigma_f2_massless, sigma_f3_massless=sigma_f3_massless,
+             GF=GF, Qmin=Qmin, Qmax=Qmax, delta=delta, element=element, time_info=False)
     Nexp = Rate * Tobs
     if Nevents==0 and Nexp==0.:
         return 0.
@@ -1240,12 +1240,12 @@ def loglikelihood(Q, tim,
                 if event_inf==0.:
                     return -1.*INFINITY #if an event is seen where the model expects zero events (behind the V_lag), this model is excluded, and loglikelihood=-Infinity.
                 tot += np.log(event_inf)
-    
+
     if TIMEONLY:
         for i in xrange(npoints):
             expQ = expQmin + i*expQstep
             Qs[i] = 10**expQ
-            
+
         tot -= Nevents * log(Rate)
         for i in range(Nevents):
             event_inf_arr = dRdQ(Qs, tim[i], mass=mass,
@@ -1272,5 +1272,5 @@ def loglikelihood(Q, tim,
             if result==0.:
                 return -1.*INFINITY #if an event is seen where the model expects zero events (behind the V_lag), this model is excluded, and loglikelihood=-Infinity.
             tot += np.log(result)
-                   
+
     return tot

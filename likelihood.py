@@ -13,6 +13,7 @@ from helpers import *
 import os
 from experiments import *
 from constants import *
+import copy
 
 path = os.getcwd()
 
@@ -61,7 +62,6 @@ class Likelihood_analysis(object):
         like_params['mass'] = mass
         like_params[model] = dm_sigp
         like_params[coupling] = fnfp
-
         like_params['GF'] = GF
         like_params['time_info'] = time_info
 
@@ -72,7 +72,7 @@ class Likelihood_analysis(object):
             self.dm_recoils = np.zeros_like(energies)
             self.dm_integ = 0.
 
-        eng_lge = np.logspace(np.log10(self.Qmin), np.log10(self.Qmax), 100)
+        eng_lge = np.logspace(np.log10(self.Qmin), np.log10(self.Qmax), 300)
 
         for i in range(nu_spec):
             nu_resp_h[i] = np.zeros_like(eng_lge)
@@ -123,7 +123,7 @@ class Likelihood_analysis(object):
         n_obs = len(self.events)
         # total rate contribution
 
-        dm_events = 10. ** sig_dm * self.dm_integ * self.exposure
+        dm_events = 10. ** sig_dm * copy.copy(self.dm_integ) * self.exposure
         for i in range(self.nu_spec):
             nu_events[i] = 10. ** nu_norm[i] * self.exposure * self.nu_int_resp[i]
 
@@ -139,15 +139,18 @@ class Likelihood_analysis(object):
             return like
 
         # Differential contribution
-        diff_dm = self.dm_recoils * self.exposure
+        diff_dm = copy.copy(self.dm_recoils) * self.exposure
 
         lg_vle = (10. ** sig_dm * diff_dm)
         for i in range(self.nu_spec):
-            diff_nu[i] = self.nu_diff_evals[i] * self.exposure * 10.**nu_norm[i]
+            diff_nu[i] = copy.copy(self.nu_diff_evals[i]) * self.exposure * 10.**nu_norm[i]
             lg_vle += diff_nu[i]
 
         for i in range(len(lg_vle)):
-                like += -2. * np.log(lg_vle[i])
+            if lg_vle[i] <= 0.:
+                print 'Problem encountered...', self.events[i], lg_vle[i], self.dm_recoils[i]
+                exit()
+            like += -2. * np.log(lg_vle[i])
         return like
 
     def likegrad_multi_wrapper(self, norms):
@@ -156,6 +159,7 @@ class Likelihood_analysis(object):
             nu_norm[i] = norms[i]
         sig_dm = norms[-1]
         return self.like_gradi(nu_norm, sig_dm, ret_just_nu=False)
+
 
     def like_gradi(self, nu_norm, sig_dm, skip_index=np.array([-1]), ret_just_nu=True, ret_just_dm=False):
 
@@ -166,7 +170,7 @@ class Likelihood_analysis(object):
 
         n_obs = len(self.events)
 
-        dm_events = 10. ** sig_dm * self.dm_integ * self.exposure
+        dm_events = 10. ** sig_dm * copy.copy(self.dm_integ) * self.exposure
         grad_x += 2. * np.log(10.) * dm_events
 
         for i in range(self.nu_spec):
@@ -177,10 +181,10 @@ class Likelihood_analysis(object):
                 grad_nu[i] += self.nu_gaussian(self.nu_names[i], nu_norm[i], return_deriv=True)
 
         if self.element != 'fluorine':
-            diff_dm = self.dm_recoils * self.exposure
+            diff_dm = copy.copy(self.dm_recoils) * self.exposure
             lg_vle = (10. ** sig_dm * diff_dm)
             for i in range(self.nu_spec):
-                diff_nu[i] = self.nu_diff_evals[i] * self.exposure * 10.**nu_norm[i]
+                diff_nu[i] = copy.copy(self.nu_diff_evals[i]) * self.exposure * 10.**nu_norm[i]
                 lg_vle += diff_nu[i]
 
             for i in range(len(lg_vle)):

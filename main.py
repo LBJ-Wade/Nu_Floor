@@ -60,7 +60,8 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
 
     file_info += element + '_' + model + '_' + coupling + '_{:.2f}'.format(fnfp)
     file_info += '_Exposure_{:.2f}_tonyr_DM_Mass_{:.2f}_GeV'.format(exposure, mass)
-    file_info += '_Eth_{:.2f}_'.format(Qmin) + labor + '_' + file_tag + '.dat'
+    file_info += '_Eth_{:.2f}_'.format(Qmin) + labor + '_'
+    file_info += file_tag + '.dat'
     print 'Output File: ', file_info
     print '\n'
 
@@ -72,16 +73,18 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
     print 'Minimum DM mass: ', MinDM
     if mass < MinDM + 0.5:
         print 'Mass too small...'
-        exit()
+        return
     # 3\sigma for Chi-square Dist with 1 DoF means q = 9.0
     q_goal = 9.0
 
     # make sure there are enough points for numerical accuracy/stability
-    er_list = np.logspace(np.log10(Qmin), np.log10(Qmax), 100)
+    er_list = np.logspace(np.log10(Qmin), np.log10(Qmax), 300)
     time_list = np.zeros_like(er_list)
 
+
     nu_comp = ['b8', 'b7l1', 'b7l2', 'pepl1', 'hep', 'pp', 'o15', 'n13', 'f17', 'atm',
-               'dsnb3mev', 'dsnb5mev', 'dsnb8mev', 'reactor', 'geoU', 'geoTh', 'geoK']
+                   'dsnb3mev', 'dsnb5mev', 'dsnb8mev', 'reactor', 'geoU', 'geoTh', 'geoK']
+
     keep_nus = []
     for i in range(len(nu_comp)):
         if Nu_spec(Nu_spec).max_er_from_nu(NEUTRINO_EMAX[nu_comp[i]], experiment_info[0][0]) > Qmin:
@@ -127,7 +130,7 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
         sigmap = 10.**sig
         if len(sig_list) > n_sigs:
             win = True
-            break
+            continue
 
         print 'Sigma: {:.2e}'.format(sigmap)
 
@@ -229,6 +232,7 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
             # Minimize likelihood -- MAKE SURE THIS MINIMIZATION DOESNT FAIL. CONSIDER USING GRADIENT INFO
             nu_bnds = [(-5.0, 3.0)] * nu_contrib
             dm_bnds = nu_bnds + [(-60., -30.)]
+
             like_init_nodm = Likelihood_analysis(model, coupling, mass, 0., fnfp,
                                                  exposure, element, experiment_info,
                                                  e_sim, times, nu_comp, labor,
@@ -236,9 +240,10 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
                                                  Qmin, Qmax, time_info=time_info, GF=False)
 
             max_nodm = minimize(like_init_nodm.likelihood, np.zeros(nu_contrib),
-                                args=(np.array([-100.])), tol=1e-5, method='SLSQP',
+                                args=(np.array([-100.])), tol=1e-4, method='SLSQP',
                                 options={'maxiter': 100}, bounds=nu_bnds,
                                 jac=like_init_nodm.like_gradi)
+
 
             like_init_dm = Likelihood_analysis(model, coupling, mass, 1., fnfp,
                                                exposure, element, experiment_info, e_sim, times, nu_comp, labor,
@@ -246,13 +251,15 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
                                                Qmin, Qmax, time_info=time_info, GF=False)
 
             max_dm = minimize(like_init_dm.like_multi_wrapper,
-                              np.concatenate((np.zeros(nu_contrib),np.array([np.log10(sigmap)]))),
-                              tol=1e-5, method='SLSQP', bounds=dm_bnds,
+                              np.concatenate((np.zeros(nu_contrib), np.array([np.log10(sigmap)]))),
+                              tol=1e-4, method='SLSQP', bounds=dm_bnds,
                               options={'maxiter': 100}, jac=like_init_dm.likegrad_multi_wrapper)
-            print 'Minimizaiton Success: ', max_nodm.success, max_dm.success
+
             #print 'DM Vals: ', max_dm
             #print 'No DM: ', max_nodm
             #print like_init_dm.test_num_events(max_dm.x[:-1], max_dm.x[-1])
+
+            print 'Minimizaiton Success: ', max_nodm.success, max_dm.success
             if not max_nodm.success or not max_dm.success:
                 fails = np.append(fails, nn)
 
@@ -267,6 +274,10 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
             tstat_arr[nn] = test_stat
             nn += 1
 
+            if test_stat > 1e3 and max_dm.success:
+                sig_list.append([sig, 1.])
+                sig_list.sort(key=lambda x: x[0])
+                continue
         # mask = np.array([(i in fails) for i in xrange(len(tstat_arr))])
         # tstat_arr = tstat_arr[~mask]
         print tstat_arr
@@ -284,6 +295,8 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
             testqsimp = float(np.sum(tstat_arr > q_goal)) / float(len(tstat_arr))
             if testqsimp == 1.:
                 testq = 1.
+            elif np.all(tstat_arr == 0.):
+                testq = 0.
             else:
                 #testq = float(np.sum(tstat_arr > q_goal)) / float(len(tstat_arr))
                 kernel = gaussian_kde(tstat_arr)

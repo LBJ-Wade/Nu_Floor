@@ -265,7 +265,7 @@ def adaptive_samples(sig_min, sig_max, list):
             return np.mean(np.array([list[0][0], sig_max])), False
         else:
             return np.mean(np.array([list[0][0], sig_min])), False
-    if (np.sum((arr_l[:, 1] > 0.2) & (arr_l[:, 1] < 0.89)) > 2) and \
+    if (np.sum((arr_l[:, 1] > 0.75) & (arr_l[:, 1] < 0.89)) > 2) and \
         (np.sum((arr_l[:, 1] > .91) & (arr_l[:, 1] < 0.98)) > 2):
         print 'Enough points in [0.2, 0.98]'
         print arr_l
