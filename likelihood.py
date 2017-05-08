@@ -126,8 +126,8 @@ class Likelihood_analysis(object):
         dm_events = 10. ** sig_dm * copy.copy(self.dm_integ) * self.exposure
         for i in range(self.nu_spec):
             nu_events[i] = 10. ** nu_norm[i] * self.exposure * self.nu_int_resp[i]
-
-        #print 'Nobs {:.0f}, Nu Events: {:.2f}'.format(n_obs, np.sum(nu_events))
+            # print self.nu_names[i], nu_norm[i], nu_events[i]
+        # print 'Nobs {:.0f}, Nu Events: {:.2f}'.format(n_obs, np.sum(nu_events))
         like += 2. * (dm_events + sum(nu_events))
 
         # nu normalization contribution
@@ -160,9 +160,7 @@ class Likelihood_analysis(object):
         sig_dm = norms[-1]
         return self.like_gradi(nu_norm, sig_dm, ret_just_nu=False)
 
-
     def like_gradi(self, nu_norm, sig_dm, skip_index=np.array([-1]), ret_just_nu=True, ret_just_dm=False):
-
         grad_x = 0.
         diff_nu = np.zeros(self.nu_spec, dtype=object)
         grad_nu = np.zeros(self.nu_spec)
@@ -174,7 +172,7 @@ class Likelihood_analysis(object):
         grad_x += 2. * np.log(10.) * dm_events
 
         for i in range(self.nu_spec):
-            grad_nu[i] += 2. * np.log(10.) * 10. ** nu_norm[i] * self.exposure * self.nu_int_resp[i]
+            grad_nu[i] += 2. * np.log(10.) * 10.**nu_norm[i] * self.exposure * self.nu_int_resp[i]
 
         for i in range(self.nu_spec):
             if i not in skip_index:
