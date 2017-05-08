@@ -196,15 +196,8 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
                 if i < sum(nevts_n):
                     for j in range(nu_contrib + 1):
                         if sum_nu_evts[j] <= i < sum_nu_evts[j + 1]:
-                            if nu_comp[j] not in nu_lines:
-                                e_sim[i] = er_list[np.absolute(cdf_nu[j] - u[i]).argmin()]
-                            else:
-                                if nu_comp[j] == nu_lines[0]:
-                                    e_sim[i] = e_lines[0]
-                                elif nu_comp[j] == nu_lines[1]:
-                                    e_sim[i] = e_lines[1]
-                                elif nu_comp[j] == nu_lines[2]:
-                                    e_sim[i] = e_lines[2]
+                            e_sim[i] = er_list[np.absolute(cdf_nu[j] - u[i]).argmin()]
+
 
             print 'Run {:.0f} of {:.0f}'.format(nn + 1, n_runs)
             try:
