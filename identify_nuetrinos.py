@@ -104,7 +104,7 @@ def identify_nu(exposure_low=1., exposure_high=100., expose_num=30, element='Ger
             print 'No pre-simulated files...'
             print nu_sim
             sim_files_exist = False
-            exit()
+
 
     for i in range(len(identify)):
         nuspecLOOK[i] = np.zeros_like(er_list)
@@ -271,15 +271,16 @@ def identify_nu(exposure_low=1., exposure_high=100., expose_num=30, element='Ger
 
             print 'Minimizaiton Success: ', max_bkg.success, max_tot.success
             print 'Values: ', max_bkg.fun, max_tot.fun
-            # print max_bkg
-            # print max_tot
+            #print max_bkg
+            #print max_tot
+            #print like_init_bkg.likelihood(max_tot.x[:nu_contrib], np.array([-100.]))
 
             if not max_bkg.success or not max_tot.success:
                 fails = np.append(fails, nn)
 
             test_stat = np.max([max_bkg.fun - max_tot.fun, 0.])
 
-            pval = chi2.sf(test_stat, 1)
+            pval = chi2.sf(test_stat, len(identify))
 
             if not QUIET:
                 print 'TS: ', test_stat
@@ -307,18 +308,20 @@ def identify_nu(exposure_low=1., exposure_high=100., expose_num=30, element='Ger
                 testq = 0.
             else:
                 kernel = gaussian_kde(tstat_arr)
-                xprob = np.logspace(-3, np.log10(np.max(tstat_arr)), 300)
+                xprob = np.logspace(-3, np.log10(np.max(tstat_arr)), 50)
                 norm = np.trapz(kernel(xprob), xprob)
                 #testq = np.trapz(kernel(xprob[xprob > q_goal]), xprob[xprob > q_goal]) / norm
                 #print np.column_stack((xprob, kernel(xprob)/norm))
 
                 check_if0 = np.trapz(kernel(xprob[xprob > 1e-3]), xprob[xprob > 1e-3]) / norm
+
                 if check_if0 < 0.9:
                     testq = 0.
                 else:
                     look_for_90 = np.zeros_like(xprob)
                     for i in range(len(xprob)):
                         look_for_90[i] = np.trapz(kernel(xprob[i:]), xprob[i:]) / norm
+                    #print np.column_stack((xprob, look_for_90))
                     testq = xprob[np.argmin(np.abs(look_for_90 - 0.9))]
             print 'testq (mean, end n cycle): {}'.format(testq)
 

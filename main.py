@@ -32,6 +32,7 @@ from constants import *
 from scipy.stats import gaussian_kde
 
 path = os.getcwd()
+Sv_dir = path + '/NeutrinoSims/'
 QUIET = False
 xenLAB = 'LZ'
 
@@ -42,6 +43,8 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
 
     #start_time = time.time()
     testq = 0
+    sim_files_exist = True
+    sim_dm_file_exist = True
     file_info = path + '/Saved_Files/'
 
     print 'Run Info:'
@@ -49,7 +52,7 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
     print 'Model: ', model
     coupling = "fnfp" + model[5:]
     print 'Coupling: ', coupling, fnfp
-    print 'Mass: {:.0f}'.format(mass)
+    print 'Mass: {:.2f}'.format(mass)
 
     print '\n'
 
@@ -99,8 +102,17 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
     cdf_nu = np.zeros(nu_contrib, dtype=object)
     Nu_events_sim = np.zeros(nu_contrib)
 
+    nu_events = np.zeros(nu_contrib, dtype=object)
     for i in range(nu_contrib):
         nuspec[i] = np.zeros_like(er_list)
+        try:
+            nu_sim = Sv_dir + 'Simulate_' + nu_comp[i] + '_' + element
+            nu_sim += '_Eth_{:.2f}_Emax_{:.2f}_'.format(Qmin, Qmax) + labor + '_'
+            nu_sim += file_tag + '.dat'
+            nu_events[i] = np.loadtxt(nu_sim)
+        except IOError:
+            print 'No pre-simulated files...'
+            sim_files_exist = False
 
     for iso in experiment_info:
         for i in range(nu_contrib):
@@ -119,8 +131,26 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
             cdf_nu[i] /= cdf_nu[i].max()
             Nu_events_sim[i] = int(nu_rate[i] * exposure)
 
-    nevts_n = np.zeros(nu_contrib)
+    nevts_n = np.zeros(nu_contrib, dtype='int')
     print '\n \n'
+
+    dm_recoil_sv = path + '/DarkMatterSims/Simulate_DarkMatter_' + element
+    dm_recoil_sv += '_' + model + '_' + coupling + '_{:.2f}_DM_Mass_{:.2f}_GeV'.format(fnfp, mass)
+    dm_recoil_sv += '_Eth_{:.2f}_Emax_{:.2f}_'.format(Qmin, Qmax) + labor + '_'
+    dm_recoil_sv += file_tag + '.dat'
+    try:
+        dm_recoil_list = np.loadtxt(dm_recoil_sv)
+    except IOError:
+        print 'Dark Matter Recoils Not Saved...'
+        sim_dm_file_exist = False
+
+    drdq_params = default_rate_parameters.copy()
+    drdq_params['element'] = element
+    drdq_params['mass'] = mass
+    drdq_params[coupling] = fnfp
+    drdq_params['delta'] = delta
+    drdq_params['GF'] = GF
+    drdq_params['time_info'] = time_info
 
     win = False
     sig_list = []
@@ -151,23 +181,8 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
         except IOError:
             pass
 
-        drdq_params = default_rate_parameters.copy()
-        drdq_params['element'] = element
-        drdq_params['mass'] = mass
         drdq_params[model] = sigmap
-        drdq_params[coupling] = fnfp
-        drdq_params['delta'] = delta
-        drdq_params['GF'] = GF
-        drdq_params['time_info'] = time_info
-
-        dm_spec = dRdQ(er_list, time_list, **drdq_params) * 10. ** 3. * s_to_yr
         dm_rate = R(Qmin=Qmin, Qmax=Qmax, **drdq_params) * 10. ** 3. * s_to_yr
-        dm_pdf = dm_spec / dm_rate
-
-        cdf_dm = np.zeros_like(dm_pdf)
-        for i in range(len(cdf_dm)):
-            cdf_dm[i] = np.trapz(dm_pdf[:i], er_list[:i])
-        cdf_dm /= cdf_dm.max()
         dm_events_sim = int(dm_rate * exposure)
 
         tstat_arr = np.zeros(n_runs)
@@ -183,21 +198,25 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
 
             Nevents = int(sum(nevts_n))
 
-            u = random.rand(Nevents)
-            e_sim = np.zeros(Nevents)
-            sum_nu_evts = np.zeros(nu_contrib)
+            if sim_files_exist:
+                e_sim = np.array([])
+                for i in range(nu_contrib):
+                    u = random.rand(nevts_n[i]) * len(nu_events[i])
+                    e_sim = np.append(e_sim, nu_events[i][u.astype(int)])
 
-            for i in range(nu_contrib):
-                sum_nu_evts[i] = np.sum(nevts_n[:i + 1])
-            sum_nu_evts = np.insert(sum_nu_evts, 0, -1)
-            j = 0
+            else:
+                u = random.rand(Nevents)
+                e_sim = np.zeros(Nevents)
+                sum_nu_evts = np.zeros(nu_contrib)
+                for i in range(nu_contrib):
+                    sum_nu_evts[i] = np.sum(nevts_n[:i + 1])
+                sum_nu_evts = np.insert(sum_nu_evts, 0, -1)
 
-            for i in range(Nevents):
-                if i < sum(nevts_n):
-                    for j in range(nu_contrib + 1):
-                        if sum_nu_evts[j] <= i < sum_nu_evts[j + 1]:
-                            e_sim[i] = er_list[np.absolute(cdf_nu[j] - u[i]).argmin()]
-
+                for i in range(Nevents):
+                    if i < sum(nevts_n):
+                        for j in range(nu_contrib + 1):
+                            if sum_nu_evts[j] <= i < sum_nu_evts[j + 1]:
+                                e_sim[i] = er_list[np.absolute(cdf_nu[j] - u[i]).argmin()]
 
             print 'Run {:.0f} of {:.0f}'.format(nn + 1, n_runs)
             try:
@@ -211,11 +230,22 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
 
             # Simulate events
             print('Evaluated Events: Neutrino {:.0f}, DM {:.0f}'.format(int(sum(nevts_n)), nevts_dm))
-            u = random.rand(nevts_dm)
-            # Generalize to rejection sampling algo for time implimentation
-            e_sim2 = np.zeros(nevts_dm)
-            for i in range(nevts_dm):
-                 e_sim2[i] = er_list[np.absolute(cdf_dm - u[i]).argmin()]
+            if sim_dm_file_exist:
+                e_sim2 = np.array([])
+                u = random.rand(nevts_dm) * len(dm_recoil_list)
+                e_sim2 = np.append(e_sim2, dm_recoil_list[u.astype(int)])
+            else:
+                dm_spec = dRdQ(er_list, time_list, **drdq_params) * 10. ** 3. * s_to_yr
+                dm_pdf = dm_spec / dm_rate
+                cdf_dm = np.zeros_like(dm_pdf)
+                for i in range(len(cdf_dm)):
+                    cdf_dm[i] = np.trapz(dm_pdf[:i], er_list[:i])
+                cdf_dm /= cdf_dm.max()
+
+                u = random.rand(nevts_dm)
+                e_sim2 = np.zeros(nevts_dm)
+                for i in range(nevts_dm):
+                     e_sim2[i] = er_list[np.absolute(cdf_dm - u[i]).argmin()]
 
             e_sim = np.concatenate((e_sim, e_sim2))
             times = np.zeros_like(e_sim)
@@ -226,17 +256,17 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
             nu_bnds = [(-5.0, 3.0)] * nu_contrib
             dm_bnds = nu_bnds + [(-60., -30.)]
 
+            #start_time = time.time()
             like_init_nodm = Likelihood_analysis(model, coupling, mass, 0., fnfp,
                                                  exposure, element, experiment_info,
                                                  e_sim, times, nu_comp, labor,
-                                                 nu_contrib,
-                                                 Qmin, Qmax, time_info=time_info, GF=False)
+                                                 nu_contrib, Qmin, Qmax, time_info=time_info,
+                                                 GF=False, DARK=False)
 
             max_nodm = minimize(like_init_nodm.likelihood, np.zeros(nu_contrib),
-                                args=(np.array([-100.])), tol=1e-4, method='SLSQP',
+                                args=(np.array([-100.])), tol=1e-2, method='SLSQP',
                                 options={'maxiter': 100}, bounds=nu_bnds,
                                 jac=like_init_nodm.like_gradi)
-
 
             like_init_dm = Likelihood_analysis(model, coupling, mass, 1., fnfp,
                                                exposure, element, experiment_info, e_sim, times, nu_comp, labor,
@@ -245,11 +275,13 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
 
             max_dm = minimize(like_init_dm.like_multi_wrapper,
                               np.concatenate((np.zeros(nu_contrib), np.array([np.log10(sigmap)]))),
-                              tol=1e-4, method='SLSQP', bounds=dm_bnds,
+                              tol=1e-2, method='SLSQP', bounds=dm_bnds,
                               options={'maxiter': 100}, jac=like_init_dm.likegrad_multi_wrapper)
 
             #print 'DM Vals: ', max_dm
             #print 'No DM: ', max_nodm
+
+            #print("--- %s seconds ---" % (time.time() - start_time))
             #print like_init_dm.test_num_events(max_dm.x[:-1], max_dm.x[-1])
 
             print 'Minimizaiton Success: ', max_nodm.success, max_dm.success
@@ -270,7 +302,7 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
             if test_stat > 1e3 and max_dm.success:
                 sig_list.append([sig, 1.])
                 sig_list.sort(key=lambda x: x[0])
-                continue
+                break
         # mask = np.array([(i in fails) for i in xrange(len(tstat_arr))])
         # tstat_arr = tstat_arr[~mask]
         print tstat_arr

@@ -11,6 +11,7 @@ from scipy.integrate import romberg
 from rate_UV import *
 from helpers import *
 import os
+import time
 from experiments import *
 from constants import *
 import copy
@@ -29,6 +30,7 @@ class Likelihood_analysis(object):
     def __init__(self, model, coupling, mass, dm_sigp, fnfp, exposure, element, isotopes,
                  energies, times, nu_names, lab, nu_spec, Qmin, Qmax, time_info=False, GF=False,
                  DARK=True, reduce_uncer=1.):
+
 
         self.nu_lines = ['b7l1', 'b7l2', 'pepl1']
         self.line = [0.380, 0.860, 1.440]
@@ -56,7 +58,7 @@ class Likelihood_analysis(object):
 
         self.times = times
 
-        like_params =default_rate_parameters.copy()
+        like_params = default_rate_parameters.copy()
 
         like_params['element'] = element
         like_params['mass'] = mass
@@ -72,7 +74,7 @@ class Likelihood_analysis(object):
             self.dm_recoils = np.zeros_like(energies)
             self.dm_integ = 0.
 
-        eng_lge = np.logspace(np.log10(self.Qmin), np.log10(self.Qmax), 300)
+        eng_lge = np.logspace(np.log10(self.Qmin), np.log10(self.Qmax), 100)
 
         for i in range(nu_spec):
             nu_resp_h[i] = np.zeros_like(eng_lge)
@@ -92,7 +94,7 @@ class Likelihood_analysis(object):
             except ValueError:
                 self.nu_resp[i] = interp1d(np.log10(er[i]), np.log10(nu_resp_h[i]),
                                            kind='linear', bounds_error=False,
-                                           fill_value='extrapolate')
+                                           fill_value=-100.)
 
             self.nu_int_resp[i] = np.trapz(10.**self.nu_resp[i](np.log10(eng_lge)), eng_lge)
             self.nu_diff_evals[i] = 10.**self.nu_resp[i](np.log10(energies))
@@ -112,7 +114,7 @@ class Likelihood_analysis(object):
             print 'Events from ' + self.nu_names[i] + ': ', nu_events
         return
 
-    def likelihood(self, nu_norm, sig_dm, skip_index=np.array([-1])):
+    def likelihood(self, nu_norm, sig_dm, skip_index=np.array([])):
         # - 2 log likelihood
         # nu_norm in units of cm^-2 s^-1, sig_dm in units of cm^2
 
@@ -126,7 +128,7 @@ class Likelihood_analysis(object):
         dm_events = 10. ** sig_dm * copy.copy(self.dm_integ) * self.exposure
         for i in range(self.nu_spec):
             nu_events[i] = 10. ** nu_norm[i] * self.exposure * self.nu_int_resp[i]
-            # print self.nu_names[i], nu_norm[i], nu_events[i]
+            #print self.nu_names[i], nu_norm[i], nu_events[i]
         # print 'Nobs {:.0f}, Nu Events: {:.2f}'.format(n_obs, np.sum(nu_events))
         like += 2. * (dm_events + sum(nu_events))
 
@@ -134,22 +136,22 @@ class Likelihood_analysis(object):
         for i in range(self.nu_spec):
             if i not in skip_index:
                 like += self.nu_gaussian(self.nu_names[i], nu_norm[i])
+            else:
+                if nu_norm[i] > 0.:
+                    like += self.nu_gaussian(self.nu_names[i], nu_norm[i], err_multiply=False)
 
         if self.element == 'Fluorine':
             return like
 
         # Differential contribution
-        diff_dm = copy.copy(self.dm_recoils) * self.exposure
+        diff_dm = self.dm_recoils * self.exposure
 
         lg_vle = (10. ** sig_dm * diff_dm)
         for i in range(self.nu_spec):
-            diff_nu[i] = copy.copy(self.nu_diff_evals[i]) * self.exposure * 10.**nu_norm[i]
+            diff_nu[i] = self.nu_diff_evals[i] * self.exposure * 10.**nu_norm[i]
             lg_vle += diff_nu[i]
 
         for i in range(len(lg_vle)):
-            if lg_vle[i] <= 0.:
-                print 'Problem encountered...', self.events[i], lg_vle[i], self.dm_recoils[i]
-                exit()
             like += -2. * np.log(lg_vle[i])
         return like
 
@@ -160,7 +162,7 @@ class Likelihood_analysis(object):
         sig_dm = norms[-1]
         return self.like_gradi(nu_norm, sig_dm, ret_just_nu=False)
 
-    def like_gradi(self, nu_norm, sig_dm, skip_index=np.array([-1]), ret_just_nu=True, ret_just_dm=False):
+    def like_gradi(self, nu_norm, sig_dm, skip_index=np.array([]), ret_just_nu=True, ret_just_dm=False):
         grad_x = 0.
         diff_nu = np.zeros(self.nu_spec, dtype=object)
         grad_nu = np.zeros(self.nu_spec)
@@ -168,7 +170,7 @@ class Likelihood_analysis(object):
 
         n_obs = len(self.events)
 
-        dm_events = 10. ** sig_dm * copy.copy(self.dm_integ) * self.exposure
+        dm_events = 10. ** sig_dm * self.dm_integ * self.exposure
         grad_x += 2. * np.log(10.) * dm_events
 
         for i in range(self.nu_spec):
@@ -177,12 +179,15 @@ class Likelihood_analysis(object):
         for i in range(self.nu_spec):
             if i not in skip_index:
                 grad_nu[i] += self.nu_gaussian(self.nu_names[i], nu_norm[i], return_deriv=True)
+            else:
+                if nu_norm[i] > 0.:
+                    grad_nu[i] += self.nu_gaussian(self.nu_names[i], nu_norm[i], err_multiply=False)
 
         if self.element != 'fluorine':
-            diff_dm = copy.copy(self.dm_recoils) * self.exposure
+            diff_dm = self.dm_recoils * self.exposure
             lg_vle = (10. ** sig_dm * diff_dm)
             for i in range(self.nu_spec):
-                diff_nu[i] = copy.copy(self.nu_diff_evals[i]) * self.exposure * 10.**nu_norm[i]
+                diff_nu[i] = self.nu_diff_evals[i] * self.exposure * 10.**nu_norm[i]
                 lg_vle += diff_nu[i]
 
             for i in range(len(lg_vle)):
@@ -238,7 +243,7 @@ class Likelihood_analysis(object):
         return deriv
 
 
-    def nu_gaussian(self, nu_component, flux_n, return_deriv=False):
+    def nu_gaussian(self, nu_component, flux_n, return_deriv=False, err_multiply=True):
         # - 2 log of gaussian flux norm comp
 
         if nu_component == "reactor":
@@ -252,14 +257,13 @@ class Likelihood_analysis(object):
         else:
             nu_mean_f = NEUTRINO_MEANF[nu_component]
             nu_sig = NEUTRINO_SIG[nu_component]
-
-        nu_sig *= self.reduce_uncer
+        if err_multiply:
+            nu_sig *= self.reduce_uncer
         if return_deriv:
-            return nu_mean_f**2./nu_sig**2.*(10.**flux_n - 1.)* \
+            return nu_mean_f**2./nu_sig**2.*(10.**flux_n - 1.) * \
                        np.log(10.)*2.**(flux_n + 1.)*5.**flux_n
         else:
             return nu_mean_f**2. * (10. ** flux_n - 1.)**2. / nu_sig**2.
-
 
 
 class Nu_spec(object):

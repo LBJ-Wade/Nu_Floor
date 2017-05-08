@@ -97,14 +97,15 @@ def compare_simulated_spectrum(nu='b8', element='Germanium', file_tag='_', xenLA
     nuspectrum /= np.trapz(nuspectrum, er_list)
 
     pl.plot(er_list, nuspectrum, 'green', lw=1, label=nu)
-    plt.hist(simulated_events, bins='auto',range=(np.min(simulated_events), np.max(simulated_events)),
-             normed=1, log=True, facecolor='blue', alpha=0.4)
+    n, bins, patches = plt.hist(simulated_events, bins='auto',
+                                range=(np.min(simulated_events), np.max(simulated_events)),
+                                normed=1, log=True, facecolor='blue', alpha=0.4)
 
     ax.set_xlabel(r'$E_R$  [keV]', fontsize=fs)
     ax.set_ylabel(r'Recoil Spectrum  [$keV^{-1}$]', fontsize=fs)
 
     plt.xlim(xmin=Qmin, xmax=np.max(simulated_events))
-    plt.ylim(ymin=10. ** -3., ymax=5.)
+    plt.ylim(ymin=10. ** -3., ymax=np.max(n))
     ax.set_xscale("log")
     ax.set_yscale("log")
 
