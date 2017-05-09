@@ -170,13 +170,39 @@ def identify_nu(exposure_low=1., exposure_high=100., expose_num=30, element='Ger
         while nn < n_runs:
             print 'Run {:.0f} of {:.0f}'.format(nn + 1, n_runs)
             for i in range(nu_contrib):
+                if nu_comp[i] == "reactor":
+                    nu_mean_f, nu_sig = reactor_flux(loc=labor)
+                elif "geo" in nu_comp[i]:
+                    nu_mean_f, nu_sig = geo_flux(loc=labor, el=nu_comp[3:])
+                else:
+                    nu_sig = NEUTRINO_SIG[nu_comp[i]]
+                    nu_mean_f = NEUTRINO_MEANF[nu_comp[i]]
+                nu_sig *= red_uncer
+                nerr = nu_sig / nu_mean_f * Nu_events_sim[i]
                 try:
-                    nevts_n[i] = poisson.rvs(int(Nu_events_sim[i]))
+                    # nevts_n[i] = poisson.rvs(int(Nu_events_sim[i]))
+                    nevts_n[i] = random.normal(loc=Nu_events_sim[i], scale=nerr)
+                    if nevts_n[i] < 0:
+                        nevts_n[i] = 0
+                    #print nu_comp[i], nevts_n[i], Nu_events_sim[i], nerr
                 except ValueError:
                     nevts_n[i] = 0
             for i in range(len(identify)):
+                if identify[i] == "reactor":
+                    nu_mean_f, nu_sig = reactor_flux(loc=labor)
+                elif "geo" in identify[i]:
+                    nu_mean_f, nu_sig = geo_flux(loc=labor, el=identify[i][3:])
+                else:
+                    nu_sig = NEUTRINO_SIG[identify[i]]
+                    nu_mean_f = NEUTRINO_MEANF[identify[i]]
+                nu_sig *= red_uncer
+                nerr = nu_sig / nu_mean_f * Nu_events_simLOOK[i]
                 try:
-                    nevts_nLOOK[i] = poisson.rvs(int(Nu_events_simLOOK[i]))
+                    # nevts_nLOOK[i] = poisson.rvs(int(Nu_events_simLOOK[i]))
+                    nevts_nLOOK[i] = random.normal(loc=Nu_events_simLOOK[i], scale=nerr)
+                    if nevts_nLOOK[i] < 0:
+                        nevts_nLOOK[i] = 0
+                    #print 'Identifying: ', identify[i], nevts_nLOOK[i], Nu_events_simLOOK[i], nerr
                 except ValueError:
                     nevts_nLOOK[i] = 0
 
@@ -247,10 +273,8 @@ def identify_nu(exposure_low=1., exposure_high=100., expose_num=30, element='Ger
                                 args=(np.array([-100.])), tol=1e-4, method='SLSQP',
                                 options={'maxiter': 100}, bounds=nu_bnds,
                                 jac=like_init_bkg.like_gradi)
-            # max_bkg = minimize(like_init_bkg.neutrino_poisson_likelihood, np.zeros(nu_contrib),
-            #                    args=(10,), tol=1e-6, method='SLSQP',
-            #                    options={'maxiter': 100}, bounds=nu_bnds,
-            #                    jac=like_init_bkg.neutrino_poisson_grad)
+
+
             print 'Now With IDENTIFY...'
 
             like_init_tot = Likelihood_analysis('sigma_si', 'fnfp_si', 10., 0., 1.,
@@ -264,15 +288,11 @@ def identify_nu(exposure_low=1., exposure_high=100., expose_num=30, element='Ger
                                tol=1e-4, method='SLSQP',
                                options={'maxiter': 100}, bounds=full_bnds,
                                jac=like_init_tot.like_gradi)
-            # max_tot = minimize(like_init_tot.neutrino_poisson_likelihood, np.zeros(nu_contrib + len(identify)),
-            #                    args=(10,), tol=1e-6, method='SLSQP',
-            #                    options={'maxiter': 100}, bounds=full_bnds,
-            #                    jac=like_init_tot.neutrino_poisson_grad)
 
             print 'Minimizaiton Success: ', max_bkg.success, max_tot.success
             print 'Values: ', max_bkg.fun, max_tot.fun
-            #print max_bkg
-            #print max_tot
+            print max_bkg
+            print max_tot
             #print like_init_bkg.likelihood(max_tot.x[:nu_contrib], np.array([-100.]))
 
             if not max_bkg.success or not max_tot.success:
