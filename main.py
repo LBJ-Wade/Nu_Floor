@@ -311,7 +311,7 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
             tstat_arr[nn] = test_stat
             nn += 1
 
-            if test_stat > 1e3 and max_dm.success:
+            if test_stat > 1e4 and max_dm.success and max_nodm.success:
                 sig_list.append([sig, 1.])
                 sig_list.sort(key=lambda x: x[0])
                 break
