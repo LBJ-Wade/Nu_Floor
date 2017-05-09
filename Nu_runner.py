@@ -8,7 +8,7 @@ import matplotlib
 matplotlib.use('agg')
 import argparse
 from main import *
-from identify_nuetrinos import *
+from identify_neutrinos import *
 from constants import *
 from experiments import *
 import numpy as np
@@ -61,7 +61,7 @@ if DARK:
 else:
     identify = np.array(['geoK','geoTh','geoU'])
     maxE = 0.
-    uncert = 1.
+    uncert = 0.1
     for i in identify:
         elem, Qmax, Qmin = Element_Info(args.element)
         maxER = Nu_spec(lab='Snolab').max_er_from_nu(NEUTRINO_EMAX[i], elem[0,0])
@@ -69,7 +69,7 @@ else:
             maxE = maxER
     print 'Maximum Energy:', maxE
     print 'Uncertainty Multiplier', uncert
-    identify_nu(exposure_low=1., exposure_high=1000., expose_num=10, element=args.element,
+    identify_nu(exposure_low=1., exposure_high=100., expose_num=10, element=args.element,
                 file_tag=args.file_tag, n_runs=args.n_runs, Eth=args.e_th, Ehigh=maxE,
                 identify=identify, red_uncer=uncert)
 

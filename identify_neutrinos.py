@@ -27,7 +27,6 @@ def identify_nu(exposure_low=1., exposure_high=100., expose_num=30, element='Ger
 
     exposure_list = np.logspace(np.log10(exposure_low), np.log10(exposure_high), expose_num)
 
-    testq = 0
     sim_files_exist = True
     file_info = path + '/Saved_Files/'
 
@@ -52,13 +51,9 @@ def identify_nu(exposure_low=1., exposure_high=100., expose_num=30, element='Ger
     print 'Output File: ', file_info
     print '\n'
 
-    mindm = np.zeros(len(experiment_info[:, 0]))
-    # 3\sigma for Chi-square Dist with 1 DoF means q = 9.0
-    q_goal = 9.0
 
     # make sure there are enough points for numerical accuracy/stability
     er_list = np.logspace(np.log10(Qmin), np.log10(Qmax), 300)
-    #er_list = np.linspace(Qmin, Qmax, 500)
 
     nu_comp = ['b8', 'b7l1', 'b7l2', 'pepl1', 'hep', 'pp', 'o15', 'n13', 'f17',
                'reactor', 'geoU', 'geoTh', 'geoK']
@@ -360,7 +355,88 @@ def identify_nu(exposure_low=1., exposure_high=100., expose_num=30, element='Ger
 
 
 
+def identify_nu_naieve(exposure_low=1., exposure_high=100., expose_num=20, element='Germanium',
+                       file_tag='', n_runs=20, Eth=-1, identify=np.array(['geoU', 'geoTh', 'geoK']),
+                       red_uncer=1.):
+    exposure_list = np.logspace(np.log10(exposure_low), np.log10(exposure_high), expose_num)
 
+    print 'Run Info:'
+    print 'Experiment: ', element
+    print 'Identifying {} species: '.format(len(identify)), identify
+    print '\n'
 
+    maxE = 0.
+    for i in identify:
+        elem, Qmax, Qmin = Element_Info(element)
+        maxER = Nu_spec(lab='Snolab').max_er_from_nu(NEUTRINO_EMAX[i], elem[0, 0])
+        if maxER > maxE:
+            maxE = maxER
 
+    experiment_info, Qmin, Qmax = Element_Info(element)
+    labor = laboratory(element, xen=xenLAB)
+    if Eth > 0:
+        Qmin = Eth
+    Qmax = maxE
+    print 'Qmin: {:.2f}, Qmax: {:.2f}'.format(Qmin, Qmax)
+    er_list = np.logspace(np.log10(Qmin), np.log10(Qmax), 300)
+    nu_comp = ['b8', 'b7l1', 'b7l2', 'pepl1', 'hep', 'pp', 'o15', 'n13', 'f17',
+               'reactor', 'geoU', 'geoTh', 'geoK']
 
+    keep_nus = []
+    for i in range(len(nu_comp)):
+        if nu_comp[i] in identify:
+            if Nu_spec(Nu_spec).max_er_from_nu(NEUTRINO_EMAX[nu_comp[i]], experiment_info[0][0]) < Qmin:
+                print 'Threshold too low for ', nu_comp[i]
+                print 'Exiting...'
+                exit()
+            else:
+                continue
+        if Nu_spec(Nu_spec).max_er_from_nu(NEUTRINO_EMAX[nu_comp[i]], experiment_info[0][0]) > Qmin:
+            keep_nus.append(i)
+    nu_comp = [x for i, x in enumerate(nu_comp) if i in keep_nus]
+    nu_contrib = len(nu_comp)
+
+    print 'Neutrinos Considered: ', nu_comp
+
+    nuspec = np.zeros(nu_contrib, dtype=object)
+    nu_rate = np.zeros(nu_contrib, dtype=object)
+    nuspecLOOK = np.zeros(len(identify), dtype=object)
+    nu_rateLOOK = np.zeros(len(identify), dtype=object)
+
+    for i in range(nu_contrib):
+        nuspec[i] = np.zeros_like(er_list)
+    for i in range(len(identify)):
+        nuspecLOOK[i] = np.zeros_like(er_list)
+
+    for iso in experiment_info:
+        for i in range(nu_contrib):
+            nuspec[i] += Nu_spec(labor).nu_rate(nu_comp[i], er_list, iso)
+        for i in range(len(identify)):
+            nuspecLOOK[i] += Nu_spec(labor).nu_rate(identify[i], er_list, iso)
+
+    for i, MT in enumerate(exposure_list):
+
+        print 'Exposure, ', MT
+
+        for i in range(nu_contrib):
+            nu_rate[i] = MT * np.trapz(nuspec[i], er_list)
+        for i in range(len(identify)):
+            nu_rateLOOK[i] = MT * np.trapz(nuspecLOOK[i], er_list)
+
+        print 'Nbkg {:.0f}, Nidentify {:.0f}'.format(np.sum(nu_rate), np.sum(nu_rateLOOK))
+        nerr = 0.
+        # for i in range(nu_contrib):
+        #     if nu_comp[i] == "reactor":
+        #         nu_mean_f, nu_sig = reactor_flux(loc=labor)
+        #     elif "geo" in nu_comp[i]:
+        #         nu_mean_f, nu_sig = geo_flux(loc=labor, el=nu_comp[i][3:])
+        #     else:
+        #         nu_sig = NEUTRINO_SIG[nu_comp[i]]
+        #         nu_mean_f = NEUTRINO_MEANF[nu_comp[i]]
+        #     nu_sig *= red_uncer
+        #     nerr += nu_sig / nu_mean_f * nu_rate[i]
+        for i in range(nu_contrib):
+            nerr += np.sqrt(nu_rate[i])
+
+        print 'Exposure {:.2f}, Significance {:.3f}'.format(MT, np.sum(nu_rateLOOK)/nerr)
+    return
