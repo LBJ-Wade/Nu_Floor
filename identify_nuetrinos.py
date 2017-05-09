@@ -173,7 +173,7 @@ def identify_nu(exposure_low=1., exposure_high=100., expose_num=30, element='Ger
                 if nu_comp[i] == "reactor":
                     nu_mean_f, nu_sig = reactor_flux(loc=labor)
                 elif "geo" in nu_comp[i]:
-                    nu_mean_f, nu_sig = geo_flux(loc=labor, el=nu_comp[3:])
+                    nu_mean_f, nu_sig = geo_flux(loc=labor, el=nu_comp[i][3:])
                 else:
                     nu_sig = NEUTRINO_SIG[nu_comp[i]]
                     nu_mean_f = NEUTRINO_MEANF[nu_comp[i]]

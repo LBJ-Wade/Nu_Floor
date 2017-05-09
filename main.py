@@ -194,7 +194,7 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
                 if nu_comp[i] == "reactor":
                     nu_mean_f, nu_sig = reactor_flux(loc=labor)
                 elif "geo" in nu_comp[i]:
-                    nu_mean_f, nu_sig = geo_flux(loc=labor, el=nu_comp[3:])
+                    nu_mean_f, nu_sig = geo_flux(loc=labor, el=nu_comp[i][3:])
                 else:
                     nu_sig = NEUTRINO_SIG[nu_comp[i]]
                     nu_mean_f = NEUTRINO_MEANF[nu_comp[i]]
