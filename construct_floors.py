@@ -52,13 +52,13 @@ def make_a_floor(element='Germanium', model='sigma_si', fnfp=1., exposure=1.,
             rm_ind = [idx for idx, item in enumerate(load[:,0]) if item in load[:,0][:idx]]
             useable = np.delete(load, rm_ind, axis=0)
             try:
-                try:
-                    mean = sum(useable[:, 0] * useable[:, 1]) / sum(useable[:, 1])
-                    popt, pcov = curve_fit(gauss_cdf_function, useable[:, 0], useable[:, 1], p0=[mean, 1.])
-                    csec = brentq(lambda x: gauss_cdf_function(x, *popt) - qaim, -60., -30.)
-                except:
-                    csec = brentq(lambda x: interp1d(useable[:,0], useable[:,1])(x) - qaim,
-                                  useable[:,0][np.argmin(useable[:, 1])], useable[:,0][np.argmax(useable[:, 1])])
+                # try:
+                #     mean = sum(useable[:, 0] * useable[:, 1]) / sum(useable[:, 1])
+                #     popt, pcov = curve_fit(gauss_cdf_function, useable[:, 0], useable[:, 1], p0=[mean, 1.])
+                #     csec = brentq(lambda x: gauss_cdf_function(x, *popt) - qaim, -60., -30.)
+                # except:
+                csec = brentq(lambda x: interp1d(useable[:,0], useable[:,1])(x) - qaim,
+                              useable[:,0][np.argmin(useable[:, 1])], useable[:,0][np.argmax(useable[:, 1])])
                 print 'DM mass: {:.2f}, Cross Sec {:.2e}'.format(mx, 10. ** csec)
             except:
                 continue
