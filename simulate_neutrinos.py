@@ -38,28 +38,32 @@ def simulate_neutrino_recoils(number=100000, element='Germanium', file_tag='_', 
     if Emin:
         Qmin = Emin
 
-    er_list = np.logspace(np.log10(Qmin), np.log10(Qmax), 10000)
-
+    Ner = 10000
     nu_comp = ['b8', 'b7l1', 'b7l2', 'pepl1', 'hep', 'pp', 'o15', 'n13', 'f17', 'atm',
                'dsnb3mev', 'dsnb5mev', 'dsnb8mev', 'reactor', 'geoU', 'geoTh', 'geoK']
 
     keep_nus = []
+    max_es = np.zeros(len(nu_comp))
     for i in range(len(nu_comp)):
-        if Nu_spec(labor).max_er_from_nu(NEUTRINO_EMAX[nu_comp[i]], experiment_info[0][0]) > Qmin:
+        max_es[i] = Nu_spec(labor).max_er_from_nu(NEUTRINO_EMAX[nu_comp[i]], experiment_info[0][0])
+        if max_es[i] > Qmin:
             keep_nus.append(i)
+            if max_es[i] > Qmax:
+                max_es[i] = Qmax
     nu_comp = [x for i, x in enumerate(nu_comp) if i in keep_nus]
+    max_es = max_es[keep_nus]
     nu_contrib = len(nu_comp)
     print 'Neutrinos Considered: ', nu_comp
 
-    for nu_name in nu_comp:
+    for i,nu_name in enumerate(nu_comp):
         file_info = Sv_dir + 'Simulate_' + nu_name + '_' + element
         file_info += '_Eth_{:.2f}_Emax_{:.2f}_'.format(Qmin,Qmax) + labor + '_'
         file_info += file_tag + '.dat'
         print 'Output File: ', file_info
 
         recoils = np.zeros(number)
-
-        nuspectrum = np.zeros_like(er_list)
+        er_list = np.logspace(np.log10(Qmin), np.log10(max_es[i]), Ner)
+        nuspectrum = np.zeros(Ner)
         for iso in experiment_info:
             nuspectrum += Nu_spec(labor).nu_rate(nu_name, er_list, iso)
 
@@ -72,7 +76,6 @@ def simulate_neutrino_recoils(number=100000, element='Germanium', file_tag='_', 
         u = random.rand(number)
         for j in range(number):
             recoils[j] = er_list[np.absolute(cdf_nu - u[j]).argmin()]
-
         np.savetxt(file_info, recoils)
 
     return

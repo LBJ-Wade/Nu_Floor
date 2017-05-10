@@ -71,14 +71,19 @@ def identify_nu(exposure_low=1., exposure_high=100., expose_num=30, element='Ger
                 print 'Exiting...'
                 exit()
             else:
+                if max_e_id[kk] > Qmax:
+                    max_e_id[kk] = Qmax
                 continue
         max_es[i] = Nu_spec(labor).max_er_from_nu(NEUTRINO_EMAX[nu_comp[i]], experiment_info[0][0])
         if max_es[i] > Qmin:
             keep_nus.append(i)
+            if max_es[i] > Qmax:
+                max_es[i] = Qmax
     nu_comp = [x for i,x in enumerate(nu_comp) if i in keep_nus]
     max_es = max_es[keep_nus]
     nu_contrib = len(nu_comp)
 
+    print max_e_id
 
     print 'Neutrinos Considered: ', nu_comp
 
@@ -131,8 +136,8 @@ def identify_nu(exposure_low=1., exposure_high=100., expose_num=30, element='Ger
         er_nu_id[i] = np.logspace(np.log10(Qmin), np.log10(max_e_id[i]), NERG)
         for iso in experiment_info:
             nuspecLOOK[i] += Nu_spec(labor).nu_rate(identify[i], er_nu_id[i], iso)
-        print identify[i], max_e_id[i]
         nu_rateLOOK[i] = np.trapz(nuspecLOOK[i], er_nu_id[i])
+        print identify[i], nu_rateLOOK[i]
 
     for i, MT in enumerate(exposure_list):
         tstat_arr = np.zeros(n_runs)
@@ -283,39 +288,27 @@ def identify_nu(exposure_low=1., exposure_high=100., expose_num=30, element='Ger
             print 'Mean Q: {:.2f}\n'.format(np.mean(tstat_arr))
             print 'T-stat Array:', tstat_arr
 
-            #testqsimp = float(np.sum(tstat_arr > q_goal)) / float(len(tstat_arr))
+            pval_arr = np.zeros_like(tstat_arr)
+            for i in range(len(tstat_arr)):
+                pval_arr[i] = chi2.sf(tstat_arr[i], len(identify))
 
-            if np.all(tstat_arr == 0.):
-                testq = 0.
-            else:
-                kernel = gaussian_kde(tstat_arr)
-                xprob = np.logspace(-3, np.log10(np.max(tstat_arr)), 50)
-                norm = np.trapz(kernel(xprob), xprob)
-                #testq = np.trapz(kernel(xprob[xprob > q_goal]), xprob[xprob > q_goal]) / norm
-                #print np.column_stack((xprob, kernel(xprob)/norm))
+            print pval_arr
+            tot_entries = len(pval_arr)
+            one_sigma = np.sum(pval_arr < 0.32) / tot_entries
+            two_sigma = np.sum(pval_arr < 0.05) / tot_entries
+            three_sigma = np.sum(pval_arr < 0.003) / tot_entries
 
-                check_if0 = np.trapz(kernel(xprob[xprob > 1e-3]), xprob[xprob > 1e-3]) / norm
-
-                if check_if0 < 0.9:
-                    testq = 0.
-                else:
-                    look_for_90 = np.zeros_like(xprob)
-                    for i in range(len(xprob)):
-                        look_for_90[i] = np.trapz(kernel(xprob[i:]), xprob[i:]) / norm
-                    #print np.column_stack((xprob, look_for_90))
-                    testq = xprob[np.argmin(np.abs(look_for_90 - 0.9))]
-            print 'testq (mean, end n cycle): {}'.format(testq)
-
-            print 'testq: {} --> WRITE'.format(testq)
+            print 'Sigmas: ', one_sigma, two_sigma, three_sigma
+            exit()
             print '~~~~~~~~~~~~~~~~~~~~~MOVING ON~~~~~~~~~~~~~~~~~~~~~'
             print '\n\n'
             if os.path.exists(file_info):
                 load_old = np.loadtxt(file_info)
-                new_arr = np.vstack((load_old, np.array([MT, testq])))
+                new_arr = np.vstack((load_old, np.array([MT, one_sigma, two_sigma, three_sigma])))
                 new_arr = new_arr[new_arr[:, 0].argsort()]
                 np.savetxt(file_info, new_arr)
             else:
-                np.savetxt(file_info, np.array([MT, testq]))
+                np.savetxt(file_info, np.array([MT, one_sigma, two_sigma, three_sigma]))
 
     return
 
