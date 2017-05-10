@@ -81,20 +81,25 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
     q_goal = 9.0
 
     # make sure there are enough points for numerical accuracy/stability
-    er_list = np.logspace(np.log10(Qmin), np.log10(Qmax), 300)
-    time_list = np.zeros_like(er_list)
 
 
     nu_comp = ['b8', 'b7l1', 'b7l2', 'pepl1', 'hep', 'pp', 'o15', 'n13', 'f17', 'atm',
-                   'dsnb3mev', 'dsnb5mev', 'dsnb8mev', 'reactor', 'geoU', 'geoTh', 'geoK']
+                'dsnb3mev', 'dsnb5mev', 'dsnb8mev', 'reactor', 'geoU', 'geoTh', 'geoK']
 
     keep_nus = []
+    max_es = np.zeros(len(nu_comp))
     for i in range(len(nu_comp)):
-        if Nu_spec(Nu_spec).max_er_from_nu(NEUTRINO_EMAX[nu_comp[i]], experiment_info[0][0]) > Qmin:
+        max_es[i] = Nu_spec(Nu_spec).max_er_from_nu(NEUTRINO_EMAX[nu_comp[i]], experiment_info[0][0])
+        if max_es[i] > Qmin:
             keep_nus.append(i)
     nu_comp = [x for i,x in enumerate(nu_comp) if i in keep_nus]
+    max_es = max_es[keep_nus]
     nu_contrib = len(nu_comp)
     print 'Neutrinos Considered: ', nu_comp
+    NERG = 300
+    er_list = np.logspace(np.log10(Qmin), np.log10(Qmax), NERG)
+    time_list = np.zeros_like(er_list)
+    er_nu = np.zeros(nu_contrib, dtype=object)
 
     nuspec = np.zeros(nu_contrib, dtype=object)
     nu_rate = np.zeros(nu_contrib, dtype=object)
@@ -114,19 +119,18 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
             print 'No pre-simulated files...'
             sim_files_exist = False
 
-    for iso in experiment_info:
-        for i in range(nu_contrib):
-            nuspec[i] += Nu_spec(labor).nu_rate(nu_comp[i], er_list, iso)
-
     for i in range(nu_contrib):
-        nu_rate[i] = np.trapz(nuspec[i], er_list)
+        er_nu[i] = np.logspace(np.log10(Qmin), np.log10(max_es[i]), NERG)
+        for iso in experiment_info:
+            nuspec[i] += Nu_spec(labor).nu_rate(nu_comp[i], er_nu[i], iso)
+        nu_rate[i] = np.trapz(nuspec[i], er_nu[i])
 
         print nu_comp[i], nu_rate[i]
         if nu_rate[i] > 0.:
             nu_pdf[i] = nuspec[i] / nu_rate[i]
             cdf_nu[i] = np.zeros_like(nu_pdf[i])
             for j in range(len(nu_pdf[i])):
-                cdf_nu[i][j] = np.trapz(nu_pdf[i][:j],er_list[:j])
+                cdf_nu[i][j] = np.trapz(nu_pdf[i][:j],er_nu[i][:j])
 
             cdf_nu[i] /= cdf_nu[i].max()
             Nu_events_sim[i] = int(nu_rate[i] * exposure)
@@ -151,6 +155,10 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
     drdq_params['delta'] = delta
     drdq_params['GF'] = GF
     drdq_params['time_info'] = time_info
+    arbitrary_norm = 1e-40
+    drdq_params[model] = arbitrary_norm
+
+    dm_rate = R(Qmin=Qmin, Qmax=Qmax, **drdq_params) * 10. ** 3. * s_to_yr
 
     win = False
     sig_list = []
@@ -181,9 +189,7 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
         except IOError:
             pass
 
-        drdq_params[model] = sigmap
-        dm_rate = R(Qmin=Qmin, Qmax=Qmax, **drdq_params) * 10. ** 3. * s_to_yr
-        dm_events_sim = int(dm_rate * exposure)
+        dm_events_sim = int(dm_rate * exposure * (sigmap / arbitrary_norm))
 
         tstat_arr = np.zeros(n_runs)
         nn = 0
@@ -228,7 +234,7 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
                     if i < sum(nevts_n):
                         for j in range(nu_contrib + 1):
                             if sum_nu_evts[j] <= i < sum_nu_evts[j + 1]:
-                                e_sim[i] = er_list[np.absolute(cdf_nu[j] - u[i]).argmin()]
+                                e_sim[i] = er_nu[i][np.absolute(cdf_nu[j] - u[i]).argmin()]
 
             print 'Run {:.0f} of {:.0f}'.format(nn + 1, n_runs)
             try:
@@ -247,6 +253,7 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
                 u = random.rand(nevts_dm) * len(dm_recoil_list)
                 e_sim2 = np.append(e_sim2, dm_recoil_list[u.astype(int)])
             else:
+                drdq_params[model] = sigmap
                 dm_spec = dRdQ(er_list, time_list, **drdq_params) * 10. ** 3. * s_to_yr
                 dm_pdf = dm_spec / dm_rate
                 cdf_dm = np.zeros_like(dm_pdf)
@@ -268,11 +275,12 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
             nu_bnds = [(-5.0, 3.0)] * nu_contrib
             dm_bnds = nu_bnds + [(-60., -30.)]
 
-            #start_time = time.time()
+            start_time = time.time()
             like_init_nodm = Likelihood_analysis(model, coupling, mass, 0., fnfp,
                                                  exposure, element, experiment_info,
                                                  e_sim, times, nu_comp, labor,
-                                                 nu_contrib, Qmin, Qmax, time_info=time_info,
+                                                 nu_contrib, er_nu, nuspec, nu_rate,
+                                                 Qmin, Qmax, time_info=time_info,
                                                  GF=False, DARK=False)
 
             max_nodm = minimize(like_init_nodm.likelihood, np.zeros(nu_contrib),
@@ -282,7 +290,7 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
 
             like_init_dm = Likelihood_analysis(model, coupling, mass, 1., fnfp,
                                                exposure, element, experiment_info, e_sim, times, nu_comp, labor,
-                                               nu_contrib,
+                                               nu_contrib, er_nu, nuspec, nu_rate,
                                                Qmin, Qmax, time_info=time_info, GF=False)
 
             max_dm = minimize(like_init_dm.like_multi_wrapper,
@@ -293,7 +301,7 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
             #print 'DM Vals: ', max_dm
             #print 'No DM: ', max_nodm
 
-            #print("--- %s seconds ---" % (time.time() - start_time))
+            print("--- %s seconds ---" % (time.time() - start_time))
             #print like_init_dm.test_num_events(max_dm.x[:-1], max_dm.x[-1])
 
             print 'Minimizaiton Success: ', max_nodm.success, max_dm.success

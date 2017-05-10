@@ -28,19 +28,28 @@ s_to_yr = 3.154*10.**7.
 class Likelihood_analysis(object):
 
     def __init__(self, model, coupling, mass, dm_sigp, fnfp, exposure, element, isotopes,
-                 energies, times, nu_names, lab, nu_spec, Qmin, Qmax, time_info=False, GF=False,
+                 energies, times, nu_names, lab, nu_spec, er_nu, nu_d_response, nu_response,
+                 Qmin, Qmax, time_info=False, GF=False,
                  DARK=True, reduce_uncer=1.):
-
 
         self.nu_lines = ['b7l1', 'b7l2', 'pepl1']
         self.line = [0.380, 0.860, 1.440]
         self.reduce_uncer = reduce_uncer
 
-        nu_resp_h = np.zeros(nu_spec, dtype=object)
-
         self.nu_diff_evals = np.zeros(nu_spec, dtype=object)
         self.nu_resp = np.zeros(nu_spec, dtype=object)
         self.nu_int_resp = np.zeros(nu_spec, dtype=object)
+        er = np.zeros(nu_spec, dtype=object)
+        nu_resp_h = np.zeros(nu_spec, dtype=object)
+        for i in range(nu_spec):
+            er[i] = er_nu[i][nu_d_response[i] > 0]
+            nu_resp_h[i] = nu_d_response[i][nu_d_response[i] > 0]
+            self.nu_resp[i] = interp1d(np.log10(er[i]), np.log10(nu_resp_h[i]),
+                                       kind='cubic', bounds_error=False,
+                                       fill_value=-100.)
+            self.nu_int_resp[i] = nu_response[i]
+            self.nu_diff_evals[i] = 10. ** self.nu_resp[i](np.log10(energies))
+
 
         self.events = energies
 
@@ -73,31 +82,6 @@ class Likelihood_analysis(object):
         else:
             self.dm_recoils = np.zeros_like(energies)
             self.dm_integ = 0.
-
-        eng_lge = np.logspace(np.log10(self.Qmin), np.log10(self.Qmax), 100)
-
-        for i in range(nu_spec):
-            nu_resp_h[i] = np.zeros_like(eng_lge)
-
-        for iso in isotopes:
-            for j in range(nu_spec):
-                nu_resp_h[j] += Nu_spec(self.lab).nu_rate(nu_names[j], eng_lge, iso)
-
-        er = np.zeros(nu_spec, dtype=object)
-        for i in range(nu_spec):
-            er[i] = eng_lge[nu_resp_h[i] > 0]
-            nu_resp_h[i] = nu_resp_h[i][nu_resp_h[i] > 0]
-            try:
-                self.nu_resp[i] = interp1d(np.log10(er[i]), np.log10(nu_resp_h[i]),
-                                                          kind='cubic', bounds_error=False,
-                                                          fill_value=-100.)
-            except ValueError:
-                self.nu_resp[i] = interp1d(np.log10(er[i]), np.log10(nu_resp_h[i]),
-                                           kind='linear', bounds_error=False,
-                                           fill_value=-100.)
-
-            self.nu_int_resp[i] = np.trapz(10.**self.nu_resp[i](np.log10(eng_lge)), eng_lge)
-            self.nu_diff_evals[i] = 10.**self.nu_resp[i](np.log10(energies))
 
 
     def like_multi_wrapper(self, norms, grad=False):
