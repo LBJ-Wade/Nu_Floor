@@ -59,37 +59,46 @@ def identify_nu(exposure_low=1., exposure_high=100., expose_num=30, element='Ger
                'reactor', 'geoU', 'geoTh', 'geoK']
 
     keep_nus = []
+    max_es = np.zeros(len(nu_comp))
+    max_e_id = np.zeros(len(identify))
+
     for i in range(len(nu_comp)):
         if nu_comp[i] in identify:
-            if Nu_spec(Nu_spec).max_er_from_nu(NEUTRINO_EMAX[nu_comp[i]], experiment_info[0][0]) < Qmin:
-                print 'Threshold too low for ', nu_comp[i]
+            kk = np.argwhere(nu_comp[i] == identify)
+            max_e_id[kk] = Nu_spec(labor).max_er_from_nu(NEUTRINO_EMAX[nu_comp[i]], experiment_info[0][0])
+            if max_e_id[kk] < Qmin:
+                print 'Threshold too low for ', nu_comp[i], max_e_id[kk]
                 print 'Exiting...'
                 exit()
             else:
                 continue
-        if Nu_spec(Nu_spec).max_er_from_nu(NEUTRINO_EMAX[nu_comp[i]], experiment_info[0][0]) > Qmin:
+        max_es[i] = Nu_spec(labor).max_er_from_nu(NEUTRINO_EMAX[nu_comp[i]], experiment_info[0][0])
+        if max_es[i] > Qmin:
             keep_nus.append(i)
     nu_comp = [x for i,x in enumerate(nu_comp) if i in keep_nus]
+    max_es = max_es[keep_nus]
     nu_contrib = len(nu_comp)
+
 
     print 'Neutrinos Considered: ', nu_comp
 
     nuspec = np.zeros(nu_contrib, dtype=object)
     nu_rate = np.zeros(nu_contrib, dtype=object)
-    nu_pdf = np.zeros(nu_contrib, dtype=object)
-    cdf_nu = np.zeros(nu_contrib, dtype=object)
     Nu_events_sim = np.zeros(nu_contrib)
 
     nuspecLOOK = np.zeros(len(identify), dtype=object)
     nu_rateLOOK = np.zeros(len(identify), dtype=object)
-    nu_pdfLOOK = np.zeros(len(identify), dtype=object)
-    cdf_nuLOOK = np.zeros(len(identify), dtype=object)
     Nu_events_simLOOK = np.zeros(len(identify))
 
     nu_events = np.zeros(nu_contrib, dtype=object)
     nu_eventsLOOK = np.zeros(len(identify), dtype=object)
+
+    NERG = 300
+    er_nu = np.zeros(nu_contrib, dtype=object)
+    er_nu_id = np.zeros(len(identify), dtype=object)
+
     for i in range(nu_contrib):
-        nuspec[i] = np.zeros_like(er_list)
+        nuspec[i] = np.zeros(NERG)
         try:
             nu_sim = Sv_dir + 'Simulate_' + nu_comp[i] + '_' + element
             nu_sim += '_Eth_{:.2f}_Emax_{:.2f}_'.format(Qmin, Qmax) + labor + '_'
@@ -100,9 +109,8 @@ def identify_nu(exposure_low=1., exposure_high=100., expose_num=30, element='Ger
             print nu_sim
             sim_files_exist = False
 
-
     for i in range(len(identify)):
-        nuspecLOOK[i] = np.zeros_like(er_list)
+        nuspecLOOK[i] = np.zeros(NERG)
         try:
             nu_sim = Sv_dir + 'Simulate_' + identify[i] + '_' + element
             nu_sim += '_Eth_{:.2f}_Emax_{:.2f}_'.format(Qmin, Qmax) + labor + '_'
@@ -112,11 +120,19 @@ def identify_nu(exposure_low=1., exposure_high=100., expose_num=30, element='Ger
             print 'No pre-simulated files...'
             sim_files_exist = False
 
-    for iso in experiment_info:
-        for i in range(nu_contrib):
-            nuspec[i] += Nu_spec(labor).nu_rate(nu_comp[i], er_list, iso)
-        for i in range(len(identify)):
-            nuspecLOOK[i] += Nu_spec(labor).nu_rate(identify[i], er_list, iso)
+    for i in range(nu_contrib):
+        er_nu[i] = np.logspace(np.log10(Qmin), np.log10(max_es[i]), NERG)
+        for iso in experiment_info:
+            nuspec[i] += Nu_spec(labor).nu_rate(nu_comp[i], er_nu[i], iso)
+        nu_rate[i] = np.trapz(nuspec[i], er_nu[i])
+        print nu_comp[i], nu_rate[i]
+
+    for i in range(len(identify)):
+        er_nu_id[i] = np.logspace(np.log10(Qmin), np.log10(max_e_id[i]), NERG)
+        for iso in experiment_info:
+            nuspecLOOK[i] += Nu_spec(labor).nu_rate(identify[i], er_nu_id[i], iso)
+        print identify[i], max_e_id[i]
+        nu_rateLOOK[i] = np.trapz(nuspecLOOK[i], er_nu_id[i])
 
     for i, MT in enumerate(exposure_list):
         tstat_arr = np.zeros(n_runs)
@@ -132,30 +148,6 @@ def identify_nu(exposure_low=1., exposure_high=100., expose_num=30, element='Ger
                     continue
         except IOError:
             pass
-
-        for i in range(nu_contrib):
-            nu_rate[i] = np.trapz(nuspec[i], er_list)
-            print nu_comp[i], nu_rate[i]*MT
-            if nu_rate[i] > 0.:
-                nu_pdf[i] = nuspec[i] / nu_rate[i]
-                cdf_nu[i] = np.zeros_like(nu_pdf[i])
-                for j in range(len(nu_pdf[i])):
-                    cdf_nu[i][j] = np.trapz(nu_pdf[i][:j], er_list[:j])
-
-                cdf_nu[i] /= cdf_nu[i].max()
-                Nu_events_sim[i] = int(nu_rate[i] * MT)
-
-        for i in range(len(identify)):
-            nu_rateLOOK[i] = np.trapz(nuspecLOOK[i], er_list)
-            print identify[i], nu_rateLOOK[i]*MT
-            if nu_rateLOOK[i] > 0.:
-                nu_pdfLOOK[i] = nuspecLOOK[i] / nu_rateLOOK[i]
-                cdf_nuLOOK[i] = np.zeros_like(nu_pdfLOOK[i])
-                for j in range(len(nu_pdfLOOK[i])):
-                    cdf_nuLOOK[i][j] = np.trapz(nu_pdfLOOK[i][:j],er_list[:j])
-
-                cdf_nuLOOK[i] /= cdf_nuLOOK[i].max()
-                Nu_events_simLOOK[i] = int(nu_rateLOOK[i] * MT)
 
         nevts_n = np.zeros(nu_contrib, dtype='int')
         nevts_nLOOK = np.zeros(len(identify), dtype='int')
@@ -173,15 +165,15 @@ def identify_nu(exposure_low=1., exposure_high=100., expose_num=30, element='Ger
                     nu_sig = NEUTRINO_SIG[nu_comp[i]]
                     nu_mean_f = NEUTRINO_MEANF[nu_comp[i]]
                 nu_sig *= red_uncer
+                Nu_events_sim[i] = int(nu_rate[i] * MT)
                 nerr = nu_sig / nu_mean_f * Nu_events_sim[i]
                 try:
-                    # nevts_n[i] = poisson.rvs(int(Nu_events_sim[i]))
                     nevts_n[i] = random.normal(loc=Nu_events_sim[i], scale=nerr)
                     if nevts_n[i] < 0:
                         nevts_n[i] = 0
-                    #print nu_comp[i], nevts_n[i], Nu_events_sim[i], nerr
                 except ValueError:
                     nevts_n[i] = 0
+
             for i in range(len(identify)):
                 if identify[i] == "reactor":
                     nu_mean_f, nu_sig = reactor_flux(loc=labor)
@@ -191,22 +183,18 @@ def identify_nu(exposure_low=1., exposure_high=100., expose_num=30, element='Ger
                     nu_sig = NEUTRINO_SIG[identify[i]]
                     nu_mean_f = NEUTRINO_MEANF[identify[i]]
                 nu_sig *= red_uncer
+                Nu_events_simLOOK[i] = int(nu_rateLOOK[i] * MT)
                 nerr = nu_sig / nu_mean_f * Nu_events_simLOOK[i]
                 try:
-                    # nevts_nLOOK[i] = poisson.rvs(int(Nu_events_simLOOK[i]))
                     nevts_nLOOK[i] = random.normal(loc=Nu_events_simLOOK[i], scale=nerr)
                     if nevts_nLOOK[i] < 0:
                         nevts_nLOOK[i] = 0
-                    #print 'Identifying: ', identify[i], nevts_nLOOK[i], Nu_events_simLOOK[i], nerr
                 except ValueError:
                     nevts_nLOOK[i] = 0
 
             if not QUIET:
                 print 'Predicted Number of Nu BKG events: {}'.format(int(sum(Nu_events_sim)))
                 print 'Predicted Number of Nu of interest events: {}'.format(Nu_events_simLOOK)
-
-            Nevents = int(sum(nevts_n))
-            NeventsLOOK = int(sum(nevts_nLOOK))
 
             if sim_files_exist:
                 e_sim = np.array([])
@@ -219,36 +207,11 @@ def identify_nu(exposure_low=1., exposure_high=100., expose_num=30, element='Ger
                     e_simLOOK = np.append(e_simLOOK, nu_eventsLOOK[i][u.astype(int)])
 
             else:
-                u = random.rand(Nevents)
-                e_sim = np.zeros(Nevents)
-                sum_nu_evts = np.zeros(nu_contrib)
-
-                uLOOK = random.rand(NeventsLOOK)
-                e_simLOOK = np.zeros(NeventsLOOK)
-                sum_nu_evtsLOOK = np.zeros(len(identify))
-
-                for i in range(nu_contrib):
-                    sum_nu_evts[i] = np.sum(nevts_n[:i + 1])
-                sum_nu_evts = np.insert(sum_nu_evts, 0, -1)
-
-                for i in range(len(identify)):
-                    sum_nu_evtsLOOK[i] = np.sum(nevts_nLOOK[:i + 1])
-                sum_nu_evtsLOOK = np.insert(sum_nu_evtsLOOK, 0, -1)
-
-
-                for i in range(Nevents):
-                    if i < sum(nevts_n):
-                        for j in range(nu_contrib + 1):
-                            if sum_nu_evts[j] <= i < sum_nu_evts[j + 1]:
-                                e_sim[i] = er_list[np.absolute(cdf_nu[j] - u[i]).argmin()]
-
-                for i in range(NeventsLOOK):
-                    if i < sum(nevts_nLOOK):
-                        for j in range(len(identify) + 1):
-                            if sum_nu_evtsLOOK[j] <= i < sum_nu_evtsLOOK[j + 1]:
-                                e_simLOOK[i] = er_list[np.absolute(cdf_nuLOOK[j] - uLOOK[i]).argmin()]
+                print 'No Sim files... exiting...'
+                exit()
 
             e_sim = np.concatenate((e_sim, e_simLOOK))
+            print 'Total Events: ', len(e_sim)
 
             # Simulate events
             print('Evaluated Events: Neutrino {:.0f}, NOI {:.0f}'.format(int(sum(nevts_n)), int(sum(nevts_nLOOK))))
@@ -262,7 +225,8 @@ def identify_nu(exposure_low=1., exposure_high=100., expose_num=30, element='Ger
             like_init_bkg = Likelihood_analysis('sigma_si', 'fnfp_si', 10., 0., 1.,
                                                  MT, element, experiment_info,
                                                  e_sim, np.zeros_like(e_sim), nu_comp, labor,
-                                                 nu_contrib, Qmin, Qmax, reduce_uncer=red_uncer, DARK=False)
+                                                 nu_contrib, er_nu, nuspec, nu_rate,
+                                                 Qmin, Qmax, reduce_uncer=red_uncer, DARK=False)
 
             max_bkg = minimize(like_init_bkg.likelihood, np.zeros(nu_contrib),
                                 args=(np.array([-100.])), tol=1e-4, method='SLSQP',
@@ -271,12 +235,14 @@ def identify_nu(exposure_low=1., exposure_high=100., expose_num=30, element='Ger
 
 
             print 'Now With IDENTIFY...'
-
             like_init_tot = Likelihood_analysis('sigma_si', 'fnfp_si', 10., 0., 1.,
-                                               MT, element, experiment_info, e_sim, np.zeros_like(e_sim),
-                                               np.concatenate((nu_comp, identify)), labor,
-                                               (nu_contrib+len(identify)),
-                                               Qmin, Qmax, reduce_uncer=red_uncer, DARK=False)
+                                                MT, element, experiment_info, e_sim, np.zeros_like(e_sim),
+                                                np.concatenate((nu_comp, identify)), labor,
+                                                (nu_contrib+len(identify)),
+                                                np.concatenate((er_nu, er_nu_id)),
+                                                np.concatenate((nuspec, nuspecLOOK)),
+                                                np.concatenate((nu_rate, nu_rateLOOK)),
+                                                Qmin, Qmax, reduce_uncer=red_uncer, DARK=False)
 
             max_tot = minimize(like_init_tot.likelihood, np.zeros(nu_contrib + len(identify)),
                                args=(np.array([-100.]), range(nu_contrib, nu_contrib + len(identify))),
@@ -286,8 +252,8 @@ def identify_nu(exposure_low=1., exposure_high=100., expose_num=30, element='Ger
 
             print 'Minimizaiton Success: ', max_bkg.success, max_tot.success
             print 'Values: ', max_bkg.fun, max_tot.fun
-            print max_bkg
-            print max_tot
+            # print max_bkg
+            # print max_tot
             #print like_init_bkg.likelihood(max_tot.x[:nu_contrib], np.array([-100.]))
 
             if not max_bkg.success or not max_tot.success:
@@ -365,18 +331,18 @@ def identify_nu_naieve(exposure_low=1., exposure_high=100., expose_num=20, eleme
     print 'Identifying {} species: '.format(len(identify)), identify
     print '\n'
 
-    maxE = 0.
-    for i in identify:
-        elem, Qmax, Qmin = Element_Info(element)
-        maxER = Nu_spec(lab='Snolab').max_er_from_nu(NEUTRINO_EMAX[i], elem[0, 0])
-        if maxER > maxE:
-            maxE = maxER
+    # maxE = 0.
+    # for i in identify:
+    #     elem, Qmax, Qmin = Element_Info(element)
+    #     maxER = Nu_spec(lab='Snolab').max_er_from_nu(NEUTRINO_EMAX[i], elem[0, 0])
+    #     if maxER > maxE:
+    #         maxE = maxER
 
     experiment_info, Qmin, Qmax = Element_Info(element)
     labor = laboratory(element, xen=xenLAB)
     if Eth > 0:
         Qmin = Eth
-    Qmax = maxE
+
     print 'Qmin: {:.2f}, Qmax: {:.2f}'.format(Qmin, Qmax)
     er_list = np.logspace(np.log10(Qmin), np.log10(Qmax), 300)
     nu_comp = ['b8', 'b7l1', 'b7l2', 'pepl1', 'hep', 'pp', 'o15', 'n13', 'f17',
@@ -385,13 +351,13 @@ def identify_nu_naieve(exposure_low=1., exposure_high=100., expose_num=20, eleme
     keep_nus = []
     for i in range(len(nu_comp)):
         if nu_comp[i] in identify:
-            if Nu_spec(Nu_spec).max_er_from_nu(NEUTRINO_EMAX[nu_comp[i]], experiment_info[0][0]) < Qmin:
+            if Nu_spec(labor).max_er_from_nu(NEUTRINO_EMAX[nu_comp[i]], experiment_info[0][0]) < Qmin:
                 print 'Threshold too low for ', nu_comp[i]
                 print 'Exiting...'
                 exit()
             else:
                 continue
-        if Nu_spec(Nu_spec).max_er_from_nu(NEUTRINO_EMAX[nu_comp[i]], experiment_info[0][0]) > Qmin:
+        if Nu_spec(labor).max_er_from_nu(NEUTRINO_EMAX[nu_comp[i]], experiment_info[0][0]) > Qmin:
             keep_nus.append(i)
     nu_comp = [x for i, x in enumerate(nu_comp) if i in keep_nus]
     nu_contrib = len(nu_comp)

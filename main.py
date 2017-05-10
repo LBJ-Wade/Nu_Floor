@@ -89,7 +89,7 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
     keep_nus = []
     max_es = np.zeros(len(nu_comp))
     for i in range(len(nu_comp)):
-        max_es[i] = Nu_spec(Nu_spec).max_er_from_nu(NEUTRINO_EMAX[nu_comp[i]], experiment_info[0][0])
+        max_es[i] = Nu_spec(labor).max_er_from_nu(NEUTRINO_EMAX[nu_comp[i]], experiment_info[0][0])
         if max_es[i] > Qmin:
             keep_nus.append(i)
     nu_comp = [x for i,x in enumerate(nu_comp) if i in keep_nus]

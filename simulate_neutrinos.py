@@ -45,7 +45,7 @@ def simulate_neutrino_recoils(number=100000, element='Germanium', file_tag='_', 
 
     keep_nus = []
     for i in range(len(nu_comp)):
-        if Nu_spec(Nu_spec).max_er_from_nu(NEUTRINO_EMAX[nu_comp[i]], experiment_info[0][0]) > Qmin:
+        if Nu_spec(labor).max_er_from_nu(NEUTRINO_EMAX[nu_comp[i]], experiment_info[0][0]) > Qmin:
             keep_nus.append(i)
     nu_comp = [x for i, x in enumerate(nu_comp) if i in keep_nus]
     nu_contrib = len(nu_comp)
