@@ -292,14 +292,14 @@ def identify_nu(exposure_low=1., exposure_high=100., expose_num=30, element='Ger
             for i in range(len(tstat_arr)):
                 pval_arr[i] = chi2.sf(tstat_arr[i], len(identify))
 
-            print pval_arr
+            print 'Pvalue arr', pval_arr
             tot_entries = len(pval_arr)
-            one_sigma = np.sum(pval_arr < 0.32) / tot_entries
-            two_sigma = np.sum(pval_arr < 0.05) / tot_entries
-            three_sigma = np.sum(pval_arr < 0.003) / tot_entries
+            one_sigma = float(np.sum(pval_arr < 0.32)) / tot_entries
+            two_sigma = float(np.sum(pval_arr < 0.05)) / tot_entries
+            three_sigma = float(np.sum(pval_arr < 0.003)) / tot_entries
 
             print 'Sigmas: ', one_sigma, two_sigma, three_sigma
-            exit()
+
             print '~~~~~~~~~~~~~~~~~~~~~MOVING ON~~~~~~~~~~~~~~~~~~~~~'
             print '\n\n'
             if os.path.exists(file_info):
