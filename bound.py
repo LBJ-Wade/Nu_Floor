@@ -9,7 +9,7 @@ import os
 s_to_yr = 3.154*10.**7.
 path = os.getcwd()
 
-def make_bound(element='Xenon', model='sigma_si', Eth=0.1, Emax=30.,
+def make_bound(element='Xenon', model='sigma_si', Eth=0.1,
                exposure=1., eff='Perfect',
                mxrange=np.logspace(0., 3., 100), ngoal=2.7,
                time_info=False, GF=False, delta=0., fnfp=1., tag='_'):
@@ -27,7 +27,7 @@ def make_bound(element='Xenon', model='sigma_si', Eth=0.1, Emax=30.,
     drdq_params['delta'] = delta
     drdq_params['GF'] = GF
     drdq_params['time_info'] = time_info
-    er_list = np.logspace(np.log10(Qmin), np.log10(Qmax), 300)
+    er_list = np.logspace(np.log10(Qmin), np.log10(Qmax), 1000)
 
     if eff == 'Perfect':
         efficiency = np.ones(len(er_list))
@@ -40,7 +40,7 @@ def make_bound(element='Xenon', model='sigma_si', Eth=0.1, Emax=30.,
         ngoal = 3.2
     else:
         efficiency = np.zeros_like(er_list)
-        file_err = ''
+        file_eff = ''
         exit()
 
     for i,mass in enumerate(mxrange):

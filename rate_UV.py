@@ -110,6 +110,8 @@ def dRdQSI(Er, time, V0, v_lag, v_esc, mx, sigp, fnfp, elt, rho_x=0.3, delta=0.,
             val_eta = eta_GF(v_min, time, time_info)
         tot = v_independent * val_eta * ff
         out[i] = tot
+        if out[i] < 0.:
+            out[i] = 0.
     return out
 
 
@@ -154,6 +156,8 @@ def dRdQSI_massless(Er, time, V0, v_lag, v_esc, mx, sigp, fnfp, elt, rho_x=0.3, 
             val_eta = eta_GF(v_min, time, time_info)
         tot = v_independent * (qref**2./q_squared)**2. * val_eta * ff
         out[i] = tot
+        if out[i] < 0.:
+            out[i] = 0.
     return out
 
 #spin-dependent
@@ -196,6 +200,8 @@ def dRdQSD(Er, time, V0, v_lag, v_esc, mx, sigp, fnfp, elt, rho_x=0.3, delta=0.,
             val_eta = eta_GF(v_min, time, time_info)
         tot = v_independent * val_eta * ff
         out[i]=tot
+        if out[i] < 0.:
+            out[i] = 0.
     return out
 
 def dRdQSD_neutron(Er, time, V0, v_lag, v_esc, mx, sigp, fnfp, elt, rho_x=0.3, delta=0.,
@@ -238,6 +244,8 @@ def dRdQSD_neutron(Er, time, V0, v_lag, v_esc, mx, sigp, fnfp, elt, rho_x=0.3, d
             val_eta = eta_GF(v_min, time, time_info)
         tot = v_independent * val_eta * ff
         out[i]=tot
+        if out[i] < 0.:
+            out[i] = 0.
     return out
 
 #spin-dependent
@@ -281,6 +289,8 @@ def dRdQSD_massless(Er, time, V0, v_lag, v_esc, mx, sigp, fnfp, elt, rho_x=0.3, 
             val_eta = eta_GF(v_min, time, time_info)
         tot = v_independent * (qref**2./q_squared)**2. * val_eta * ff
         out[i]=tot
+        if out[i] < 0.:
+            out[i] = 0.
     return out
 
 #anapole - assuming that the DM is spin 1/2 (relevant for the factor C_\chi)
@@ -376,6 +386,8 @@ def dRdQana_massless(Er, time, V0, v_lag, v_esc, mx, sigp, fnfp, elt, rho_x=0.3,
             val_zeta = zeta_GF(v_min, time, time_info)
         tot = v_independent * (qref**2./q_squared)**2. * (val_zeta * ff_v_sq + val_eta * ff_v_std)
         out[i]=tot
+        if out[i] < 0.:
+            out[i] = 0.
     return out
 
 #magnetic dipole - assuming that the DM is spin 1/2 (relevant for the factor C_\chi)
@@ -473,6 +485,8 @@ def dRdQmagdip_massless(Er, time, V0, v_lag, v_esc, mx, sigp, fnfp, elt, rho_x=0
             val_zeta = zeta_GF(v_min, time, time_info)
         tot = v_independent * qref**2./q_squared * ( val_zeta * ff_v_sq +  val_eta * ff_v_std )
         out[i]=tot
+        if out[i] < 0.:
+            out[i] = 0.
     return out
 
 #electric dipole - assuming that the DM is spin 1/2 (relevant for the factor C_\chi)
@@ -516,6 +530,8 @@ def dRdQelecdip(Er, time, V0, v_lag, v_esc, mx, sigp, fnfp, elt, rho_x=0.3, delt
             val_eta = eta_GF(v_min, time, time_info)
         tot = v_independent * q_squared/(qref**2.) * val_eta * ff
         out[i]=tot
+        if out[i] < 0.:
+            out[i] = 0.
     return out
 
 #electric dipole - assuming that the DM is spin 1/2 (relevant for the factor C_\chi)
@@ -559,6 +575,8 @@ def dRdQelecdip_massless(Er, time, V0, v_lag, v_esc, mx, sigp, fnfp, elt, rho_x=
             val_eta = eta_GF(v_min, time, time_info)
         tot = v_independent * qref**2./q_squared * val_eta * ff
         out[i]=tot
+        if out[i] < 0.:
+            out[i] = 0.
     return out
 
 #LS generating - assuming that the DM is spin 1/2 (relevant for the factor C_\chi)
@@ -605,6 +623,8 @@ def dRdQLS(Er, time, V0, v_lag, v_esc, mx, sigp, fnfp, elt, rho_x=0.3, delta=0.,
             val_zeta = zeta_GF(v_min, time, time_info)
         tot = v_independent * q_squared/(qref**2.) * ( val_eta * ff_vstd + val_zeta * ff_vsq )
         out[i]=tot
+        if out[i] < 0.:
+            out[i] = 0.
     return out
 
 #LS generating - assuming that the DM is spin 1/2 (relevant for the factor C_\chi)
@@ -647,6 +667,8 @@ def dRdQLS_massless(Er, time, V0, v_lag, v_esc, mx, sigp, fnfp, elt, rho_x=0.3, 
             val_eta = eta_GF(v_min, time, time_info)
         tot = v_independent * val_eta * ff
         out[i]=tot
+        if out[i] < 0.:
+            out[i] = 0.
     return out
 
 #pseudoscalar f1 (PS-S)
@@ -690,6 +712,8 @@ def dRdQf1(Er, time, V0, v_lag, v_esc, mx, sigp, fnfp, elt, rho_x=0.3, delta=0.,
             val_eta = eta_GF(v_min, time, time_info)
         tot = v_independent * q_squared/qref**2 * val_eta * ff
         out[i]=tot
+        if out[i] < 0.:
+            out[i] = 0.
     return out
 
 #pseudoscalar f1 (PS-S)
@@ -734,6 +758,8 @@ def dRdQf1_massless(Er, time, V0, v_lag, v_esc, mx, sigp, fnfp, elt, rho_x=0.3, 
             val_eta = eta_GF(v_min, time, time_info)
         tot = v_independent * (qref**2./q_squared) * val_eta * ff
         out[i]=tot
+        if out[i] < 0.:
+            out[i] = 0.
     return out
 
 #pseudoscalar f2 (S-PS)
@@ -777,6 +803,8 @@ def dRdQf2(Er, time, V0, v_lag, v_esc, mx, sigp, fnfp, elt, rho_x=0.3, delta=0.,
             val_eta = eta_GF(v_min, time, time_info)
         tot = v_independent * q_squared/qref**2 * val_eta * ff
         out[i]=tot
+        if out[i] < 0.:
+            out[i] = 0.
     return out
 
 #pseudoscalar f2 (S-PS)
@@ -819,6 +847,8 @@ def dRdQf2_massless(Er, time, V0, v_lag, v_esc, mx, sigp, fnfp, elt, rho_x=0.3, 
             val_eta = eta_GF(v_min, time, time_info)
         tot = v_independent * qref**2./q_squared * val_eta * ff
         out[i]=tot
+        if out[i] < 0.:
+            out[i] = 0.
     return out
 
 #pseudoscalar f3 (PS-PS)
@@ -862,6 +892,8 @@ def dRdQf3(Er, time, V0, v_lag, v_esc, mx, sigp, fnfp, elt, rho_x=0.3, delta=0.,
             val_eta = eta_GF(v_min, time, time_info)
         tot = v_independent * (q_squared/(qref**2.))**2. * val_eta * ff
         out[i]=tot
+        if out[i] < 0.:
+            out[i] = 0.
     return out
 
 #pseudoscalar f3 (PS-PS)
@@ -903,6 +935,8 @@ def dRdQf3_massless(Er, time, V0, v_lag, v_esc, mx, sigp, fnfp, elt, rho_x=0.3, 
             val_eta = eta_GF(v_min, time, time_info)
         tot = v_independent * val_eta * ff
         out[i]=tot
+        if out[i] < 0.:
+            out[i] = 0.
     return out
 
 #######################  "Master" rate functions.
@@ -1104,18 +1138,9 @@ def R(mass=50.,
     :return:
       total recoil energy rate in counts/kg/sec
     """
-    npoints = 300
-
-
-    expQmin = np.log10(Qmin)
-    expQmax = np.log10(Qmax)
-    expQstep = (expQmax - expQmin)/(npoints - 1)
-    Qs = np.zeros(npoints)
     Ts = 0.
 
-    for i in xrange(npoints):
-        expQ = expQmin + i*expQstep
-        Qs[i] = 10**expQ
+    Qs = np.logspace(np.log10(Qmin),np.log10(Qmax), 300)
 
     dRdQs = dRdQ(Qs, Ts, mass=mass, v_lag=v_lag, v_rms=v_rms, v_esc= v_esc, rho_x=rho_x,
                  element=element, fnfp_si=fnfp_si, fnfp_sd=fnfp_sd, fnfp_sd_neutron=fnfp_sd_neutron,
@@ -1136,141 +1161,8 @@ def R(mass=50.,
                  sigma_f2_massless=sigma_f2_massless, sigma_f3_massless=sigma_f3_massless,
                  GF=GF, time_info=False, delta=delta)
 
-    result = np.trapz(dRdQs,Qs)
+    result = np.trapz(dRdQs, Qs)
     if result < 0.:
         print np.column_stack((Qs, dRdQs))
     return result
 
-
-
-
-def loglikelihood(Q, tim,
-                  mass=50.,  delta = 0.,
-                  sigma_si=0., sigma_sd=0.,
-                  sigma_anapole=0., sigma_magdip=0.,  sigma_elecdip=0.,
-                  sigma_LS=0.,  sigma_f1=0.,  sigma_f2=0.,  sigma_f3=0.,
-                  sigma_si_massless=0., sigma_sd_massless=0.,
-                  sigma_anapole_massless=0., sigma_magdip_massless=0.,  sigma_elecdip_massless=0.,
-                  sigma_LS_massless=0.,  sigma_f1_massless=0.,  sigma_f2_massless=0.,
-                  sigma_f3_massless=0.,
-                  fnfp_si=1.,  fnfp_sd=1.,
-                  fnfp_anapole=1.,  fnfp_magdip=1.,  fnfp_elecdip=1.,
-                  fnfp_LS=1.,  fnfp_f1=1.,  fnfp_f2=1.,  fnfp_f3=1.,
-                  fnfp_si_massless=1.,  fnfp_sd_massless=1.,
-                  fnfp_anapole_massless=1.,  fnfp_magdip_massless=1.,
-                  fnfp_elecdip_massless=1.,
-                  fnfp_LS_massless=1.,  fnfp_f1_massless=1.,
-                  fnfp_f2_massless=1.,
-                  fnfp_f3_massless=1.,
-                  v_lag=220.,  v_rms=220.,  v_esc=533.,  rho_x=0.3,
-                  element='xenon',  Qmin=2.,  Qmax=30.,  exposure=1., energy_resolution=True,
-                  GF=False, time_info=False,
-                  TIMEONLY=False):
-
-    """
-    This is the main log(likelihood) for any combination of UV models.
-
-    For reference on free parameters, see :func:`dRdQ` and :func:`R`.
-
-
-    :return:
-      log(likelihood) for an arbitrary rate to produce an observed array of recoil events
-    """
-
-    Nevents = len(Q)
-
-    event_inf = 0.
-    tot = 0.
-    Ts = 0.
-    Tobs = exposure * 24. * 3600. * 365.25
-
-    two_pi = 2.0 * 3.14159265359
-    npoints = 35
-    expQmin = log10(Qmin)
-    expQmax = log10(Qmax)
-    expQstep = (expQmax - expQmin)/(npoints - 1)
-    Qs = np.zeros(npoints)
-
-    Rate = R(mass=mass, v_rms=v_rms, v_lag=v_lag, v_esc=v_esc, rho_x=rho_x,
-             fnfp_si=fnfp_si, fnfp_sd=fnfp_sd,
-             fnfp_anapole=fnfp_anapole, fnfp_magdip=fnfp_magdip, fnfp_elecdip=fnfp_elecdip,
-             fnfp_LS=fnfp_LS, fnfp_f1=fnfp_f1, fnfp_f2=fnfp_f2, fnfp_f3=fnfp_f3,
-             sigma_si= sigma_si, sigma_sd=sigma_sd,
-             sigma_anapole=sigma_anapole, sigma_magdip=sigma_magdip, sigma_elecdip=sigma_elecdip,
-             sigma_LS=sigma_LS, sigma_f1=sigma_f1, sigma_f2=sigma_f2, sigma_f3=sigma_f3,
-             fnfp_si_massless=fnfp_si_massless, fnfp_sd_massless=fnfp_sd_massless,
-             fnfp_anapole_massless=fnfp_anapole_massless, fnfp_magdip_massless=fnfp_magdip_massless,
-             fnfp_elecdip_massless=fnfp_elecdip_massless,
-             fnfp_LS_massless=fnfp_LS_massless, fnfp_f1_massless=fnfp_f1_massless,
-             fnfp_f2_massless=fnfp_f2_massless, fnfp_f3_massless=fnfp_f3_massless,
-             sigma_si_massless = sigma_si_massless, sigma_sd_massless=sigma_sd_massless,
-             sigma_anapole_massless=sigma_anapole_massless, sigma_magdip_massless=sigma_magdip_massless,
-             sigma_elecdip_massless=sigma_elecdip_massless,
-             sigma_LS_massless=sigma_LS_massless, sigma_f1_massless=sigma_f1_massless,
-             sigma_f2_massless=sigma_f2_massless, sigma_f3_massless=sigma_f3_massless,
-             GF=GF, Qmin=Qmin, Qmax=Qmax, delta=delta, element=element, time_info=False)
-    Nexp = Rate * Tobs
-    if Nevents==0 and Nexp==0.:
-        return 0.
-    tot += Nevents * np.log(Nexp) - Nexp
-
-    if not TIMEONLY:
-        if energy_resolution:
-            tot -= Nevents * log(Rate)
-            for i in range(Nevents):
-                event_inf = dRdQ(np.array([Q[i]]), tim[i], mass=mass,
-                                 v_lag=v_lag, v_rms=v_rms, v_esc=v_esc, rho_x=rho_x, element=element,
-                                 fnfp_si=fnfp_si, fnfp_sd=fnfp_sd,
-                                 fnfp_anapole=fnfp_anapole, fnfp_magdip=fnfp_magdip, fnfp_elecdip=fnfp_elecdip,
-                                 fnfp_LS=fnfp_LS, fnfp_f1=fnfp_f1, fnfp_f2=fnfp_f2, fnfp_f3=fnfp_f3,
-                                 sigma_si= sigma_si, sigma_sd=sigma_sd,
-                                 sigma_anapole=sigma_anapole, sigma_magdip=sigma_magdip, sigma_elecdip=sigma_elecdip,
-                                 sigma_LS=sigma_LS, sigma_f1=sigma_f1, sigma_f2=sigma_f2, sigma_f3=sigma_f3,
-                                 fnfp_si_massless=fnfp_si_massless, fnfp_sd_massless=fnfp_sd_massless,
-                                 fnfp_anapole_massless=fnfp_anapole_massless, fnfp_magdip_massless=fnfp_magdip_massless,
-                                 fnfp_elecdip_massless=fnfp_elecdip_massless,
-                                 fnfp_LS_massless=fnfp_LS_massless, fnfp_f1_massless=fnfp_f1_massless, fnfp_f2_massless=fnfp_f2_massless,
-                                 fnfp_f3_massless=fnfp_f3_massless,
-                                 sigma_si_massless = sigma_si_massless, sigma_sd_massless=sigma_sd_massless,
-                                 sigma_anapole_massless=sigma_anapole_massless, sigma_magdip_massless=sigma_magdip_massless,
-                                 sigma_elecdip_massless=sigma_elecdip_massless,
-                                 sigma_LS_massless=sigma_LS_massless, sigma_f1_massless=sigma_f1_massless, sigma_f2_massless=sigma_f2_massless,
-                                 sigma_f3_massless=sigma_f3_massless,
-                                 GF=GF, time_info=time_info, delta=delta)
-                if event_inf==0.:
-                    return -1.*INFINITY #if an event is seen where the model expects zero events (behind the V_lag), this model is excluded, and loglikelihood=-Infinity.
-                tot += np.log(event_inf)
-
-    if TIMEONLY:
-        for i in xrange(npoints):
-            expQ = expQmin + i*expQstep
-            Qs[i] = 10**expQ
-
-        tot -= Nevents * log(Rate)
-        for i in range(Nevents):
-            event_inf_arr = dRdQ(Qs, tim[i], mass=mass,
-                                 v_lag=v_lag, v_rms=v_rms, v_esc=v_esc, rho_x=rho_x, element=element,
-                                 fnfp_si=fnfp_si, fnfp_sd=fnfp_sd,
-                                 fnfp_anapole=fnfp_anapole, fnfp_magdip=fnfp_magdip, fnfp_elecdip=fnfp_elecdip,
-                                 fnfp_LS=fnfp_LS, fnfp_f1=fnfp_f1, fnfp_f2=fnfp_f2, fnfp_f3=fnfp_f3,
-                                 sigma_si= sigma_si, sigma_sd=sigma_sd,
-                                 sigma_anapole=sigma_anapole, sigma_magdip=sigma_magdip, sigma_elecdip=sigma_elecdip,
-                                 sigma_LS=sigma_LS, sigma_f1=sigma_f1, sigma_f2=sigma_f2, sigma_f3=sigma_f3,
-                                 fnfp_si_massless=fnfp_si_massless, fnfp_sd_massless=fnfp_sd_massless,
-                                 fnfp_anapole_massless=fnfp_anapole_massless, fnfp_magdip_massless=fnfp_magdip_massless,
-                                 fnfp_elecdip_massless=fnfp_elecdip_massless,
-                                 fnfp_LS_massless=fnfp_LS_massless, fnfp_f1_massless=fnfp_f1_massless,
-                                 fnfp_f2_massless=fnfp_f2_massless, fnfp_f3_massless=fnfp_f3_massless,
-                                 sigma_si_massless = sigma_si_massless, sigma_sd_massless=sigma_sd_massless,
-                                 sigma_anapole_massless=sigma_anapole_massless,
-                                 sigma_magdip_massless=sigma_magdip_massless,
-                                 sigma_elecdip_massless=sigma_elecdip_massless,
-                                 sigma_LS_massless=sigma_LS_massless, sigma_f1_massless=sigma_f1_massless,
-                                 sigma_f2_massless=sigma_f2_massless, sigma_f3_massless=sigma_f3_massless,
-                                 GF=GF, time_info=True, delta=delta)
-            result = np.trapz(event_inf_arr, Qs)
-            if result==0.:
-                return -1.*INFINITY #if an event is seen where the model expects zero events (behind the V_lag), this model is excluded, and loglikelihood=-Infinity.
-            tot += np.log(result)
-
-    return tot
