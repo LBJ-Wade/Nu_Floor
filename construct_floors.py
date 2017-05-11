@@ -84,7 +84,7 @@ def make_a_floor(element='Germanium', model='sigma_si', fnfp=1., exposure=1.,
         try:
             load = np.loadtxt(file_sv)
             if len(load) > 3:
-                new_arr = lowess(load[:,1], load[:,0], frac=0.15, return_sorted=True)
+                new_arr = lowess(load[:,1], load[:,0], frac=0.05, return_sorted=True)
                 np.savetxt(file_sv, new_arr)
         except IOError:
             print 'No Files Found.'

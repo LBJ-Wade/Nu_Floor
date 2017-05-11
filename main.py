@@ -270,7 +270,9 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
             nu_bnds = [(-5.0, 3.0)] * nu_contrib
             dm_bnds = nu_bnds + [(-60., -30.)]
 
-            #start_time = time.time()
+            # if nn > 1:
+            #     print("--- %s seconds ---" % (time.time() - start_time))
+            # start_time = time.time()
             like_init_nodm = Likelihood_analysis(model, coupling, mass, 0., fnfp,
                                                  exposure, element, experiment_info,
                                                  e_sim, times, nu_comp, labor,
@@ -296,7 +298,7 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
             #print 'DM Vals: ', max_dm
             #print 'No DM: ', max_nodm
 
-            #print("--- %s seconds ---" % (time.time() - start_time))
+
             #print like_init_dm.test_num_events(max_dm.x[:-1], max_dm.x[-1])
 
             print 'Minimizaiton Success: ', max_nodm.success, max_dm.success
