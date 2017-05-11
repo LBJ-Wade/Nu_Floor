@@ -106,8 +106,6 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
 
     nuspec = np.zeros(nu_contrib, dtype=object)
     nu_rate = np.zeros(nu_contrib, dtype=object)
-    nu_pdf = np.zeros(nu_contrib, dtype=object)
-    cdf_nu = np.zeros(nu_contrib, dtype=object)
     Nu_events_sim = np.zeros(nu_contrib)
 
     nu_events = np.zeros(nu_contrib, dtype=object)
@@ -127,15 +125,9 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
         for iso in experiment_info:
             nuspec[i] += Nu_spec(labor).nu_rate(nu_comp[i], er_nu[i], iso)
         nu_rate[i] = np.trapz(nuspec[i], er_nu[i])
-
         print nu_comp[i], nu_rate[i]
-        if nu_rate[i] > 0.:
-            nu_pdf[i] = nuspec[i] / nu_rate[i]
-            cdf_nu[i] = np.zeros_like(nu_pdf[i])
-            for j in range(len(nu_pdf[i])):
-                cdf_nu[i][j] = np.trapz(nu_pdf[i][:j],er_nu[i][:j])
 
-            cdf_nu[i] /= cdf_nu[i].max()
+        if nu_rate[i] > 0.:
             Nu_events_sim[i] = int(nu_rate[i] * exposure)
 
     nevts_n = np.zeros(nu_contrib, dtype='int')
@@ -278,7 +270,7 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
             nu_bnds = [(-5.0, 3.0)] * nu_contrib
             dm_bnds = nu_bnds + [(-60., -30.)]
 
-            start_time = time.time()
+            #start_time = time.time()
             like_init_nodm = Likelihood_analysis(model, coupling, mass, 0., fnfp,
                                                  exposure, element, experiment_info,
                                                  e_sim, times, nu_comp, labor,
@@ -304,7 +296,7 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
             #print 'DM Vals: ', max_dm
             #print 'No DM: ', max_nodm
 
-            print("--- %s seconds ---" % (time.time() - start_time))
+            #print("--- %s seconds ---" % (time.time() - start_time))
             #print like_init_dm.test_num_events(max_dm.x[:-1], max_dm.x[-1])
 
             print 'Minimizaiton Success: ', max_nodm.success, max_dm.success
@@ -335,7 +327,6 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
         print 'True DM sigma_p: ', sigmap
         #print("--- %s seconds ---" % (time.time() - start_time))
 
-
         if len(tstat_arr) > 0:
             print 'Median Q: {:.2f}'.format(np.median(tstat_arr))
             print 'Mean Q: {:.2f}\n'.format(np.mean(tstat_arr))
@@ -346,11 +337,12 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
             elif np.all(tstat_arr == 0.):
                 testq = 0.
             else:
-                #testq = float(np.sum(tstat_arr > q_goal)) / float(len(tstat_arr))
+                # testq = float(np.sum(tstat_arr > q_goal)) / float(len(tstat_arr))
                 kernel = gaussian_kde(tstat_arr)
                 xprob = np.linspace(0., np.max(tstat_arr), 200)
                 testq = np.trapz(kernel(xprob[xprob > q_goal]), xprob[xprob > q_goal]) / \
                         np.trapz(kernel(xprob),xprob)
+
             sig_list.append([sig, testq])
             sig_list.sort(key=lambda x: x[0])
 

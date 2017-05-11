@@ -58,8 +58,8 @@ def make_a_floor(element='Germanium', model='sigma_si', fnfp=1., exposure=1.,
                 #     csec = brentq(lambda x: gauss_cdf_function(x, *popt) - qaim, -60., -30.)
                 # except:
                 test = np.linspace(useable[0,0], useable[-1,0], 30)
-                print np.column_stack((test, interp1d(useable[:,0], useable[:,1])(test)))
-                print useable
+                #print np.column_stack((test, interp1d(useable[:,0], useable[:,1])(test)))
+                #print useable
                 csec = brentq(lambda x: interp1d(useable[:,0], useable[:,1])(x) - qaim,
                               useable[:,0][np.argmin(useable[:, 1])], useable[:,0][np.argmax(useable[:, 1])])
                 print 'DM mass: {:.2f}, Cross Sec {:.2e}'.format(mx, 10. ** csec)

@@ -11,11 +11,10 @@ path = os.getcwd()
 
 def make_bound(element='Xenon', model='sigma_si', Eth=0.1, Emax=30.,
                exposure=1., eff='Perfect',
-               mxrange=np.logspace(0., 3., 100), ngoal=9.0,
+               mxrange=np.logspace(0., 3., 100), ngoal=2.7,
                time_info=False, GF=False, delta=0., fnfp=1., tag='_'):
 
     experiment_info, Qmin, Qmax = Element_Info(element)
-
     if Eth > 0:
         Qmin = Eth
         #Qmax = Emax
@@ -38,6 +37,7 @@ def make_bound(element='Xenon', model='sigma_si', Eth=0.1, Emax=30.,
         efficiency = interp1d(luxeff[:,0], luxeff[:,1], kind='cubic', bounds_error=False, fill_value=0.)(er_list)
         file_eff = 'LUX_'
         exposure = (3.35 * 10 ** 4. + 95.3 * 118.3) / (365.24 * 1000.)
+        ngoal = 3.2
     else:
         efficiency = np.zeros_like(er_list)
         file_err = ''
@@ -46,7 +46,7 @@ def make_bound(element='Xenon', model='sigma_si', Eth=0.1, Emax=30.,
     for i,mass in enumerate(mxrange):
         mindm = np.zeros(len(experiment_info[:, 0]))
         for i, iso in enumerate(experiment_info):
-            mindm[i] = MinDMMass(iso[0], delta, Qmin, vesc=533. + 232.)
+            mindm[i] = MinDMMass(iso[0], delta, Qmin, vesc=533.+232.)
         MinDM = np.min(mindm)
         if mass < MinDM + 0.5:
             continue
