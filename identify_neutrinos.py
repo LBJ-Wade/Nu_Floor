@@ -107,7 +107,7 @@ def identify_nu(exposure_low=1., exposure_high=100., expose_num=30, element='Ger
         try:
             nu_sim = Sv_dir + 'Simulate_' + nu_comp[i] + '_' + element
             nu_sim += '_Eth_{:.2f}_Emax_{:.2f}_'.format(Qmin, Qmax) + labor + '_'
-            nu_sim += file_tag + '.dat'
+            nu_sim += '_.dat'
             nu_events[i] = np.loadtxt(nu_sim)
         except IOError:
             print 'No pre-simulated files...'
@@ -119,7 +119,7 @@ def identify_nu(exposure_low=1., exposure_high=100., expose_num=30, element='Ger
         try:
             nu_sim = Sv_dir + 'Simulate_' + identify[i] + '_' + element
             nu_sim += '_Eth_{:.2f}_Emax_{:.2f}_'.format(Qmin, Qmax) + labor + '_'
-            nu_sim += file_tag + '.dat'
+            nu_sim += '_.dat'
             nu_eventsLOOK[i] = np.loadtxt(nu_sim)
         except IOError:
             print 'No pre-simulated files...'
@@ -250,10 +250,15 @@ def identify_nu(exposure_low=1., exposure_high=100., expose_num=30, element='Ger
                                                 Qmin, Qmax, reduce_uncer=red_uncer, DARK=False)
 
             max_tot = minimize(like_init_tot.likelihood, np.zeros(nu_contrib + len(identify)),
-                               args=(np.array([-100.]), range(nu_contrib, nu_contrib + len(identify))),
+                               args=(np.array([-100.])),
                                tol=1e-4, method='SLSQP',
                                options={'maxiter': 100}, bounds=full_bnds,
                                jac=like_init_tot.like_gradi)
+            # max_tot = minimize(like_init_tot.likelihood, np.zeros(nu_contrib + len(identify)),
+            #                    args=(np.array([-100.]), range(nu_contrib, nu_contrib + len(identify))),
+            #                    tol=1e-4, method='SLSQP',
+            #                    options={'maxiter': 100}, bounds=full_bnds,
+            #                    jac=like_init_tot.like_gradi)
 
             print 'Minimizaiton Success: ', max_bkg.success, max_tot.success
             print 'Values: ', max_bkg.fun, max_tot.fun
