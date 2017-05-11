@@ -18,7 +18,7 @@ path = os.getcwd()
 
 
 def make_a_floor(element='Germanium', model='sigma_si', fnfp=1., exposure=1.,
-                 delta=0., tag='_', qaim=0.9, eth=0.1, xen='LZ', lab='', smooth=True):
+                 delta=0., tag='_', qaim=0.9, eth=0.1, xen='LZ', lab='', smooth=True, sf=0.1):
 
     if len(lab) == 0:
         lab = laboratory(element, xen=xen)
@@ -84,7 +84,7 @@ def make_a_floor(element='Germanium', model='sigma_si', fnfp=1., exposure=1.,
         try:
             load = np.loadtxt(file_sv)
             if len(load) > 3:
-                new_arr = lowess(load[:,1], load[:,0], frac=0.05, return_sorted=True)
+                new_arr = lowess(load[:,1], load[:,0], frac=sf, return_sorted=True)
                 np.savetxt(file_sv, new_arr)
         except IOError:
             print 'No Files Found.'
