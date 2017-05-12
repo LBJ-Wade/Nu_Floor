@@ -80,26 +80,47 @@ def simulate_neutrino_recoils(number=100000, element='Germanium', file_tag='_', 
 
     return
 
-def compare_simulated_spectrum(nu='b8', element='Germanium', file_tag='_', xenLAB='LZ', fs=20):
+def compare_simulated_spectrum(nu='b8', element='Germanium', file_tag='_', xenLAB='LZ', fs=20,
+                               model='sigma_si', mass=1000.,
+                               fnfp=1., delta=0., GF=False, time_info=False):
 
     experiment_info, Qmin, Qmax = Element_Info(element)
     labor = laboratory(element, xen=xenLAB)
 
-    file_info = Sv_dir + 'Simulate_' + nu + '_' + element
-    file_info += '_Eth_{:.2f}_Emax_{:.2f}_'.format(Qmin, Qmax) + labor + '_'
-    file_info += file_tag + '.dat'
-    simulated_events = np.loadtxt(file_info)
-
     pl.figure()
     ax = pl.gca()
-
     er_list = np.logspace(np.log10(Qmin), np.log10(Qmax), 1000)
-    nuspectrum = np.zeros_like(er_list)
-    for iso in experiment_info:
-        nuspectrum += Nu_spec(labor).nu_rate(nu, er_list, iso)
-    nuspectrum /= np.trapz(nuspectrum, er_list)
 
-    pl.plot(er_list, nuspectrum, 'green', lw=1, label=nu)
+    if nu != 'dark':
+        file_info = Sv_dir + 'Simulate_' + nu + '_' + element
+        file_info += '_Eth_{:.2f}_Emax_{:.2f}_'.format(Qmin, Qmax) + labor + '_'
+        file_info += file_tag + '.dat'
+        simulated_events = np.loadtxt(file_info)
+        spectrum = np.zeros_like(er_list)
+        for iso in experiment_info:
+            spectrum += Nu_spec(labor).nu_rate(nu, er_list, iso)
+        spectrum /= np.trapz(spectrum, er_list)
+
+    else:
+        coupling = "fnfp" + model[5:]
+        file_info = path + '/DarkMatterSims/Simulate_DarkMatter_' + element
+        file_info += '_' + model + '_' + coupling + '_{:.2f}_DM_Mass_{:.2f}_GeV'.format(fnfp, mass)
+        file_info += '_Eth_{:.2f}_Emax_{:.2f}_'.format(Qmin, Qmax) + labor + '_'
+        file_info += file_tag + '.dat'
+        simulated_events = np.loadtxt(file_info)
+
+        drdq_params = default_rate_parameters.copy()
+        drdq_params['element'] = element
+        drdq_params[model] = 1e-40
+        drdq_params[coupling] = fnfp
+        drdq_params['delta'] = delta
+        drdq_params['GF'] = GF
+        drdq_params['time_info'] = time_info
+        drdq_params['mass'] = mass
+        spectrum = dRdQ(er_list, np.zeros_like(er_list), **drdq_params)
+        spectrum /= np.trapz(spectrum, er_list)
+
+    pl.plot(er_list, spectrum, 'green', lw=1, label=nu)
     n, bins, patches = plt.hist(simulated_events, bins='auto',
                                 range=(np.min(simulated_events), np.max(simulated_events)),
                                 normed=1, log=True, facecolor='blue', alpha=0.4)
@@ -158,7 +179,6 @@ def simulate_DM_recoils(number=100000, element='Germanium', file_tag='_', xenLAB
         print 'Output File: ', file_info
 
         drdq_params['mass'] = mass
-
         dm_spec = dRdQ(er_list, time_list, **drdq_params)
 
         recoils = np.zeros(number)

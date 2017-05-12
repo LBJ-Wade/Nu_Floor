@@ -11,7 +11,7 @@ path = os.getcwd()
 
 def make_bound(element='Xenon', model='sigma_si', Eth=0.1,
                exposure=1., eff='Perfect',
-               mxrange=np.logspace(0., 3., 100), ngoal=2.7,
+               mxrange=np.logspace(0., 3., 100), ngoal=3.18,
                time_info=False, GF=False, delta=0., fnfp=1., tag='_'):
 
     experiment_info, Qmin, Qmax = Element_Info(element)

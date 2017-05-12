@@ -53,6 +53,7 @@ def find_degeneracy2(nu_cand='b8', Emin=0.1, Emax=5., bins=20,
     er_list = er_list[nuspec > 0.]
     nuspec = nuspec[nuspec > 0.]
 
+
     dm_class = DM_fitting_funcs(element, model, coupling, fnfp=fnfp,
                                 delta=delta, GF=GF, time_info=time_info)
 

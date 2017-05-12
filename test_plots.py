@@ -142,7 +142,7 @@ def neutrino_recoils(Emin=0.001, Emax=100., element='Germanium', fs=18, save=Tru
         pl.plot(er_list, nuspec[i], color_list[i], ls=line_list[i], lw=1, label=nu_labels[i])
 
     pl.plot(er_list, dm_spec, 'b', lw=1, label='Dark Matter')
-
+    print 'Number of dark matter events: ', np.trapz(dm_spec, er_list)
     plt.tight_layout()
 
     plt.xlim(xmin=Emin, xmax=Emax)

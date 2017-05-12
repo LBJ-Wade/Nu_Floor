@@ -316,10 +316,6 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
             tstat_arr[nn] = test_stat
             nn += 1
 
-            if test_stat > 1e4 and max_dm.success and max_nodm.success:
-                sig_list.append([sig, 1.])
-                sig_list.sort(key=lambda x: x[0])
-                break
         # mask = np.array([(i in fails) for i in xrange(len(tstat_arr))])
         # tstat_arr = tstat_arr[~mask]
         print tstat_arr
@@ -342,6 +338,7 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
                 # testq = float(np.sum(tstat_arr > q_goal)) / float(len(tstat_arr))
                 kernel = gaussian_kde(tstat_arr)
                 xprob = np.linspace(0., np.max(tstat_arr), 200)
+
                 testq = np.trapz(kernel(xprob[xprob > q_goal]), xprob[xprob > q_goal]) / \
                         np.trapz(kernel(xprob),xprob)
 
