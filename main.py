@@ -192,20 +192,20 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
         fails = np.array([])
         while nn < n_runs:
             for i in range(nu_contrib):
-                if nu_comp[i] == "reactor":
-                    nu_mean_f, nu_sig = reactor_flux(loc=labor)
-                elif "geo" in nu_comp[i]:
-                    nu_mean_f, nu_sig = geo_flux(loc=labor, el=nu_comp[i][3:])
-                else:
-                    nu_sig = NEUTRINO_SIG[nu_comp[i]]
-                    nu_mean_f = NEUTRINO_MEANF[nu_comp[i]]
-
-                nerr = nu_sig / nu_mean_f * Nu_events_sim[i]
+                # if nu_comp[i] == "reactor":
+                #     nu_mean_f, nu_sig = reactor_flux(loc=labor)
+                # elif "geo" in nu_comp[i]:
+                #     nu_mean_f, nu_sig = geo_flux(loc=labor, el=nu_comp[i][3:])
+                # else:
+                #     nu_sig = NEUTRINO_SIG[nu_comp[i]]
+                #     nu_mean_f = NEUTRINO_MEANF[nu_comp[i]]
+                #
+                # nerr = nu_sig / nu_mean_f * Nu_events_sim[i]
                 try:
-                    # nevts_n[i] = poisson.rvs(int(Nu_events_sim[i]))
-                    nevts_n[i] = random.normal(loc=Nu_events_sim[i], scale=nerr)
-                    if nevts_n[i] < 0:
-                        nevts_n[i] = 0
+                    nevts_n[i] = poisson.rvs(int(Nu_events_sim[i]))
+                    # nevts_n[i] = random.normal(loc=Nu_events_sim[i], scale=nerr)
+                    # if nevts_n[i] < 0:
+                    #     nevts_n[i] = 0
                 except ValueError:
                     nevts_n[i] = 0
 

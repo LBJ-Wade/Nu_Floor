@@ -162,38 +162,40 @@ def identify_nu(exposure_low=1., exposure_high=100., expose_num=30, element='Ger
         while nn < n_runs:
             print 'Run {:.0f} of {:.0f}'.format(nn + 1, n_runs)
             for i in range(nu_contrib):
-                if nu_comp[i] == "reactor":
-                    nu_mean_f, nu_sig = reactor_flux(loc=labor)
-                elif "geo" in nu_comp[i]:
-                    nu_mean_f, nu_sig = geo_flux(loc=labor, el=nu_comp[i][3:])
-                else:
-                    nu_sig = NEUTRINO_SIG[nu_comp[i]]
-                    nu_mean_f = NEUTRINO_MEANF[nu_comp[i]]
-                nu_sig *= red_uncer
+                # if nu_comp[i] == "reactor":
+                #     nu_mean_f, nu_sig = reactor_flux(loc=labor)
+                # elif "geo" in nu_comp[i]:
+                #     nu_mean_f, nu_sig = geo_flux(loc=labor, el=nu_comp[i][3:])
+                # else:
+                #     nu_sig = NEUTRINO_SIG[nu_comp[i]]
+                #     nu_mean_f = NEUTRINO_MEANF[nu_comp[i]]
+                # nu_sig *= red_uncer
                 Nu_events_sim[i] = int(nu_rate[i] * MT)
-                nerr = nu_sig / nu_mean_f * Nu_events_sim[i]
+                # nerr = nu_sig / nu_mean_f * Nu_events_sim[i]
                 try:
-                    nevts_n[i] = random.normal(loc=Nu_events_sim[i], scale=nerr)
-                    if nevts_n[i] < 0:
-                        nevts_n[i] = 0
+                    nevts_n[i] = poisson.rvs(int(Nu_events_sim[i]))
+                    # nevts_n[i] = random.normal(loc=Nu_events_sim[i], scale=nerr)
+                    # if nevts_n[i] < 0:
+                    #     nevts_n[i] = 0
                 except ValueError:
                     nevts_n[i] = 0
 
             for i in range(len(identify)):
-                if identify[i] == "reactor":
-                    nu_mean_f, nu_sig = reactor_flux(loc=labor)
-                elif "geo" in identify[i]:
-                    nu_mean_f, nu_sig = geo_flux(loc=labor, el=identify[i][3:])
-                else:
-                    nu_sig = NEUTRINO_SIG[identify[i]]
-                    nu_mean_f = NEUTRINO_MEANF[identify[i]]
-                nu_sig *= red_uncer
+                # if identify[i] == "reactor":
+                #     nu_mean_f, nu_sig = reactor_flux(loc=labor)
+                # elif "geo" in identify[i]:
+                #     nu_mean_f, nu_sig = geo_flux(loc=labor, el=identify[i][3:])
+                # else:
+                #     nu_sig = NEUTRINO_SIG[identify[i]]
+                #     nu_mean_f = NEUTRINO_MEANF[identify[i]]
+                # nu_sig *= red_uncer
                 Nu_events_simLOOK[i] = int(nu_rateLOOK[i] * MT)
-                nerr = nu_sig / nu_mean_f * Nu_events_simLOOK[i]
+                # nerr = nu_sig / nu_mean_f * Nu_events_simLOOK[i]
                 try:
-                    nevts_nLOOK[i] = random.normal(loc=Nu_events_simLOOK[i], scale=nerr)
-                    if nevts_nLOOK[i] < 0:
-                        nevts_nLOOK[i] = 0
+                    nevts_nLOOK[i] = poisson.rvs(int(Nu_events_simLOOK[i]))
+                    # nevts_nLOOK[i] = random.normal(loc=Nu_events_simLOOK[i], scale=nerr)
+                    # if nevts_nLOOK[i] < 0:
+                    #     nevts_nLOOK[i] = 0
                 except ValueError:
                     nevts_nLOOK[i] = 0
 
@@ -226,20 +228,19 @@ def identify_nu(exposure_low=1., exposure_high=100., expose_num=30, element='Ger
 
             nu_bnds = [(-20.0, 3.0)] * nu_contrib
             full_bnds = [(-20.0, 3.0)] * (nu_contrib + len(identify))
-            print 'Just Background...'
-            like_init_bkg = Likelihood_analysis('sigma_si', 'fnfp_si', 10., 0., 1.,
-                                                 MT, element, experiment_info,
-                                                 e_sim, np.zeros_like(e_sim), nu_comp, labor,
-                                                 nu_contrib, er_nu, nuspec, nu_rate,
-                                                 Qmin, Qmax, reduce_uncer=red_uncer, DARK=False)
 
-            max_bkg = minimize(like_init_bkg.likelihood, np.zeros(nu_contrib),
-                                args=(np.array([-100.])), tol=1e-4, method='SLSQP',
-                                options={'maxiter': 100}, bounds=nu_bnds,
-                                jac=like_init_bkg.like_gradi)
+            # like_init_bkg = Likelihood_analysis('sigma_si', 'fnfp_si', 10., 0., 1.,
+            #                                      MT, element, experiment_info,
+            #                                      e_sim, np.zeros_like(e_sim),
+            #                                      nu_comp, labor,
+            #                                      nu_contrib, er_nu, nuspec, nu_rate,
+            #                                      Qmin, Qmax, reduce_uncer=red_uncer, DARK=False)
+            #
+            # max_bkg = minimize(like_init_bkg.like_multi_wrapper, np.zeros(nu_contrib),
+            #                     args=(np.array([-100.])), tol=1e-4, method='SLSQP',
+            #                     options={'maxiter': 100}, bounds=nu_bnds,
+            #                     jac=like_init_bkg.like_gradi)
 
-
-            print 'Now With IDENTIFY...'
             like_init_tot = Likelihood_analysis('sigma_si', 'fnfp_si', 10., 0., 1.,
                                                 MT, element, experiment_info, e_sim, np.zeros_like(e_sim),
                                                 np.concatenate((nu_comp, identify)), labor,
@@ -254,11 +255,31 @@ def identify_nu(exposure_low=1., exposure_high=100., expose_num=30, element='Ger
                                tol=1e-4, method='SLSQP',
                                options={'maxiter': 100}, bounds=full_bnds,
                                jac=like_init_tot.like_gradi)
+
+            def like_valuation(x, nu_contrib):
+                nu_bnds = [(-20.0, 3.0)] * nu_contrib
+                val = minimize(like_init_tot.like_multi_wrapper2, np.zeros(nu_contrib),
+                         args=(x, np.array([-100.])),
+                         tol=1e-4, method='SLSQP',
+                         options={'maxiter': 100}, bounds=nu_bnds,
+                         jac=like_init_tot.like_multi_wrapper2_grad)
+
+                return val.fun
+
+            x = np.linspace(-3, 3, 50)
+            test = np.zeros_like(x)
+            for i in range(len(x)):
+                test[i] = like_valuation(np.array([x[i]]), nu_contrib) - max_tot.fun
+            print np.column_stack((10.**x * nu_rateLOOK[0] * MT, test))
+            exit()
+
             # max_tot = minimize(like_init_tot.likelihood, np.zeros(nu_contrib + len(identify)),
             #                    args=(np.array([-100.]), range(nu_contrib, nu_contrib + len(identify))),
             #                    tol=1e-4, method='SLSQP',
             #                    options={'maxiter': 100}, bounds=full_bnds,
             #                    jac=like_init_tot.like_gradi)
+
+
 
             print 'Minimizaiton Success: ', max_bkg.success, max_tot.success
             print 'Values: ', max_bkg.fun, max_tot.fun
