@@ -91,6 +91,14 @@ class Likelihood_analysis(object):
         sig_dm = norms[-1]
         return self.likelihood(nu_norm, sig_dm)
 
+    def like_multi_wrapper2(self, norms1, norms2, normdm):
+        sig_dm = normdm
+        nu_norm = np.concatenate((norms1, norms2))
+        return self.likelihood(nu_norm, sig_dm)
+
+    def like_multi_wrapper2_grad(self, norms1, norms2, normdm):
+        return self.like_gradi(norms1, normdm)
+
     def test_num_events(self, nu_norm, sig_dm):
         print 'DM events Predicted: ', 10. ** sig_dm * self.dm_integ * self.exposure
         for i in range(self.nu_spec):
@@ -109,7 +117,7 @@ class Likelihood_analysis(object):
         n_obs = len(self.events)
         # total rate contribution
 
-        dm_events = 10. ** sig_dm * copy.copy(self.dm_integ) * self.exposure
+        dm_events = 10. ** sig_dm * self.dm_integ * self.exposure
         for i in range(self.nu_spec):
             nu_events[i] = 10. ** nu_norm[i] * self.exposure * self.nu_int_resp[i]
             #print self.nu_names[i], nu_norm[i], nu_events[i]
@@ -120,9 +128,9 @@ class Likelihood_analysis(object):
         for i in range(self.nu_spec):
             if i not in skip_index:
                 like += self.nu_gaussian(self.nu_names[i], nu_norm[i])
-            else:
-                if nu_norm[i] > 0.:
-                    like += self.nu_gaussian(self.nu_names[i], nu_norm[i], err_multiply=False)
+            # else:
+            #     if nu_norm[i] > 0.:
+            #         like += self.nu_gaussian(self.nu_names[i], nu_norm[i], err_multiply=False)
 
         if self.element == 'Fluorine':
             return like
@@ -148,35 +156,33 @@ class Likelihood_analysis(object):
 
     def like_gradi(self, nu_norm, sig_dm, skip_index=np.array([]), ret_just_nu=True, ret_just_dm=False):
         grad_x = 0.
-        diff_nu = np.zeros(self.nu_spec, dtype=object)
-        grad_nu = np.zeros(self.nu_spec)
-        nu_events = np.zeros(self.nu_spec, dtype=object)
-
-        n_obs = len(self.events)
+        diff_nu = np.zeros(len(nu_norm), dtype=object)
+        grad_nu = np.zeros(len(nu_norm))
+        nu_events = np.zeros(len(nu_norm), dtype=object)
 
         dm_events = 10. ** sig_dm * self.dm_integ * self.exposure
         grad_x += 2. * np.log(10.) * dm_events
 
-        for i in range(self.nu_spec):
+        for i in range(len(nu_norm)):
             grad_nu[i] += 2. * np.log(10.) * 10.**nu_norm[i] * self.exposure * self.nu_int_resp[i]
 
-        for i in range(self.nu_spec):
+        for i in range(len(nu_norm)):
             if i not in skip_index:
                 grad_nu[i] += self.nu_gaussian(self.nu_names[i], nu_norm[i], return_deriv=True)
-            else:
-                if nu_norm[i] > 0.:
-                    grad_nu[i] += self.nu_gaussian(self.nu_names[i], nu_norm[i], err_multiply=False)
+            # else:
+            #     if nu_norm[i] > 0.:
+            #         grad_nu[i] += self.nu_gaussian(self.nu_names[i], nu_norm[i], err_multiply=False)
 
         if self.element != 'fluorine':
             diff_dm = self.dm_recoils * self.exposure
             lg_vle = (10. ** sig_dm * diff_dm)
-            for i in range(self.nu_spec):
+            for i in range(len(nu_norm)):
                 diff_nu[i] = self.nu_diff_evals[i] * self.exposure * 10.**nu_norm[i]
                 lg_vle += diff_nu[i]
 
             for i in range(len(lg_vle)):
                 grad_x += -2. * np.log(10.) * diff_dm[i] * 10. ** sig_dm / lg_vle[i]
-            for i in range(self.nu_spec):
+            for i in range(len(nu_norm)):
                 for j in range(len(lg_vle)):
                     grad_nu[i] += -2. * np.log(10.) * diff_nu[i][j] / lg_vle[j]
 

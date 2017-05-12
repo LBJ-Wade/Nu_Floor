@@ -114,11 +114,12 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
         try:
             nu_sim = Sv_dir + 'Simulate_' + nu_comp[i] + '_' + element
             nu_sim += '_Eth_{:.2f}_Emax_{:.2f}_'.format(Qmin, Qmax) + labor + '_'
-            nu_sim += file_tag + '.dat'
+            nu_sim += '_.dat'
             nu_events[i] = np.loadtxt(nu_sim)
         except IOError:
             print 'No pre-simulated files...'
             sim_files_exist = False
+            exit()
 
     for i in range(nu_contrib):
         er_nu[i] = np.logspace(np.log10(Qmin), np.log10(max_es[i]), NERG)
