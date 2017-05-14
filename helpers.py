@@ -4,6 +4,7 @@ from scipy.interpolate import interp1d
 from scipy.special import erfc,erf
 from scipy.optimize import brentq, curve_fit
 from scipy.stats import norm
+from experiments import *
 import numpy.random as random
 #from scipy.interpolate import griddata,interp1d,interp2d
 import warnings

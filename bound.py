@@ -12,7 +12,8 @@ path = os.getcwd()
 def make_bound(element='Xenon', model='sigma_si', Eth=0.1,
                exposure=1., eff='Perfect',
                mxrange=np.logspace(0., 3., 100), ngoal=3.18,
-               time_info=False, GF=False, delta=0., fnfp=1., tag='_'):
+               time_info=False, GF=False, delta=0., fnfp=1., tag='_',
+               guess=1e-45):
 
     experiment_info, Qmin, Qmax = Element_Info(element)
     if Eth > 0:
@@ -27,12 +28,14 @@ def make_bound(element='Xenon', model='sigma_si', Eth=0.1,
     drdq_params['delta'] = delta
     drdq_params['GF'] = GF
     drdq_params['time_info'] = time_info
-    er_list = np.logspace(np.log10(Qmin), np.log10(Qmax), 1000)
+
 
     if eff == 'Perfect':
+        er_list = np.logspace(np.log10(Qmin), np.log10(Qmax), 1000)
         efficiency = np.ones(len(er_list))
         file_eff = 'Idealized_'
     elif eff == 'LUX':
+        er_list = np.logspace(np.log10(1.), np.log10(Qmax), 1000)
         luxeff = np.loadtxt(path + '/eff_Lux2016.dat')
         efficiency = interp1d(luxeff[:,0], luxeff[:,1], kind='cubic', bounds_error=False, fill_value=0.)(er_list)
         file_eff = 'LUX_'
@@ -43,6 +46,7 @@ def make_bound(element='Xenon', model='sigma_si', Eth=0.1,
         file_eff = ''
         exit()
 
+
     for i,mass in enumerate(mxrange):
         mindm = np.zeros(len(experiment_info[:, 0]))
         for i, iso in enumerate(experiment_info):
@@ -51,7 +55,7 @@ def make_bound(element='Xenon', model='sigma_si', Eth=0.1,
         if mass < MinDM + 0.5:
             continue
 
-        drdq_params[model] = 1e-50
+        drdq_params[model] = guess
         drdq_params['mass'] = mass
 
         diff_r = dRdQ(er_list, np.zeros_like(er_list), **drdq_params)*10.**3.*s_to_yr * efficiency

@@ -177,3 +177,28 @@ def test_sims(esim, e_list, dm, nu):
 
     plt.savefig(test_plots + 'TEST.pdf')
     return
+
+
+def number_dark_matter(element='Xenon', model='sigma_si', exposure=1., mass=10., sigma=1e-40,
+                       fnfp=1., delta=0., GF=False, time_info=False):
+    experiment_info, Qmin, Qmax = Element_Info(element)
+    coupling = "fnfp" + model[5:]
+
+    er_list = np.logspace(np.log10(Qmin), np.log10(Qmax), 100)
+
+    drdq_params = default_rate_parameters.copy()
+    drdq_params['element'] = element
+    drdq_params[model] = sigma
+    drdq_params[coupling] = fnfp
+    drdq_params['delta'] = delta
+    drdq_params['GF'] = GF
+    drdq_params['time_info'] = time_info
+    drdq_params['mass'] = mass
+    spectrum = dRdQ(er_list, np.zeros_like(er_list), **drdq_params)
+    rate = np.trapz(spectrum, er_list) * exposure * 3.154*10.**7. * 1e3
+
+    print 'Element: ', element
+    print 'Model: ', model, ' Mass {:.2f} Sigma: {:.2e}'.format(mass, sigma)
+    print 'Dark Matter Events: {:.2f}'.format(rate)
+    return
+

@@ -3,7 +3,7 @@ import numpy as np
 import math
 import formUV as formUV
 #import formUVdelta as formUV
-from helpers import trapz, eta, zeta, eta_GF, zeta_GF
+from helpers import eta, zeta, eta_GF, zeta_GF
 from globals import PAR_NORMS
 import constants as const
 
