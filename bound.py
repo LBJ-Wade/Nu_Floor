@@ -9,7 +9,7 @@ import os
 s_to_yr = 3.154*10.**7.
 path = os.getcwd()
 
-def make_bound(element='Xenon', model='sigma_si', Eth=0.1,
+def make_bound(element='Xenon', model='sigma_si', Eth=-1.,
                exposure=1., eff='Perfect',
                mxrange=np.logspace(0., 3., 100), ngoal=3.18,
                time_info=False, GF=False, delta=0., fnfp=1., tag='_',
@@ -69,7 +69,7 @@ def make_bound(element='Xenon', model='sigma_si', Eth=0.1,
 
     filename = path + '/Bounds_Sve/'
     filename += file_eff + 'Bound_' + element + '_' + model + '_' + coupling + '_{:.2f}'.format(fnfp)
-    filename += '_Exposure_{:.2f}_Eth_{:.2f}'.format(exposure, Eth)
+    filename += '_Exposure_{:.2f}_Eth_{:.2f}'.format(exposure, Qmin)
     filename += '_Ngoal_{:.2f}'.format(ngoal) + tag + '.dat'
 
     np.savetxt(filename, bounds)
