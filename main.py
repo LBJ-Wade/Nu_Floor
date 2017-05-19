@@ -63,7 +63,7 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
 
     file_info += element + '_' + model + '_' + coupling + '_{:.2f}'.format(fnfp)
     file_info += '_Exposure_{:.2f}_tonyr_DM_Mass_{:.2f}_GeV'.format(exposure, mass)
-    file_info += '_Eth_{:.2f}_'.format(Qmin) + labor + '_'
+    file_info += '_Eth_{:.2f}_'.format(Qmin) + labor + '_delta_{:.2f}'.format(delta)
     file_info += file_tag + '.dat'
     print 'Output File: ', file_info
     print '\n'

@@ -139,6 +139,18 @@ def identify_nu(exposure_low=1., exposure_high=100., expose_num=30, element='Ger
         nu_rateLOOK[i] = np.trapz(nuspecLOOK[i], er_nu_id[i])
         print identify[i], nu_rateLOOK[i]
 
+    add_chi = 0
+    for i in range(len(identify)):
+        if identify[i] == "reactor":
+            nu_mean_f, nu_sig = reactor_flux(loc=labor)
+        elif "geo" in identify[i]:
+            nu_mean_f, nu_sig = geo_flux(loc=labor, el=identify[i][3:])
+        else:
+            nu_sig = NEUTRINO_SIG[identify[i]]
+            nu_mean_f = NEUTRINO_MEANF[identify[i]]
+        nu_sig *= red_uncer
+        add_chi += (nu_mean_f / nu_sig)**2.
+
     for i, MT in enumerate(exposure_list):
         tstat_arr = np.zeros(n_runs)
         print 'Exposure, ', MT
@@ -162,40 +174,16 @@ def identify_nu(exposure_low=1., exposure_high=100., expose_num=30, element='Ger
         while nn < n_runs:
             print 'Run {:.0f} of {:.0f}'.format(nn + 1, n_runs)
             for i in range(nu_contrib):
-                # if nu_comp[i] == "reactor":
-                #     nu_mean_f, nu_sig = reactor_flux(loc=labor)
-                # elif "geo" in nu_comp[i]:
-                #     nu_mean_f, nu_sig = geo_flux(loc=labor, el=nu_comp[i][3:])
-                # else:
-                #     nu_sig = NEUTRINO_SIG[nu_comp[i]]
-                #     nu_mean_f = NEUTRINO_MEANF[nu_comp[i]]
-                # nu_sig *= red_uncer
                 Nu_events_sim[i] = int(nu_rate[i] * MT)
-                # nerr = nu_sig / nu_mean_f * Nu_events_sim[i]
                 try:
                     nevts_n[i] = poisson.rvs(int(Nu_events_sim[i]))
-                    # nevts_n[i] = random.normal(loc=Nu_events_sim[i], scale=nerr)
-                    # if nevts_n[i] < 0:
-                    #     nevts_n[i] = 0
                 except ValueError:
                     nevts_n[i] = 0
 
             for i in range(len(identify)):
-                # if identify[i] == "reactor":
-                #     nu_mean_f, nu_sig = reactor_flux(loc=labor)
-                # elif "geo" in identify[i]:
-                #     nu_mean_f, nu_sig = geo_flux(loc=labor, el=identify[i][3:])
-                # else:
-                #     nu_sig = NEUTRINO_SIG[identify[i]]
-                #     nu_mean_f = NEUTRINO_MEANF[identify[i]]
-                # nu_sig *= red_uncer
                 Nu_events_simLOOK[i] = int(nu_rateLOOK[i] * MT)
-                # nerr = nu_sig / nu_mean_f * Nu_events_simLOOK[i]
                 try:
                     nevts_nLOOK[i] = poisson.rvs(int(Nu_events_simLOOK[i]))
-                    # nevts_nLOOK[i] = random.normal(loc=Nu_events_simLOOK[i], scale=nerr)
-                    # if nevts_nLOOK[i] < 0:
-                    #     nevts_nLOOK[i] = 0
                 except ValueError:
                     nevts_nLOOK[i] = 0
 
@@ -266,12 +254,12 @@ def identify_nu(exposure_low=1., exposure_high=100., expose_num=30, element='Ger
 
                 return val.fun
 
-            x = np.linspace(-3, 3, 50)
-            test = np.zeros_like(x)
-            for i in range(len(x)):
-                test[i] = like_valuation(np.array([x[i]]), nu_contrib) - max_tot.fun
-            print np.column_stack((10.**x * nu_rateLOOK[0] * MT, test))
-            exit()
+            # x = np.linspace(-3, 3, 50)
+            # test = np.zeros_like(x)
+            # for i in range(len(x)):
+            #     test[i] = like_valuation(np.array([x[i]]), nu_contrib) - max_tot.fun
+            # print np.column_stack((10.**x * nu_rateLOOK[0] * MT, test))
+            # exit()
 
             # max_tot = minimize(like_init_tot.likelihood, np.zeros(nu_contrib + len(identify)),
             #                    args=(np.array([-100.]), range(nu_contrib, nu_contrib + len(identify))),
@@ -279,18 +267,16 @@ def identify_nu(exposure_low=1., exposure_high=100., expose_num=30, element='Ger
             #                    options={'maxiter': 100}, bounds=full_bnds,
             #                    jac=like_init_tot.like_gradi)
 
+            # print 'Minimizaiton Success: ', max_bkg.success, max_tot.success
+            # print 'Values: ', max_bkg.fun, max_tot.fun
+            #
+            # if not max_bkg.success or not max_tot.success:
+            #     fails = np.append(fails, nn)
+            # test_stat = np.max([max_bkg.fun - max_tot.fun, 0.])
+            set_zero = 10.**np.zeros(len(identify)) * -100.
+            fix_to_zero = like_valuation(set_zero, nu_contrib)
+            test_stat = np.max([fix_to_zero - max_tot.fun - add_chi, 0.])
 
-
-            print 'Minimizaiton Success: ', max_bkg.success, max_tot.success
-            print 'Values: ', max_bkg.fun, max_tot.fun
-            # print max_bkg
-            # print max_tot
-            #print like_init_bkg.likelihood(max_tot.x[:nu_contrib], np.array([-100.]))
-
-            if not max_bkg.success or not max_tot.success:
-                fails = np.append(fails, nn)
-
-            test_stat = np.max([max_bkg.fun - max_tot.fun, 0.])
 
             pval = chi2.sf(test_stat, len(identify))
 
