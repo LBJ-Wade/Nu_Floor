@@ -71,7 +71,7 @@ def Element_Info(element):
 
 
 def laboratory(elem, xen='LZ'):
-    if elem == 'Germanium' or elem == 'Fluorine' or elem == 'Argon':
+    if elem == 'Germanium' or elem == 'Fluorine':
         lab = 'Snolab'
     elif elem == 'Xenon':
         if xen == 'LZ':
