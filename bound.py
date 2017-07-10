@@ -14,12 +14,13 @@ def make_bound(element='Xenon', model='sigma_si', Eth=-1.,
                mxrange=np.logspace(0., 3., 100), ngoal=3.18,
                time_info=False, GF=False, delta=0., fnfp=1., tag='_',
                guess=1e-45):
-
+    
+    
     experiment_info, Qmin, Qmax = Element_Info(element)
     if Eth > 0:
         Qmin = Eth
-        #Qmax = Emax
-
+    #Qmax = Emax
+    
     coupling = "fnfp" + model[5:]
 
     drdq_params = default_rate_parameters.copy()
@@ -41,6 +42,22 @@ def make_bound(element='Xenon', model='sigma_si', Eth=-1.,
         file_eff = 'LUX_'
         exposure = (3.35 * 10 ** 4. + 95.3 * 118.3) / (365.24 * 1000.)
         ngoal = 3.2
+    elif eff == 'Xenon1T':
+        er_list = np.logspace(np.log10(1.), np.log10(Qmax), 1000)
+        xeneff = np.loadtxt(path + '/Xenon1T_Eff.dat')
+        xeneff = xeneff[xeneff[:,0] <= 30.]
+        efficiency = interp1d(xeneff[:,0], xeneff[:,1], kind='linear', bounds_error=False, fill_value=0.)(er_list)
+        file_eff = 'Xenon1T_'
+        exposure = (2004. * 34.2) / (365.24 * 1000.)
+        ngoal = 2.7
+    elif eff == 'PICO60':
+        element = 'Fluorine'
+        er_list = np.logspace(np.log10(1.), np.log10(Qmax), 1000)
+        eff = np.loadtxt(os.getcwd() + '/pico60_eff.dat')
+        efficiency = interp1d(eff[:,0],eff[:,1], kind='linear', bounds_error=False, fill_value=0.)(er_list)
+        exposure = (1167.) / (365.24 * 1000.)
+        file_eff = 'Pico60_'
+        ngoal = 2.7
     else:
         efficiency = np.zeros_like(er_list)
         file_eff = ''

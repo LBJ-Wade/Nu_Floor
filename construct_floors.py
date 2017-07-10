@@ -18,8 +18,12 @@ path = os.getcwd()
 
 
 def make_a_floor(element='Germanium', model='sigma_si', fnfp=1., exposure=1.,
-                 delta=0., tag='_', qaim=0.9, eth=0.1, xen='LZ', lab='', smooth=True, sf=0.1):
-
+                 delta=0., tag='_', qaim=0.9, eth=-1., xen='LZ', lab='', smooth=True, sf=0.1):
+    
+    experiment_info, Qmin, Qmax = Element_Info(element)
+    if eth < 0:
+        eth = Qmin
+    
     if len(lab) == 0:
         lab = laboratory(element, xen=xen)
 
