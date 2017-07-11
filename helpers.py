@@ -87,11 +87,11 @@ def mxRange(delta, mT, Emin, Emax, vesc=533.+232.):
 def MinDMMass(mT, delta, eng, vesc=533.+232.):
     if delta <= 0:
         mmin = 0.001
+        solve = brentq(lambda x: ERplus(x, mT, vesc, delta) - eng, mmin, 1000.)
     else:
         term = 2. * (c_lgt/vesc)**2. * delta * 1e-6 / mT
         mmin = mT * term / (1. - term)
-
-    solve = brentq(lambda x: ERplus(x, mT, vesc, delta) - eng, mmin, 1000.)
+        solve = mT / ((vesc / c_lgt)**2. * mT / (2. * delta) - 1.)
     return solve
 
 
