@@ -114,6 +114,8 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
         try:
             nu_sim = Sv_dir + 'Simulate_' + nu_comp[i] + '_' + element
             nu_sim += '_Eth_{:.2f}_Emax_{:.2f}_'.format(Qmin, Qmax) + labor + '_'
+            if delta != 0.:
+                file_info += 'delta_{:.2f}_'.format(delta)
             nu_sim += '_.dat'
             nu_events[i] = np.loadtxt(nu_sim)
         except IOError:

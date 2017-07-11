@@ -175,6 +175,8 @@ def simulate_DM_recoils(number=100000, element='Germanium', file_tag='_', xenLAB
         file_info = path + '/DarkMatterSims/Simulate_DarkMatter_' + element
         file_info += '_' + model + '_' + coupling + '_{:.2f}_DM_Mass_{:.2f}_GeV'.format(fnfp,mass)
         file_info += '_Eth_{:.2f}_Emax_{:.2f}_'.format(Qmin,Qmax) + labor + '_'
+        if delta != 0.:
+            file_info += 'delta_{:.2f}_'.format(delta)
         file_info += file_tag + '.dat'
         print 'Output File: ', file_info
 
