@@ -280,7 +280,7 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
                                                  exposure, element, experiment_info,
                                                  e_sim, times, nu_comp, labor,
                                                  nu_contrib, er_nu, nuspec, nu_rate,
-                                                 Qmin, Qmax, time_info=time_info,
+                                                 Qmin, Qmax, delta=delta, time_info=time_info,
                                                  GF=False, DARK=False)
 
             max_nodm = minimize(like_init_nodm.likelihood, np.zeros(nu_contrib),
@@ -291,7 +291,7 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
             like_init_dm = Likelihood_analysis(model, coupling, mass, 1., fnfp,
                                                exposure, element, experiment_info, e_sim, times, nu_comp, labor,
                                                nu_contrib, er_nu, nuspec, nu_rate,
-                                               Qmin, Qmax, time_info=time_info, GF=False)
+                                               Qmin, Qmax, delta, time_info=time_info, GF=False)
 
             max_dm = minimize(like_init_dm.like_multi_wrapper,
                               np.concatenate((np.zeros(nu_contrib), np.array([np.log10(sigmap)]))),
