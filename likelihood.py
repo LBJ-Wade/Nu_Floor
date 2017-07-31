@@ -29,7 +29,7 @@ class Likelihood_analysis(object):
 
     def __init__(self, model, coupling, mass, dm_sigp, fnfp, exposure, element, isotopes,
                  energies, times, nu_names, lab, nu_spec, er_nu, nu_d_response, nu_response,
-                 Qmin, Qmax, time_info=False, GF=False,
+                 Qmin, Qmax, delta, time_info=False, GF=False,
                  DARK=True, reduce_uncer=1.):
 
         self.nu_lines = ['b7l1', 'b7l2', 'pepl1']
@@ -75,6 +75,7 @@ class Likelihood_analysis(object):
         like_params[coupling] = fnfp
         like_params['GF'] = GF
         like_params['time_info'] = time_info
+        like_params['delta'] = delta
 
         if DARK:
             self.dm_recoils = dRdQ(energies, times, **like_params) * 10.**3. * s_to_yr

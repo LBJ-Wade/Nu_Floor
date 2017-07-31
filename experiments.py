@@ -89,27 +89,26 @@ def laboratory(elem, xen='LZ'):
     return lab
 
 # Name of reactor, Surface distance in miles, Power output MWe
-reactors_SURF = [['Fort Calhoun Station U1', 450., 500.],
-                 ['Cooper Nuclear Station', 500., 830.],
-                 ['Monticello Nuclear Generating Plant', 500., 579.],
-                 ['Prarie Island Nuclear Generating Plant U2', 550., 545.]]
+reactors_SURF = [['Cooper Nuclear Station', 801., 830.],
+                 ['Monticello Nuclear Generating Plant', 788., 671],
+                 ['Prarie Island Nuclear Generating Plant', 835., 1096.]]
 
-reactors_SNOLAB = [['Nine Mile Point Nuclear Station U2', 300., 1140.],
-                   ['Nine Mile Point Nuclear Station U1', 300., 621.],
-                   ['R.E. Ginna Nuclear Power Plant', 300., 498.],
-                   ['James A. Fitzpatrick Nuclear Power Plant', 350., 852.],
-                   ['Point Beach Nuclear Power Plant U1', 350., 600.],
-                   ['Point Beach Nuclear Power Plant U2', 350., 600.],
-                   ['Fermi Unit II', 325., 1122.],
-                   ['David Besse Nuclear Power Station', 325., 893.],
-                   ['Perry Nuclear Power Plant U1', 325., 1261.],
-                   ['Bruce Nuclear Generating Station', 150., 6384.],
-                   ['Darlington Nuclear Generating Station', 200., 3512.]]
+reactors_SNOLAB = [['Nine Mile Point Nuclear Station U2', 498., 1140.],
+                   ['Nine Mile Point Nuclear Station U1', 498., 621.],
+                   ['R.E. Ginna Nuclear Power Plant', 468., 610.],
+                   ['James A. Fitzpatrick Nuclear Power Plant', 500., 838.],
+                   ['Point Beach Nuclear Power Plant U1', 552., 600.],
+                   ['Point Beach Nuclear Power Plant U2', 552., 600.],
+                   ['Fermi Unit II', 527., 1198.],
+                   ['Davis-Besse Nuclear Power Station', 563., 889.],
+                   ['Perry Nuclear Power Plant U1', 519., 1261.],
+                   ['Bruce Nuclear Generating Station', 240., 6384.],
+                   ['Darlington Nuclear Generating Station', 343., 3512.]]
 
-reactors_GS = [['Tricastin 1-4', 425., 3660.],
-               ['Cruas 1-4', 450., 3660.],
-               ['St. Alban 1-2', 475., 2670.],
-               ['Bugey 2-5', 475., 3580.]]
+reactors_GS = [['Tricastin 1-4', 744., 3820.],
+               ['Cruas 1-4', 750., 3842.],
+               ['St. Alban 1-2', 778., 2600.],
+               ['Bugey 2-5', 760., 3724.]]
 
 Nfiss = 6.
 reac_runtime = 0.75
@@ -135,9 +134,9 @@ def reactor_flux(loc='Snolab'):
     err = 0.
     for reactor in reactor_list:
         flux += Nfiss * reactor[2] * joule_to_MeV * 1e6/Efiss * reac_runtime / \
-                (4. * np.pi * ((reactor[1] * miles_to_m)**2. + depth**2.))/100.**2.
+                (4. * np.pi * (reactor[1]*1e5)**2.)
         err += (Nfiss * reactor[2] * joule_to_MeV * 1e6 / (Efiss + 0.6) * (reac_runtime - rntime_err) /
-                (4. * np.pi * (((reactor[1] + 25.) * miles_to_m)**2. + depth**2.))/100.**2.)
+                (4. * np.pi * (reactor[1]*1e5)**2.))
 
     return flux, (flux - err)
 

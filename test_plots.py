@@ -32,7 +32,7 @@ test_plots = os.getcwd() + '/Test_Plots/'
 #solar nu flux taken from SSM 1104.1639
 
 
-def neutrino_spectrum(lab='Snolab', Emin=0.1, Emax=1000., fs=18, save=True):
+def neutrino_spectrum(lab='Snolab', Emin=0.1, Emax=1000., fs=18, save=True, sve_data=False):
     filename = test_plots + 'NeutrinoFlux_' + lab + '.pdf'
     ylims = [10**-4., 10**13.]
 
@@ -49,10 +49,16 @@ def neutrino_spectrum(lab='Snolab', Emin=0.1, Emax=1000., fs=18, save=True):
 
     pl.figure()
     ax = pl.gca()
+    
+    if sve_data:
+        dat_name = test_plots + 'NeuSpectrum_' + lab + '_'
 
     for i,nu in enumerate(nu_comp):
         er, spec = Nu_spec(lab).nu_spectrum_enu(nu)
         pl.plot(er, spec, color_list[i], lw=1, label=nu_labels[i])
+        if sve_data:
+            fle = dat_name + nu + '.dat'
+            np.savetxt(fle, np.column_stack((er, spec)))
 
     ax.set_xlabel(r'$E_\nu$  [MeV]', fontsize=fs)
     ax.set_ylabel(r'Neutrino Flux  [$cm^{-2} s^{-1} MeV^{-1}$]', fontsize=fs)

@@ -87,7 +87,7 @@ def make_bound(element='Xenon', model='sigma_si', Eth=-1.,
     filename = path + '/Bounds_Sve/'
     filename += file_eff + 'Bound_' + element + '_' + model + '_' + coupling + '_{:.2f}'.format(fnfp)
     filename += '_Exposure_{:.2f}_Eth_{:.2f}'.format(exposure, Qmin)
-    filename += '_Ngoal_{:.2f}'.format(ngoal) + tag + '.dat'
+    filename += '_Ngoal_{:.2f}_delta_{:.2f}'.format(ngoal,delta) + tag + '.dat'
 
     np.savetxt(filename, bounds)
     return
