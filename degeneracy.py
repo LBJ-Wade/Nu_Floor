@@ -290,7 +290,7 @@ def plt_model_degeneracy(nu_cand='b8', Emin=0.1, Emax=7., bins=10,
     print 'Saving File to: ', svfile
     models_str = ''
     for i in range(len(models)):
-        models_str += models[i] + '  '
+        models_str += models[i][6:] + '  '
     fmt_str = '%.4e ' * len(models)
     np.savetxt(test_plots + 'BF_' + svfile + '.dat', bfits, fmt=fmt_str, header=models_str)
     fmt_str = '%.4e ' * (len(models) + 2)
