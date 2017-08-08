@@ -1,6 +1,7 @@
 import numpy as np
 
 import math
+from math import cos, sin, exp
 import formUV as formUV
 #import formUVdelta as formUV
 from helpers import eta, zeta, eta_GF, zeta_GF
@@ -326,7 +327,7 @@ def dRdQana(Er, time, V0, v_lag, v_esc, mx, sigp, fnfp, elt, rho_x=0.3, delta=0.
         #v_min = ((2.*weight*mN*q))**0.5/(2.*weight*mN*mx/(weight*mN+mx)) *3.*10.**5
         v_min = 1./np.sqrt(2.*weight*mN*q)*np.abs(weight*mN*q/(weight*mN*mx/(weight*mN+mx))+delta*10**-6.)*3.*10.**5
 
-        ff_v_std = formUV.factor_anapole_v_std(element_name,y_harm,mx,b_harm)
+        ff_v_std = formUV.factor_anapole_v_std(element_name,y_harm,b_harm, mx)
         #ff_v_std = formUV.factor_anapole_v_std_del(element_name,y_harm,mx,b_harm)
         ff_v_sq = formUV.factor_anapole_v_sq(element_name,y_harm)
         if not GF:
@@ -426,7 +427,7 @@ def dRdQmagdip(Er, time, V0, v_lag, v_esc, mx, sigp, fnfp, elt, rho_x=0.3, delta
         q_squared = 2.*weight*mN*q
 
         #ff_v_std = formUV.factor_magdip_v_std_del(element_name,y_harm,mx,b_harm)
-        ff_v_std = formUV.factor_magdip_v_std(element_name,y_harm,mx,b_harm)
+        ff_v_std = formUV.factor_magdip_v_std(element_name,y_harm,b_harm, mx)
         ff_v_sq = formUV.factor_magdip_v_sq(element_name,y_harm)
         if not GF:
             val_eta = eta(v_min,v_esc,V0,v_lag_pass)
@@ -613,7 +614,7 @@ def dRdQLS(Er, time, V0, v_lag, v_esc, mx, sigp, fnfp, elt, rho_x=0.3, delta=0.,
         #v_min = ((2.*weight*mN*q))**0.5/(2.*weight*mN*mx/(weight*mN+mx)) *3.*10.**5
         v_min = 1./np.sqrt(2.*weight*mN*q)*np.abs(weight*mN*q/(weight*mN*mx/(weight*mN+mx))+delta*10**-6.)*3.*10.**5
 
-        ff_vstd = formUV.factor_LS_vstd(element_name,y_harm,fnfp,mx,b_harm)
+        ff_vstd = formUV.factor_LS_vstd(element_name,y_harm,fnfp,b_harm, mx)
         ff_vsq = formUV.factor_LS_vsq(element_name,y_harm,fnfp)
         if not GF:
             val_eta = eta(v_min,v_esc,V0,v_lag_pass)
@@ -938,6 +939,100 @@ def dRdQf3_massless(Er, time, V0, v_lag, v_esc, mx, sigp, fnfp, elt, rho_x=0.3, 
         if out[i] < 0.:
             out[i] = 0.
     return out
+    
+    
+    #scalar dm with deriviative coupling on DM and axial vector nucleon
+def dRdQscalar_o7(Er, time, V0, v_lag, v_esc, mx, sigp, fnfp, elt, rho_x=0.3, delta=0.,
+            GF=False, time_info=False):
+    """
+    This is the rate from the anapole moment scattering cross section in units of cts/keV/kg/s.
+
+    Takes same parameters as :func:`dRdQSI`.
+
+    """
+
+    npts = len(Er)
+    out = np.zeros(npts)
+    element_name = str(elt.title())
+
+    mod_amp = 29.8 * 0.49
+    mod_phase = 0.42
+
+    if time_info and not GF:
+        v_lag_pass = v_lag + mod_amp * cos(2.0 * np.pi * (time - mod_phase))
+    else:
+        v_lag_pass = v_lag
+
+    weight = eltshort[elt]['weight']
+    b_harm = 5.0677*(41.467/(45.*weight**(-1./3.) - 25.*weight**(-2./3.)))**0.5 #this is in [1/GeV]
+    m_reduced_sq = mx**2.*mN**2./(mx+mN)**2.
+    v_independent = ratenorm * rho_x * sigp / (2 * mx * m_reduced_sq)
+    for i in range(npts):
+        q = Er[i]*10**-6. #converting Er from keV-->GeV.
+        y_harm = weight*mN*q*b_harm**2/2. #this takes q in [GeV].
+
+        v_min = 1./np.sqrt(2.*weight*mN*q)*np.abs(weight*mN*q/(weight*mN*mx/(weight*mN+mx))+delta*10**-6.)*3.*10.**5
+
+        ff_v_std = formUV.factor_scalar_o7_std(element_name,y_harm,mx)
+        ff_v_sq = formUV.factor_scalar_o7_sqr(element_name,y_harm, mx)
+        if not GF:
+            val_eta = eta(v_min,v_esc,V0,v_lag_pass)
+            val_zeta = zeta(v_min,v_esc,V0,v_lag_pass)
+        elif GF:
+            val_eta = eta_GF(v_min, time, time_info)
+            val_zeta = zeta_GF(v_min, time, time_info)
+        tot = v_independent * (val_zeta * ff_v_sq + val_eta * ff_v_std)
+        out[i]=tot
+        if out[i] < 0.:
+            out[i] = 0.
+    return out
+    
+def dRdQscalar_o7_massless(Er, time, V0, v_lag, v_esc, mx, sigp, fnfp, elt, rho_x=0.3, delta=0.,
+            GF=False, time_info=False):
+    """
+    This is the rate from the anapole moment scattering cross section in units of cts/keV/kg/s.
+
+    Takes same parameters as :func:`dRdQSI`.
+
+    """
+
+    npts = len(Er)
+    out = np.zeros(npts)
+    element_name = str(elt.title())
+
+    mod_amp = 29.8 * 0.49
+    mod_phase = 0.42
+
+    if time_info and not GF:
+        v_lag_pass = v_lag + mod_amp * cos(2.0 * np.pi * (time - mod_phase))
+    else:
+        v_lag_pass = v_lag
+
+    weight = eltshort[elt]['weight']
+    b_harm = 5.0677*(41.467/(45.*weight**(-1./3.) - 25.*weight**(-2./3.)))**0.5 #this is in [1/GeV]
+    m_reduced_sq = mx**2.*mN**2./(mx+mN)**2.
+    v_independent = ratenorm * rho_x * sigp / (2 * mx * m_reduced_sq)
+    for i in range(npts):
+        q = Er[i]*10**-6. #converting Er from keV-->GeV.
+        y_harm = weight*mN*q*b_harm**2/2. #this takes q in [GeV].
+
+        v_min = 1./np.sqrt(2.*weight*mN*q)*np.abs(weight*mN*q/(weight*mN*mx/(weight*mN+mx))+delta*10**-6.)*3.*10.**5
+
+        ff_v_std = formUV.factor_scalar_o7_std(element_name,y_harm,mx)
+        ff_v_sq = formUV.factor_scalar_o7_sqr(element_name,y_harm, mx)
+        if not GF:
+            val_eta = eta(v_min,v_esc,V0,v_lag_pass)
+            val_zeta = zeta(v_min,v_esc,V0,v_lag_pass)
+        elif GF:
+            val_eta = eta_GF(v_min, time, time_info)
+            val_zeta = zeta_GF(v_min, time, time_info)
+        q_squared = 2.*weight*mN*q
+        qref = 0.1
+        tot = v_independent * (val_zeta * ff_v_sq + val_eta * ff_v_std) * (qref** 2./q_squared)**2.
+        out[i]=tot
+        if out[i] < 0.:
+            out[i] = 0.
+    return out
 
 #######################  "Master" rate functions.
 
@@ -946,12 +1041,15 @@ def dRdQ(Q, T, mass=50., sigma_si=0., sigma_sd=0., sigma_sd_neutron=0.,
          sigma_f1=0., sigma_f2=0., sigma_f3=0., sigma_si_massless=0.,
          sigma_sd_massless=0., sigma_anapole_massless=0., sigma_magdip_massless=0.,
          sigma_elecdip_massless=0., sigma_LS_massless=0., sigma_f1_massless=0.,
-         sigma_f2_massless=0., sigma_f3_massless=0., fnfp_si=1., fnfp_sd=1.,
+         sigma_f2_massless=0., sigma_f3_massless=0., sigma_scalar_o7=0.,
+         sigma_scalar_o7_massless=0.,
+         fnfp_si=1., fnfp_sd=1.,
          fnfp_sd_neutron=1., fnfp_anapole=1., fnfp_magdip=1., fnfp_elecdip=1.,
          fnfp_LS=1., fnfp_f1=1., fnfp_f2=1., fnfp_f3=1.,
          fnfp_si_massless=0., fnfp_sd_massless=1., fnfp_anapole_massless=1.,
          fnfp_magdip_massless=1., fnfp_elecdip_massless=1., fnfp_LS_massless=1.,
          fnfp_f1_massless=1., fnfp_f2_massless=1., fnfp_f3_massless=1.,
+         fnfp_scalar_o7=1., fnfp_scalar_o7_massless=1.,
          v_lag=220., v_rms=220., v_esc=533., rho_x=0.3, delta=0.,
          element='xenon', GF=False, time_info=False):
     """
@@ -1088,6 +1186,13 @@ def dRdQ(Q, T, mass=50., sigma_si=0., sigma_sd=0., sigma_sd_neutron=0.,
     if sigma_f3_massless!= 0.:
         sum += dRdQf3_massless(Q, T, v_rms, v_lag, v_esc, mass, sigma_f3_massless, fnfp_f3_massless, element,
                                rho_x=rho_x, delta=delta, GF=GF, time_info=time_info)
+    if sigma_scalar_o7!= 0.:
+        sum += dRdQscalar_o7(Q, T, v_rms, v_lag, v_esc, mass, sigma_scalar_o7, fnfp_scalar_o7, element,
+                               rho_x=rho_x, delta=delta, GF=GF, time_info=time_info)
+    if sigma_scalar_o7_massless!= 0.:
+        sum += dRdQscalar_o7_massless(Q, T, v_rms, v_lag, v_esc, mass, sigma_scalar_o7_massless, fnfp_scalar_o7, element,
+                               rho_x=rho_x, delta=delta, GF=GF, time_info=time_info)
+
     return sum
 
 
@@ -1099,12 +1204,14 @@ def R(mass=50.,
       sigma_si_massless=0., sigma_sd_massless=0.,
       sigma_anapole_massless=0., sigma_magdip_massless=0.,  sigma_elecdip_massless=0.,
       sigma_LS_massless=0.,  sigma_f1_massless=0.,  sigma_f2_massless=0.,  sigma_f3_massless=0.,
+      sigma_scalar_o7=0., sigma_scalar_o7_massless=0.,
       fnfp_si=1.,  fnfp_sd=1.,  fnfp_sd_neutron=1.,
       fnfp_anapole=1.,  fnfp_magdip=1.,  fnfp_elecdip=1.,
       fnfp_LS=1.,  fnfp_f1=1.,  fnfp_f2=1.,  fnfp_f3=1.,
       fnfp_si_massless=0.,  fnfp_sd_massless=1.,
       fnfp_anapole_massless=1.,  fnfp_magdip_massless=1.,  fnfp_elecdip_massless=1.,
       fnfp_LS_massless=1.,  fnfp_f1_massless=1.,  fnfp_f2_massless=1.,  fnfp_f3_massless=1.,
+      fnfp_scalar_o7=1., fnfp_scalar_o7_massless=1.,
       v_lag=220.,  v_rms=220.,  v_esc=533.,  rho_x=0.3,
       element='xenon',  Qmin=2.,  Qmax=30.,  delta=0., GF=False, time_info=False):
     """
@@ -1151,11 +1258,13 @@ def R(mass=50.,
                  fnfp_LS=fnfp_LS, fnfp_f1=fnfp_f1, fnfp_f2=fnfp_f2, fnfp_f3=fnfp_f3,
                  fnfp_LS_massless=fnfp_LS_massless, fnfp_f1_massless=fnfp_f1_massless,
                  fnfp_f2_massless=fnfp_f2_massless, fnfp_f3_massless=fnfp_f3_massless,
+                 fnfp_scalar_o7=fnfp_scalar_o7, fnfp_scalar_o7_massless=fnfp_scalar_o7_massless,
                  sigma_si= sigma_si, sigma_sd=sigma_sd, sigma_sd_neutron=sigma_sd_neutron,
                  sigma_si_massless= sigma_si_massless, sigma_sd_massless=sigma_sd_massless,
                  sigma_anapole=sigma_anapole, sigma_magdip=sigma_magdip, sigma_elecdip=sigma_elecdip,
                  sigma_anapole_massless=sigma_anapole_massless, sigma_magdip_massless=sigma_magdip_massless,
                  sigma_elecdip_massless=sigma_elecdip_massless,
+                 sigma_scalar_o7=sigma_scalar_o7, sigma_scalar_o7_massless=sigma_scalar_o7_massless,
                  sigma_LS=sigma_LS, sigma_f1=sigma_f1, sigma_f2=sigma_f2, sigma_f3=sigma_f3,
                  sigma_LS_massless=sigma_LS_massless, sigma_f1_massless=sigma_f1_massless,
                  sigma_f2_massless=sigma_f2_massless, sigma_f3_massless=sigma_f3_massless,

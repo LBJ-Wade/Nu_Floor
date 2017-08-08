@@ -3,7 +3,8 @@ import numpy as np
 FNFP_PARAM_NAMES = ['fnfp_si', 'fnfp_sd', 'fnfp_anapole', 'fnfp_magdip', 'fnfp_elecdip',
                     'fnfp_LS', 'fnfp_f1', 'fnfp_f2', 'fnfp_f3', 'fnfp_si_massless', 'fnfp_sd_massless',
                     'fnfp_anapole_massless', 'fnfp_magdip_massless', 'fnfp_elecdip_massless', 'fnfp_LS_massless',
-                    'fnfp_f1_massless', 'fnfp_f2_massless', 'fnfp_f3_massless']
+                    'fnfp_f1_massless', 'fnfp_f2_massless', 'fnfp_f3_massless', 
+                    'fnfp_scalar_o7','fnfp_scalar_o7_massless']
 
 PAR_NORMS = { 
     'sigma_si':1.e-47,
@@ -23,7 +24,9 @@ PAR_NORMS = {
     'sigma_LS_massless':1.e-42,
     'sigma_f1_massless':1.e-48,
     'sigma_f2_massless':1.e-43,
-    'sigma_f3_massless':1.e-42
+    'sigma_f3_massless':1.e-42,
+    'sigma_scalar_o7':1.e-40,
+    'sigma_scalar_o7_massless':1.e-46
     }
 
 PAR_NORM_EXPONENTS = { 
@@ -45,6 +48,8 @@ PAR_NORM_EXPONENTS = {
     'sigma_f1_massless': np.log10(PAR_NORMS['sigma_f1_massless']),
     'sigma_f2_massless': np.log10(PAR_NORMS['sigma_f2_massless']),
     'sigma_f3_massless': np.log10(PAR_NORMS['sigma_f3_massless']),
+    'sigma_scalar_o7': np.log10(PAR_NORMS['sigma_scalar_o7']),
+    'sigma_scalar_o7_massless': np.log10(PAR_NORMS['sigma_scalar_o7_massless']),
     }
 
 
