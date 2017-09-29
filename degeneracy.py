@@ -68,6 +68,10 @@ def find_degeneracy2(nu_cand='b8', Emin=0.1, Emax=5., bins=20,
             mx_guess = 100.
     else:
         mx_guess = 30.
+
+    if delta != 0.:
+        mx_guess = np.mean([Mmin, Mmax])
+
     s_norm = dm_class.dm_spectrum(np.array([er_list[0]]), 0., mx_guess)
     if s_norm > 0:
         sig_guess = nuspec[0] / s_norm
@@ -78,7 +82,7 @@ def find_degeneracy2(nu_cand='b8', Emin=0.1, Emax=5., bins=20,
     print 'Guess: ', guess
     try:
         popt, pcov = curve_fit(dm_class.dm_spectrum, er_list, nuspec, p0=guess,
-                               bounds=([-60., -30.],[1., 1000.]),
+                               bounds=([-60., -30.],[Mmin, Mmax]),
                                sigma=nuspec, absolute_sigma=False)
     except RuntimeError:
         popt, pcov = curve_fit(lambda x,y: dm_class.dm_spectrum(x,y, 1000.), er_list, nuspec, p0=guess[0],
@@ -199,13 +203,14 @@ def find_degeneracy(nu_cand='b8', Emin=0.1, Emax=5., bins=20,
 def plt_model_degeneracy(nu_cand='b8', Emin=0.1, Emax=7., bins=10,
                          Mmin=5., Mmax=14., Mnum=100, element='Germanium',
                          fnfp=1., delta=0., GF=False, time_info=False, xenlab='LZ',
-                         models=np.array(['sigma_si','sigma_sd','sigma_anapole','sigma_elecdip',
+                         models=np.array(['sigma_si','sigma_sd','sigma_anapole', 'sigma_anapole_real', 'sigma_elecdip',
                                           'sigma_magdip','sigma_LS',
-                                          'sigma_f1','sigma_f2','sigma_f3',
+                                          'sigma_f1','sigma_f2','sigma_f3','sigma_scalar_o7',
                                           'sigma_si_massless', 'sigma_sd_massless',
                                           'sigma_anapole_massless', 'sigma_magdip_massless',
                                           'sigma_elecdip_massless', 'sigma_LS_massless',
-                                          'sigma_f1_massless','sigma_f2_massless','sigma_f3_massless']),
+                                          'sigma_f1_massless','sigma_f2_massless','sigma_f3_massless',
+                                          'sigma_scalar_o7_massless']),
                          fs=18,
                          c_list=np.array(['blue', 'green','red','violet','aqua','magenta','orange',
                                           'brown', 'goldenrod', 'salmon', 'grey', 'indianred']),
@@ -284,7 +289,13 @@ def plt_model_degeneracy(nu_cand='b8', Emin=0.1, Emax=7., bins=10,
         else:
             ls = '-'
             jj = i
-        pl.plot(ergs, dm_spec[i], c_list[jj], lw=1, ls=ls, label=label)
+        if label == 'scalar_o7':
+            leg_lab = 'o7'
+        elif label == 'scalar_o7_massless':
+            leg_lab = 'o7 massless'
+        else:
+            leg_lab = label
+        pl.plot(ergs, dm_spec[i], c_list[jj], lw=1, ls=ls, label=leg_lab)
     bfits = bfits.T
 
     print 'Saving File to: ', svfile
@@ -314,7 +325,7 @@ def plt_model_degeneracy(nu_cand='b8', Emin=0.1, Emax=7., bins=10,
 
 
 def plt_inelastic_degeneracy(nu_cand='b8', Emin=1., Emax=7., bins=15,
-                            Mnum=100, element='Germanium',
+                            Mnum=300, element='Germanium',
                             fnfp=1., delta=np.array([-40., -20., -10., 10., 20., 40., 100.]),
                             GF=False, time_info=False, xenlab='LZ',
                             model='sigma_si', fs=18,
@@ -323,8 +334,12 @@ def plt_inelastic_degeneracy(nu_cand='b8', Emin=1., Emax=7., bins=15,
                             tag='_'):
 
     filename = test_plots + 'Model_Degeneracy_Inelastic_' + model + '_' + nu_cand + '_' + element
-    filename += '_Emin_{:.2f}_Emax_{:.2f}'.format(Emin, Emax, delta)
+    filename += '_Emin_{:.2f}_Emax_{:.2f}'.format(Emin, Emax)
     filename += tag + '.pdf'
+
+    svfile = 'Model_Degeneracy_Inelastic_' + nu_cand + '_' + element
+    svfile += '_Emin_{:.2f}_Emax_{:.2f}'.format(Emin, Emax)
+
 
     ergs = np.logspace(np.log10(Emin), np.log10(Emax), 200)
     experiment_info, Qmin, Qmax = Element_Info(element)
@@ -346,25 +361,25 @@ def plt_inelastic_degeneracy(nu_cand='b8', Emin=1., Emax=7., bins=15,
     bfits = np.zeros(len(delta) * 3).reshape((len(delta), 3))
     dm_spec = np.zeros(len(delta) * len(ergs)).reshape((len(delta), len(ergs)))
     for i,dd in enumerate(delta):
-        # minmass = v_leq_vesc(dd, experiment_info[0,0], vesc=533.+232.)
-        # if minmass < 0:
-        #     minmass = 0.1
-        # width = brentq(lambda x: ERplus(x, experiment_info[0,0], 533.+232., dd) -
-        #                  ERminus(x, experiment_info[-1,0], 533.+232., dd) - (Emax - Emin), minmass, 2000.)
-        # minEmin = ERminus(width, experiment_info[-1,0], 533.+232., dd)
-        # maxEmin = ERminus(2000., experiment_info[-1, 0], 533. + 232., dd)
-        #
-        # if minEmin > Emin:
-        #     print 'Delta not compatible.'
-        #     print 'Min mass {:.2f}, MinEmin {:.2f}'.format(width, minEmin)
-        #     continue
-        #
-        # if maxEmin > Emin:
-        #     maxmass = brentq(lambda x: ERminus(x, experiment_info[-1,0], 533.+232., dd) - Emin, width, 2000.)
-        # else:
-        #     maxmass = 100.
-
-        # print 'For delta: {:.1f}, Mass range: [{:.2f}, {:.2f}]'.format(dd, minmass, maxmass)
+        minmass = v_leq_vesc(dd, experiment_info[0,0], vesc=533.+232.)
+        if minmass < 0:
+            minmass = 0.1
+#        width = brentq(lambda x: ERplus(x, experiment_info[0,0], 533.+232., dd) -
+#                        ERminus(x, experiment_info[-1,0], 533.+232., dd) - (Emax - Emin), minmass, 2000.)
+#        minEmin = ERminus(width, experiment_info[-1,0], 533.+232., dd)
+#        maxEmin = ERminus(2000., experiment_info[-1, 0], 533. + 232., dd)
+#        
+#        if minEmin > Emin:
+#            print 'Delta not compatible.'
+#            print 'Min mass {:.2f}, MinEmin {:.2f}'.format(width, minEmin)
+#            continue
+#
+#        if maxEmin > Emin:
+#            maxmass = brentq(lambda x: ERminus(x, experiment_info[-1,0], 533.+232., dd) - Emin, width, 2000.)
+#        else:
+#            maxmass = 100.
+        maxmass = 200.
+        print 'For delta: {:.1f}, Mass range: [{:.2f}, {:.2f}]'.format(dd, minmass, maxmass)
         label = str(dd) + ' keV'
         coupling = "fnfp" + model[5:]
 
@@ -388,8 +403,20 @@ def plt_inelastic_degeneracy(nu_cand='b8', Emin=1., Emax=7., bins=15,
 
         dm_spec[i] = dRdQ(ergs, np.zeros_like(ergs), **drdq_params) * 10. ** 3. * s_to_yr
         dmevts = np.trapz(dm_spec[i], ergs)
+       
         dm_spec[i] *= nu_events/dmevts
         pl.plot(ergs, dm_spec[i], c_list[i], lw=1, ls='--', label=label)
+
+    print 'Saving File to: ', svfile
+    models_str = ''
+    for i in range(len(delta)):
+        models_str += str(delta[i]) + '  '
+    fmt_str = '%.4e ' * len(delta)
+
+    np.savetxt(test_plots + 'BF_' + svfile + '.dat', bfits, header=models_str)
+    fmt_str = '%.4e ' * (len(delta) + 2)
+    np.savetxt(test_plots + 'Spectrum_' + svfile + '.dat', np.column_stack((ergs, nuspec, dm_spec.T)), fmt=fmt_str,
+               header='Energy  NuSpectrum  ' + models_str)
 
 
     plt.xlim(xmin=Emin, xmax=Emax)

@@ -37,13 +37,13 @@ default_rate_parameters = dict(mass=50., sigma_si=0., sigma_sd=0., sigma_anapole
                                 sigma_si_massless=0., sigma_sd_massless=0., sigma_anapole_massless=0.,
                                 sigma_magdip_massless=0.,  sigma_elecdip_massless=0., sigma_LS_massless=0.,
                                 sigma_f1_massless=0.,  sigma_f2_massless=0.,  sigma_f3_massless=0.,
-                                sigma_scalar_o7=0., sigma_scalar_o7_massless=0.,
+                                sigma_scalar_o7=0., sigma_scalar_o7_massless=0., sigma_anapole_real=0.,
                                 fnfp_si=1.,  fnfp_sd=1., fnfp_anapole=1.,  fnfp_magdip=1.,  fnfp_elecdip=1.,
                                 fnfp_LS=1.,  fnfp_f1=1.,  fnfp_f2=1.,  fnfp_f3=1., fnfp_si_massless=1.,
                                 fnfp_sd_massless=1., fnfp_anapole_massless=1.,  fnfp_magdip_massless=1.,
                                 fnfp_elecdip_massless=1., fnfp_LS_massless=1.,  fnfp_f1_massless=1.,
                                 fnfp_f2_massless=1.,  fnfp_f3_massless=1., fnfp_scalar_o7=1.,
-                                fnfp_scalar_o7_massless=1.,
+                                fnfp_scalar_o7_massless=1., fnfp_anapole_real=1.,
                                 v_lag=220.,  v_rms=220.,
                                 v_esc=533.,  rho_x=0.3, delta=0., GF=False, time_info=False)
 

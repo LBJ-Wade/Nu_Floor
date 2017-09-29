@@ -342,6 +342,55 @@ def dRdQana(Er, time, V0, v_lag, v_esc, mx, sigp, fnfp, elt, rho_x=0.3, delta=0.
             out[i] = 0.
     return out
 
+
+def dRdQana_real(Er, time, V0, v_lag, v_esc, mx, sigp, fnfp, elt, rho_x=0.3, delta=0.,
+                 GF=False, time_info=False):
+    """
+    This is the rate from the anapole moment scattering cross section in units of cts/keV/kg/s.
+
+    Takes same parameters as :func:`dRdQSI`.
+
+    """
+
+    npts = len(Er)
+    out = np.zeros(npts)
+    element_name = str(elt.title())
+
+    mod_amp = 29.8 * 0.49
+    mod_phase = 0.42
+
+    if time_info and not GF:
+        v_lag_pass = v_lag + mod_amp * cos(2.0 * np.pi * (time - mod_phase))
+    else:
+        v_lag_pass = v_lag
+
+    qref = 0.1
+    weight = eltshort[elt]['weight']
+    b_harm = 5.0677*(41.467/(45.*weight**(-1./3.) - 25.*weight**(-2./3.)))**0.5 #this is in [1/GeV]
+    m_reduced_sq = mx**2.*mN**2./(mx+mN)**2.
+    v_independent = ratenorm * rho_x * sigp / (2 * mx * m_reduced_sq)
+    for i in range(npts):
+        q = Er[i]*10**-6. #converting Er from keV-->GeV.
+        y_harm = weight*mN*q*b_harm**2/2. #this takes q in [GeV].
+        q_squared = 2. * weight * mN * q
+        #v_min = ((2.*weight*mN*q))**0.5/(2.*weight*mN*mx/(weight*mN+mx)) *3.*10.**5
+        v_min = 1./np.sqrt(2.*weight*mN*q)*np.abs(weight*mN*q/(weight*mN*mx/(weight*mN+mx))+delta*10**-6.)*3.*10.**5
+
+        ff_v_std = formUV.factor_anapole_v_std(element_name,y_harm,b_harm, mx)
+        #ff_v_std = formUV.factor_anapole_v_std_del(element_name,y_harm,mx,b_harm)
+        ff_v_sq = formUV.factor_anapole_v_sq(element_name,y_harm)
+        if not GF:
+            val_eta = eta(v_min,v_esc,V0,v_lag_pass)
+            val_zeta = zeta(v_min,v_esc,V0,v_lag_pass)
+        elif GF:
+            val_eta = eta_GF(v_min, time, time_info)
+            val_zeta = zeta_GF(v_min, time, time_info)
+        tot = v_independent * (val_zeta * ff_v_sq + val_eta * ff_v_std) * (q_squared/qref**2.)**2.
+        out[i]=tot
+        if out[i] < 0.:
+            out[i] = 0.
+    return out
+
 #anapole - assuming that the DM is spin 1/2 (relevant for the factor C_\chi)
 def dRdQana_massless(Er, time, V0, v_lag, v_esc, mx, sigp, fnfp, elt, rho_x=0.3, delta=0.,
                      GF=False, time_info=False):
@@ -1047,10 +1096,10 @@ def dRdQ(Q, T, mass=50., sigma_si=0., sigma_sd=0., sigma_sd_neutron=0.,
          sigma_sd_massless=0., sigma_anapole_massless=0., sigma_magdip_massless=0.,
          sigma_elecdip_massless=0., sigma_LS_massless=0., sigma_f1_massless=0.,
          sigma_f2_massless=0., sigma_f3_massless=0., sigma_scalar_o7=0.,
-         sigma_scalar_o7_massless=0.,
+         sigma_scalar_o7_massless=0., sigma_anapole_real=0.,
          fnfp_si=1., fnfp_sd=1.,
          fnfp_sd_neutron=1., fnfp_anapole=1., fnfp_magdip=1., fnfp_elecdip=1.,
-         fnfp_LS=1., fnfp_f1=1., fnfp_f2=1., fnfp_f3=1.,
+         fnfp_LS=1., fnfp_f1=1., fnfp_f2=1., fnfp_f3=1., fnfp_anapole_real=1.,
          fnfp_si_massless=0., fnfp_sd_massless=1., fnfp_anapole_massless=1.,
          fnfp_magdip_massless=1., fnfp_elecdip_massless=1., fnfp_LS_massless=1.,
          fnfp_f1_massless=1., fnfp_f2_massless=1., fnfp_f3_massless=1.,
@@ -1146,6 +1195,9 @@ def dRdQ(Q, T, mass=50., sigma_si=0., sigma_sd=0., sigma_sd_neutron=0.,
     if sigma_anapole!= 0.:
         sum += dRdQana(Q, T, v_rms, v_lag, v_esc, mass, sigma_anapole, fnfp_anapole, element, rho_x=rho_x,
                        delta=delta, GF=GF, time_info=time_info)
+    if sigma_anapole_real!= 0.:
+        sum += dRdQana_real(Q, T, v_rms, v_lag, v_esc, mass, sigma_anapole_real, fnfp_anapole_real, element, rho_x=rho_x,
+                       delta=delta, GF=GF, time_info=time_info)
     if sigma_magdip!= 0.:
         sum += dRdQmagdip(Q, T, v_rms, v_lag, v_esc, mass, sigma_magdip, fnfp_magdip, element, rho_x=rho_x, delta=delta,
                           GF=GF, time_info=time_info)
@@ -1209,8 +1261,8 @@ def R(mass=50.,
       sigma_si_massless=0., sigma_sd_massless=0.,
       sigma_anapole_massless=0., sigma_magdip_massless=0.,  sigma_elecdip_massless=0.,
       sigma_LS_massless=0.,  sigma_f1_massless=0.,  sigma_f2_massless=0.,  sigma_f3_massless=0.,
-      sigma_scalar_o7=0., sigma_scalar_o7_massless=0.,
-      fnfp_si=1.,  fnfp_sd=1.,  fnfp_sd_neutron=1.,
+      sigma_scalar_o7=0., sigma_scalar_o7_massless=0., sigma_anapole_real=0.,
+      fnfp_si=1.,  fnfp_sd=1.,  fnfp_sd_neutron=1., fnfp_anapole_real=1.,
       fnfp_anapole=1.,  fnfp_magdip=1.,  fnfp_elecdip=1.,
       fnfp_LS=1.,  fnfp_f1=1.,  fnfp_f2=1.,  fnfp_f3=1.,
       fnfp_si_massless=0.,  fnfp_sd_massless=1.,
@@ -1268,11 +1320,12 @@ def R(mass=50.,
                  sigma_si_massless= sigma_si_massless, sigma_sd_massless=sigma_sd_massless,
                  sigma_anapole=sigma_anapole, sigma_magdip=sigma_magdip, sigma_elecdip=sigma_elecdip,
                  sigma_anapole_massless=sigma_anapole_massless, sigma_magdip_massless=sigma_magdip_massless,
-                 sigma_elecdip_massless=sigma_elecdip_massless,
+                 sigma_elecdip_massless=sigma_elecdip_massless, sigma_anapole_real=sigma_anapole_real,
                  sigma_scalar_o7=sigma_scalar_o7, sigma_scalar_o7_massless=sigma_scalar_o7_massless,
                  sigma_LS=sigma_LS, sigma_f1=sigma_f1, sigma_f2=sigma_f2, sigma_f3=sigma_f3,
                  sigma_LS_massless=sigma_LS_massless, sigma_f1_massless=sigma_f1_massless,
                  sigma_f2_massless=sigma_f2_massless, sigma_f3_massless=sigma_f3_massless,
+                 fnfp_anapole_real=fnfp_anapole_real,
                  GF=GF, time_info=False, delta=delta)
 
     result = np.trapz(dRdQs, Qs)

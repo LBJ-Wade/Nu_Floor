@@ -1,6 +1,6 @@
 import numpy as np
     
-FNFP_PARAM_NAMES = ['fnfp_si', 'fnfp_sd', 'fnfp_anapole', 'fnfp_magdip', 'fnfp_elecdip',
+FNFP_PARAM_NAMES = ['fnfp_si', 'fnfp_sd', 'fnfp_anapole', 'fnfp_anapole_real', 'fnfp_magdip', 'fnfp_elecdip',
                     'fnfp_LS', 'fnfp_f1', 'fnfp_f2', 'fnfp_f3', 'fnfp_si_massless', 'fnfp_sd_massless',
                     'fnfp_anapole_massless', 'fnfp_magdip_massless', 'fnfp_elecdip_massless', 'fnfp_LS_massless',
                     'fnfp_f1_massless', 'fnfp_f2_massless', 'fnfp_f3_massless', 
@@ -10,6 +10,7 @@ PAR_NORMS = {
     'sigma_si':1.e-47,
     'sigma_sd':1.e-42,
     'sigma_anapole':1.e-40,
+    'sigma_anapole_real':1.e-46,
     'sigma_magdip':1.e-40,
     'sigma_elecdip':1.e-46,
     'sigma_LS':1.e-44,
@@ -33,6 +34,7 @@ PAR_NORM_EXPONENTS = {
     'sigma_si': np.log10(PAR_NORMS['sigma_si']),
     'sigma_sd': np.log10(PAR_NORMS['sigma_sd']),
     'sigma_anapole': np.log10(PAR_NORMS['sigma_anapole']),
+    'sigma_anapole_real': np.log10(PAR_NORMS['sigma_anapole_real']),
     'sigma_magdip': np.log10(PAR_NORMS['sigma_magdip']),
     'sigma_elecdip': np.log10(PAR_NORMS['sigma_elecdip']),
     'sigma_LS': np.log10(PAR_NORMS['sigma_LS']),
@@ -59,6 +61,7 @@ PARAM_TEX = {
     'sigma_si': r'$\sigma_{{p}}^{{SI}}$ [$10^{{{:.0f}}}$ cm$^2$]'.format(PAR_NORM_EXPONENTS['sigma_si']),
     'sigma_sd': r'$\sigma_{{p}}^{{SD}}$ [$10^{{{:.0f}}}$ cm$^2$]'.format(PAR_NORM_EXPONENTS['sigma_sd']),
     'sigma_anapole': r'$\sigma_{{p}}^{{ana}}$ [$10^{{{:.0f}}}$ cm$^2$]'.format(PAR_NORM_EXPONENTS['sigma_anapole']),
+    'sigma_anapole_real': r'$\sigma_{{p}}^{{ana}}$ [$10^{{{:.0f}}}$ cm$^2$]'.format(PAR_NORM_EXPONENTS['sigma_anapole_real']),
     'sigma_magdip': r'$\sigma_{{p}}^{{MD}}$ [$10^{{{:.0f}}}$ cm$^2$]'.format(PAR_NORM_EXPONENTS['sigma_magdip']),
     'sigma_elecdip': r'$\sigma_{{p}}^{{ED}}$ [$10^{{{:.0f}}}$ cm$^2$]'.format(PAR_NORM_EXPONENTS['sigma_elecdip']),
     'sigma_LS': r'$\sigma_{{p}}^{{LS}}$ [$10^{{{:.0f}}}$ cm$^2$]'.format(PAR_NORM_EXPONENTS['sigma_LS']),
