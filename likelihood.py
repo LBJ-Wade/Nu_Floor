@@ -91,6 +91,19 @@ class Likelihood_analysis(object):
         sig_dm = norms[-1]
         likeDM = self.likelihood(nu_norm, sig_dm)
         return np.abs(likeDM - noDML - qval)
+    
+#    def like_nu_bnd_jac(self, norms, noDML, qval=2.7):
+#        nu_norm = np.zeros(self.nu_spec, dtype=object)
+#        for i in range(self.nu_spec):
+#            nu_norm[i] = norms[i]
+#        sig_dm = norms[-1]
+#        likeDM = self.likelihood(nu_norm, sig_dm)
+#        jacTerm = self.likegrad_multi_wrapper(norms)
+#        termX = likeDM - noDML - qval
+#        if termX > 0:
+#            return jacTerm
+#        else:
+#            return -jacTerm
 
     def like_multi_wrapper(self, norms, grad=False):
         nu_norm = np.zeros(self.nu_spec, dtype=object)
