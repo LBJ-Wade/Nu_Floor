@@ -113,7 +113,7 @@ def laboratory(elem, xen='LZ'):
         lab = 'GS'
     return lab
 
-# Name of reactor, Surface distance in miles, Power output MWe
+# Name of reactor, Surface distance in km, Power output MWe
 reactors_SURF = [['Cooper Nuclear Station', 801., 830.],
                  ['Monticello Nuclear Generating Plant', 788., 671],
                  ['Prarie Island Nuclear Generating Plant', 835., 1096.]]
@@ -159,11 +159,11 @@ def reactor_flux(loc='Snolab'):
     err = 0.
     for reactor in reactor_list:
         flux += Nfiss * reactor[2] * joule_to_MeV * 1e6/Efiss * reac_runtime / \
-                (4. * np.pi * (reactor[1]*1e5)**2.)
-        err += (Nfiss * reactor[2] * joule_to_MeV * 1e6 / (Efiss + 0.6) * (reac_runtime - rntime_err) /
-                (4. * np.pi * (reactor[1]*1e5)**2.))
+                (4. * np.pi * (reactor[1]*1e5 + depth*1e2)**2.)
+        err += Nfiss * reactor[2] * joule_to_MeV * 1e6/Efiss * reac_runtime / \
+            (4. * np.pi * (reactor[1]*1e5 + depth*1e2)**2.)*np.sqrt((0.6/Efiss)**2. + (rntime_err/reac_runtime)**2. + (10./reactor[1])**2.)
 
-    return flux, (flux - err)
+    return flux, err
 
 def geo_flux(loc='Snolab', el='U'):
     #print loc, el
