@@ -129,6 +129,7 @@ def make_a_futurebnd(element='Germanium', model='sigma_si', fnfp=1., exposure=1.
         mx = float(f[f.find('DM_Mass_')+8:f.find('_GeV')])
         load = np.loadtxt(f)
         hold.append([mx, load])
+    hold.sort()
     np.savetxt(file_sv, hold)
     if smooth:
         try:
