@@ -94,6 +94,83 @@ def make_a_floor(element='Germanium', model='sigma_si', fnfp=1., exposure=1.,
             print 'No Files Found.'
     return
 
+def make_a_futurebnd(element='Germanium', model='sigma_si', fnfp=1., exposure=1.,
+                    delta=0., tag='_', qaim=0.9, eth=-1., xen='LZ', lab='', smooth=True, sf=0.1):
+    
+    experiment_info, Qmin, Qmax = Element_Info(element)
+    if eth < 0:
+        eth = Qmin
+    
+    if len(lab) == 0:
+        lab = laboratory(element, xen=xen)
+
+    coupling = "fnfp" + model[5:]
+    file_info = path + '/FutureProjBound/DerivedBound_'
+    file_info += element + '_' + model + '_' + coupling + '_{:.2f}'.format(fnfp)
+    file_info += '_Exposure_{:.2f}_tonyr_DM_Mass_*_GeV'.format(exposure)
+    file_info += '_Eth_{:.2f}_'.format(eth) + lab + '_delta_{:.2f}'.format(delta)
+    file_info += tag + '.dat'
+
+
+    file_sv = path + '/Floors/' + element + '_' + model + '_' + coupling + '_{:.2f}'.format(fnfp)
+    file_sv += '_Exposure_{:.2f}_tonyr_QGoal_{:.2f}'.format(exposure, qaim)
+    file_sv += '_Eth_{:.2f}_'.format(eth) + lab + '_delta_{:.2f}'.format(delta) + tag + '.dat'
+
+    try:
+        os.remove(file_sv)
+    except:
+        pass
+
+    print 'Look for files of form: ', file_info
+    files = glob.glob(file_info)
+    #print files
+    for f in files:
+        mx = float(f[f.find('DM_Mass_')+8:f.find('_GeV')])
+        load = np.loadtxt(f)
+        try:
+            #print 'DM mass: {:.2f}'.format(mx)
+            dim_test = load.shape[1]
+            rm_ind = [idx for idx, item in enumerate(load[:,0]) if item in load[:,0][:idx]]
+            useable = np.delete(load, rm_ind, axis=0)
+            try:
+                # try:
+                #     mean = sum(useable[:, 0] * useable[:, 1]) / sum(useable[:, 1])
+                #     popt, pcov = curve_fit(gauss_cdf_function, useable[:, 0], useable[:, 1], p0=[mean, 1.])
+                #     csec = brentq(lambda x: gauss_cdf_function(x, *popt) - qaim, -60., -30.)
+                # except:
+                test = np.linspace(useable[0,0], useable[-1,0], 30)
+                #print np.column_stack((test, interp1d(useable[:,0], useable[:,1])(test)))
+                #print useable
+                csec = brentq(lambda x: interp1d(useable[:,0], useable[:,1])(x) - qaim,
+                              useable[:,0][np.argmin(useable[:, 1])], useable[:,0][np.argmax(useable[:, 1])])
+                print 'DM mass: {:.2f}, Cross Sec {:.2e}'.format(mx, 10. ** csec)
+            except:
+                continue
+
+            if os.path.exists(file_sv):
+                load_old = np.loadtxt(file_sv)
+
+                if mx not in load_old:
+                    new_arr = np.vstack((load_old, np.array([np.log10(mx), csec])))
+                    new_arr = new_arr[new_arr[:, 0].argsort()]
+                    np.savetxt(file_sv, new_arr)
+                else:
+                    print 'DM mass already in file...'
+            else:
+                np.savetxt(file_sv, np.array([np.log10(mx), csec]))
+
+        except IndexError:
+            pass
+    if smooth:
+        try:
+            load = np.loadtxt(file_sv)
+            if len(load) > 3:
+                new_arr = lowess(load[:,1], load[:,0], frac=sf, return_sorted=True)
+                np.savetxt(file_sv, new_arr)
+        except IOError:
+            print 'No Files Found.'
+    return
+
 
 def interpola(val, x, y):
     try:

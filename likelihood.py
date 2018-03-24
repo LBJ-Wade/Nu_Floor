@@ -84,6 +84,13 @@ class Likelihood_analysis(object):
             self.dm_recoils = np.zeros_like(energies)
             self.dm_integ = 0.
 
+    def like_nu_bound(self, norms, noDML, qval=2.7):
+        nu_norm = np.zeros(self.nu_spec, dtype=object)
+        for i in range(self.nu_spec):
+            nu_norm[i] = norms[i]
+        sig_dm = norms[-1]
+        likeDM = self.likelihood(nu_norm, sig_dm)
+        return np.abs(likeDM - noDML - qval)
 
     def like_multi_wrapper(self, norms, grad=False):
         nu_norm = np.zeros(self.nu_spec, dtype=object)

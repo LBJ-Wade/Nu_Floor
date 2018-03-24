@@ -43,12 +43,16 @@ def make_bound(element='Xenon', model='sigma_si', Eth=-1.,
         exposure = (3.35 * 10 ** 4. + 95.3 * 118.3) / (365.24 * 1000.)
         ngoal = 3.2
     elif eff == 'Xenon1T':
+        #er_list = np.logspace(np.log10(1.), np.log10(Qmax), 1000)
+        xeneff = np.loadtxt(path + '/Xenon1TC_Eff.dat')
+        xeneff = xeneff[xeneff[:,0] <= 26.]
         er_list = np.logspace(np.log10(1.), np.log10(Qmax), 1000)
-        xeneff = np.loadtxt(path + '/Xenon1T_Eff.dat')
-        xeneff = xeneff[xeneff[:,0] <= 30.]
-        efficiency = interp1d(xeneff[:,0], xeneff[:,1], kind='linear', bounds_error=False, fill_value=0.)(er_list)
+        #xeneff = np.loadtxt(path + '/Xenon1T_Eff.dat')
+        #xeneff = xeneff[xeneff[:,0] <= 40.]
+        efficiency = interp1d(xeneff[:,0], xeneff[:,1], kind='cubic', bounds_error=False, fill_value=0.)(er_list)
         file_eff = 'Xenon1T_'
         exposure = (2004. * 34.2) / (365.24 * 1000.)
+        #exposure = (1042. * 34.2) / (365.24 * 1000.)
         ngoal = 2.7
     elif eff == 'PICO60':
         element = 'Fluorine'
@@ -60,11 +64,18 @@ def make_bound(element='Xenon', model='sigma_si', Eth=-1.,
         ngoal = 2.7
     elif eff == 'PandaX':
         er_list = np.logspace(np.log10(1.), np.log10(Qmax), 1000)
-        xeneff = np.loadtxt(path + '/eff_Pandax2016.dat')
-        xeneff = xeneff[xeneff[:,0] <= 50.]
+        xeneff = np.loadtxt(path + '/eff_Pandax2016C.dat')
+        #xeneff = xeneff[xeneff[:,0] <= 50.]
         efficiency = interp1d(xeneff[:,0], xeneff[:,1], kind='linear', bounds_error=False, fill_value=0.)(er_list)
         file_eff = 'PandaX_'
         exposure = (5.4 * 10 ** 4.) / (365.24 * 1000.)
+        #exposure = (77.1+79.6)*580. / (365.24 * 1000.)
+        ngoal = 2.7
+    elif eff == 'Darwin':
+        er_list = np.logspace(np.log10(5.), np.log10(40.), 1000)
+        efficiency = np.ones_like(er_list)
+        file_eff = 'DARWIN_'
+        exposure = (40000.*2.) / (1000.)
         ngoal = 2.7
     else:
         efficiency = np.zeros_like(er_list)
