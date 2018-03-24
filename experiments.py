@@ -61,6 +61,31 @@ def Element_Info(element):
         Atope = np.array([19.])
         mfrac = np.array([1.])
 
+    elif element == 'FutureARGO':
+        Qmin = 10.
+        Qmax = 100.
+        Z = 18.
+        Atope = np.array([40.])
+        mfrac = np.array([1.])
+    elif element == 'FutureARGO_S2':
+        Qmin = 0.6
+        Qmax = 10.
+        Z = 18.
+        Atope = np.array([40.])
+        mfrac = np.array([1.])
+    elif element == 'FutureF':
+        Qmin = 6. # check
+        Qmax = 100.
+        Z = 9.
+        Atope = np.array([19.])
+        mfrac = np.array([1.])
+    elif element == 'FutureXe':
+        Qmin = 1.
+        Qmax = 100.
+        Z = 54.
+        Atope = np.array([128., 129., 130., 131., 132., 134., 136.])
+        mfrac = np.array([0.019, 0.264, 0.041, 0.212, 0.269, 0.104, 0.089])
+
     else:
         raise ValueError
 
@@ -85,7 +110,7 @@ def laboratory(elem, xen='LZ'):
     elif elem == 'Sodium' or elem == 'Iodine':
         lab = 'GS'
     else:
-        raise ValueError
+        lab = 'GS'
     return lab
 
 # Name of reactor, Surface distance in miles, Power output MWe
