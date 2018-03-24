@@ -112,7 +112,7 @@ def make_a_futurebnd(element='Germanium', model='sigma_si', fnfp=1., exposure=1.
     file_info += tag + '.dat'
 
 
-    file_sv = path + '/Floors/' + element + '_' + model + '_' + coupling + '_{:.2f}'.format(fnfp)
+    file_sv = path + '/Floors/FutureBnd_' + element + '_' + model + '_' + coupling + '_{:.2f}'.format(fnfp)
     file_sv += '_Exposure_{:.2f}_tonyr_QGoal_{:.2f}'.format(exposure, qaim)
     file_sv += '_Eth_{:.2f}_'.format(eth) + lab + '_delta_{:.2f}'.format(delta) + tag + '.dat'
 
