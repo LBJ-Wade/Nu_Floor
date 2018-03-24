@@ -564,7 +564,7 @@ def nu_floor_Bound(model="sigma_si", mass=6., fnfp=1.,
     
     sigLIST.sort()
     totpts = float(len(sigLIST))
-    keyval = int(0.5*totpts)
+    keyval = int(0.9*totpts)
     
     sigLIST.sort()
     sigVAL =sigLIST[keyval]
