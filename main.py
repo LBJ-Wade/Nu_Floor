@@ -548,17 +548,17 @@ def nu_floor_Bound(model="sigma_si", mass=6., fnfp=1.,
                                            Qmin, Qmax, delta, time_info=time_info, GF=False)
 
         max_dm = minimize(like_init_dm.like_nu_bound,
-                          np.concatenate((np.zeros(nu_contrib), np.array([np.log10(1e-50)]))),
+                          np.concatenate((np.zeros(nu_contrib), np.array([np.log10(1e-45)]))),
                           args=(max_nodm.fun), tol=1e-4, method='SLSQP', bounds=dm_bnds,
-                          options={'maxiter': 100}, jac=like_init_dm.like_nu_bnd_jac)
+                          options={'maxiter': 100})#, jac=like_init_dm.like_nu_bnd_jac)
 
         #print max_dm
         #print R(Qmin=Qmin, Qmax=Qmax, **drdq_params) * 10. ** 3. * s_to_yr
         #exit()
         print 'Minimizaiton Success: ', max_nodm.success, max_dm.success
-        if not max_nodm.success or not max_dm.success:
-            fails = np.append(fails, nn)
-            continue
+#        if not max_nodm.success or not max_dm.success:
+#            fails = np.append(fails, nn)
+#            continue
 
         sigLIM = max_dm.x[-1]
         sigLIST.append(sigLIM)
