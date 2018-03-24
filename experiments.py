@@ -17,7 +17,7 @@ ft_to_m = 0.3048
 
 
 def Element_Info(element):
-
+    print element
     if element == 'Germanium':
         Qmin = 0.04
         Qmax = 50.
@@ -91,7 +91,6 @@ def Element_Info(element):
         Z = 32.
         Atope = np.array([70., 72., 73., 74., 76.])
         mfrac = np.array([0.212, 0.277, 0.077, 0.359, 0.074])
-
     else:
         raise ValueError
 

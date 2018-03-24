@@ -1235,6 +1235,15 @@ def dRdQ(Q, T, mass=50., sigma_si=0., sigma_sd=0., sigma_sd_neutron=0.,
       array of differential recoil energy spectrum in counts/keV/kg/sec
 
     """
+    if (element == 'FutureARGO') or (element == 'FutureARGO_S2'):
+        element = 'Argon'
+    if (element == 'FutureXe'):
+        element = 'Xenon'
+    if element == 'FutureF':
+        element = 'Fluorine'
+    if element == 'FutureGe':
+        element = 'Germanium'
+
 
     sum = np.zeros(len(Q))
     if sigma_si!= 0.:
