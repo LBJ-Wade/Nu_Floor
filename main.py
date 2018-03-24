@@ -550,7 +550,7 @@ def nu_floor_Bound(model="sigma_si", mass=6., fnfp=1.,
         max_dm = minimize(like_init_dm.like_nu_bound,
                           np.concatenate((np.zeros(nu_contrib), np.array([np.log10(1e-47)]))),
                           args=(max_nodm.fun), tol=1e-2, method='SLSQP', bounds=dm_bnds,
-                          options={'maxiter': 100})#, jac=like_init_dm.like_nu_bnd_jac)
+                          options={'maxiter': 100}, jac=like_init_dm.like_nu_bnd_jac)
 
 
         print 'Minimizaiton Success: ', max_nodm.success, max_dm.success
