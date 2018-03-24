@@ -556,7 +556,8 @@ def nu_floor_Bound(model="sigma_si", mass=6., fnfp=1.,
         print 'Minimizaiton Success: ', max_nodm.success, max_dm.success
         if not max_nodm.success or not max_dm.success:
             fails = np.append(fails, nn)
-        
+            continue
+            
         sigLIM = max_dm.x[-1]
         sigLIST.append(sigLIM)
         nn += 1
