@@ -63,7 +63,7 @@ def Element_Info(element):
 
     elif element == 'FutureARGO':
         Qmin = 10.
-        Qmax = 100.
+        Qmax = 200.
         Z = 18.
         Atope = np.array([40.])
         mfrac = np.array([1.])
@@ -75,19 +75,19 @@ def Element_Info(element):
         mfrac = np.array([1.])
     elif element == 'FutureF':
         Qmin = 6. # check
-        Qmax = 100.
+        Qmax = 150.
         Z = 9.
         Atope = np.array([19.])
         mfrac = np.array([1.])
     elif element == 'FutureXe':
         Qmin = 1.
-        Qmax = 100.
+        Qmax = 150.
         Z = 54.
         Atope = np.array([128., 129., 130., 131., 132., 134., 136.])
         mfrac = np.array([0.019, 0.264, 0.041, 0.212, 0.269, 0.104, 0.089])
     elif element == 'FutureGe':
         Qmin = 0.04
-        Qmax = 20.
+        Qmax = 50.
         Z = 32.
         Atope = np.array([70., 72., 73., 74., 76.])
         mfrac = np.array([0.212, 0.277, 0.077, 0.359, 0.074])
