@@ -550,14 +550,14 @@ def nu_floor_Bound(sig_low, sig_high, n_sigs=10,
                                            nu_contrib, er_nu, nuspec, nu_rate,
                                            Qmin, Qmax, delta, time_info=time_info, GF=False)
 
-        max_dm = minimize(like_init_dm.like_nu_bound, [-50], args=(np.zeros(nu_contrib)), tol=1e-4,
+        max_dm = minimize(like_init_dm.like_nu_bound, [-60], args=(np.zeros(nu_contrib)), tol=1e-5,
                           bounds=[(-70, -30)], options={'maxiter': 100})
 #        max_dm = minimize(like_init_dm.like_nu_bound,
 #                          np.concatenate((np.zeros(nu_contrib), np.array([np.log10(1e-45)]))),
 #                          args=(max_nodm.fun), tol=1e-4, method='SLSQP', bounds=dm_bnds,
 #                          options={'maxiter': 100})#, jac=like_init_dm.like_nu_bnd_jac)
         try:
-            bnd = fsolve(lambda x: like_init_dm.like_nu_bound(x, np.zeros(nu_contrib)) - max_dm.fun - 2.7, -47.)
+            bnd = fsolve(lambda x: like_init_dm.like_nu_bound(x, np.zeros(nu_contrib)) - max_dm.fun - 2.7, -46.)
         except:
             continue
         #print R(Qmin=Qmin, Qmax=Qmax, **drdq_params) * 10. ** 3. * s_to_yr
