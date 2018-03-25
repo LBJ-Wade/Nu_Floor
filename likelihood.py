@@ -84,7 +84,7 @@ class Likelihood_analysis(object):
             self.dm_recoils = np.zeros_like(energies)
             self.dm_integ = 0.
 
-    def like_nu_bound(self, norms, noDML, qval=2.7):
+    def like_nu_bound(self, norms, noDML=0., qval=2.7):
         nu_norm = np.zeros(self.nu_spec, dtype=object)
         for i in range(self.nu_spec):
             nu_norm[i] = norms[i]
