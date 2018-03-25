@@ -556,8 +556,10 @@ def nu_floor_Bound(sig_low, sig_high, n_sigs=10,
 #                          np.concatenate((np.zeros(nu_contrib), np.array([np.log10(1e-45)]))),
 #                          args=(max_nodm.fun), tol=1e-4, method='SLSQP', bounds=dm_bnds,
 #                          options={'maxiter': 100})#, jac=like_init_dm.like_nu_bnd_jac)
-
-        bnd = fsolve(lambda x: like_init_dm.like_nu_bound(x, np.zeros(nu_contrib)) - max_dm.fun - 2.7, -47.)
+        try:
+            bnd = fsolve(lambda x: like_init_dm.like_nu_bound(x, np.zeros(nu_contrib)) - max_dm.fun - 2.7, -47.)
+        except:
+            continue
         #print R(Qmin=Qmin, Qmax=Qmax, **drdq_params) * 10. ** 3. * s_to_yr
         
         #print 'Minimizaiton Success: ', max_nodm.success, max_dm.success
