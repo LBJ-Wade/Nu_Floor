@@ -532,38 +532,41 @@ def nu_floor_Bound(sig_low, sig_high, n_sigs=10,
         # if nn > 1:
         #     print("--- %s seconds ---" % (time.time() - start_time))
         # start_time = time.time()
-        like_init_nodm = Likelihood_analysis(model, coupling, mass, 0., fnfp,
-                                             exposure, element, experiment_info,
-                                             e_sim, times, nu_comp, labor,
-                                             nu_contrib, er_nu, nuspec, nu_rate,
-                                             Qmin, Qmax, delta=delta, time_info=time_info,
-                                             GF=False, DARK=False)
+#        like_init_nodm = Likelihood_analysis(model, coupling, mass, 0., fnfp,
+#                                             exposure, element, experiment_info,
+#                                             e_sim, times, nu_comp, labor,
+#                                             nu_contrib, er_nu, nuspec, nu_rate,
+#                                             Qmin, Qmax, delta=delta, time_info=time_info,
+#                                             GF=False, DARK=False)
+#
+#        max_nodm = minimize(like_init_nodm.likelihood, np.zeros(nu_contrib),
+#                            args=(np.array([-100.]), [], True), tol=1e-2, method='SLSQP',
+#                            options={'maxiter': 100}, bounds=nu_bnds,
+#                            jac=like_init_nodm.like_gradi)
 
-        max_nodm = minimize(like_init_nodm.likelihood, np.zeros(nu_contrib),
-                            args=(np.array([-100.]), [], True), tol=1e-2, method='SLSQP',
-                            options={'maxiter': 100}, bounds=nu_bnds,
-                            jac=like_init_nodm.like_gradi)
 
         like_init_dm = Likelihood_analysis(model, coupling, mass, 1., fnfp,
                                            exposure, element, experiment_info, e_sim, times, nu_comp, labor,
                                            nu_contrib, er_nu, nuspec, nu_rate,
                                            Qmin, Qmax, delta, time_info=time_info, GF=False)
 
-        max_dm = minimize(like_init_dm.like_nu_bound,
-                          np.concatenate((np.zeros(nu_contrib), np.array([np.log10(1e-45)]))),
-                          args=(max_nodm.fun), tol=1e-4, method='SLSQP', bounds=dm_bnds,
-                          options={'maxiter': 100})#, jac=like_init_dm.like_nu_bnd_jac)
+        max_dm = minimize(like_init_dm.like_nu_bound, [-50], args=(np.zeros(nu_contrib)), tol=1e-4,
+                          bounds=[(-70, -30)], options={'maxiter': 100})
+#        max_dm = minimize(like_init_dm.like_nu_bound,
+#                          np.concatenate((np.zeros(nu_contrib), np.array([np.log10(1e-45)]))),
+#                          args=(max_nodm.fun), tol=1e-4, method='SLSQP', bounds=dm_bnds,
+#                          options={'maxiter': 100})#, jac=like_init_dm.like_nu_bnd_jac)
 
-
+        bnd = fsolve(lambda x: like_init_dm.like_nu_bound(x, np.zeros(nu_contrib)) - max_dm.fun - 2.7, -47.)
         #print R(Qmin=Qmin, Qmax=Qmax, **drdq_params) * 10. ** 3. * s_to_yr
         
-        print 'Minimizaiton Success: ', max_nodm.success, max_dm.success
+        #print 'Minimizaiton Success: ', max_nodm.success, max_dm.success
 #        if not max_nodm.success or not max_dm.success:
 #            fails = np.append(fails, nn)
 #            continue
 
-        sigLIM = max_dm.x[-1]
-        sigLIST.append(sigLIM)
+        #sigLIM = max_dm.x[-1]
+        sigLIST.append(bnd)
         nn += 1
     
     sigLIST.sort()

@@ -84,13 +84,13 @@ class Likelihood_analysis(object):
             self.dm_recoils = np.zeros_like(energies)
             self.dm_integ = 0.
 
-    def like_nu_bound(self, norms, noDML=0., qval=2.7):
+    def like_nu_bound(self, normsDM, normsNu):
         nu_norm = np.zeros(self.nu_spec, dtype=object)
         for i in range(self.nu_spec):
-            nu_norm[i] = norms[i]
-        sig_dm = norms[-1]
+            nu_norm[i] = normsNu[i]
+        sig_dm = normsDM
         likeDM = self.likelihood(nu_norm, sig_dm, SkipPnlty=True)
-        return np.abs(likeDM - noDML - qval)
+        return likeDM
     
     def like_nu_bnd_jac(self, norms, noDML, qval=2.7):
         nu_norm = np.zeros(self.nu_spec, dtype=object)
