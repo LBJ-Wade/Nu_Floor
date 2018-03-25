@@ -365,12 +365,13 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
     return
 
 
-def nu_floor_Bound(model="sigma_si", mass=6., fnfp=1.,
+def nu_floor_Bound(sig_low, sig_high, n_sigs=10,
+             model="sigma_si", mass=6., fnfp=1.,
              element='Germanium', exposure=1., delta=0., GF=False, time_info=False,
              file_tag='', n_runs=20, Eth=''):
 
     #start_time = time.time()
-    testq = 0
+    testq = 0.
     sim_files_exist = True
     sim_dm_file_exist = True
     file_info = path + '/FutureProjBound/'

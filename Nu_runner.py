@@ -61,7 +61,8 @@ if DARK:
                  delta=args.delta, GF=False, time_info=timeT, file_tag=args.file_tag, n_runs=args.n_runs,
                  Eth=args.e_th)
     else:
-        nu_floor_Bound(model=args.model, mass=args.mass, fnfp=args.fnfp,
+        nu_floor_Bound(args.sig_low, args.sig_high, n_sigs=args.n_sigs,
+                       model=args.model, mass=args.mass, fnfp=args.fnfp,
                        element=args.element, exposure=args.exposure,
                        delta=args.delta, GF=False, time_info=timeT, file_tag=args.file_tag,
                        n_runs=args.n_runs, Eth=args.e_th)

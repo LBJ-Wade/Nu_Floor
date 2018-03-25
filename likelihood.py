@@ -89,7 +89,7 @@ class Likelihood_analysis(object):
         for i in range(self.nu_spec):
             nu_norm[i] = norms[i]
         sig_dm = norms[-1]
-        likeDM = self.likelihood(nu_norm, sig_dm)
+        likeDM = self.likelihood(nu_norm, sig_dm, SkipPnlty=True)
         return np.abs(likeDM - noDML - qval)
     
     def like_nu_bnd_jac(self, norms, noDML, qval=2.7):
@@ -127,7 +127,7 @@ class Likelihood_analysis(object):
             print 'Events from ' + self.nu_names[i] + ': ', nu_events
         return
 
-    def likelihood(self, nu_norm, sig_dm, skip_index=np.array([])):
+    def likelihood(self, nu_norm, sig_dm, skip_index=np.array([]), SkipPnlty=False):
         # - 2 log likelihood
         # nu_norm in units of cm^-2 s^-1, sig_dm in units of cm^2
 
@@ -141,17 +141,14 @@ class Likelihood_analysis(object):
         dm_events = 10. ** sig_dm * self.dm_integ * self.exposure
         for i in range(self.nu_spec):
             nu_events[i] = 10. ** nu_norm[i] * self.exposure * self.nu_int_resp[i]
-            #print self.nu_names[i], nu_norm[i], nu_events[i]
-        # print 'Nobs {:.0f}, Nu Events: {:.2f}'.format(n_obs, np.sum(nu_events))
+
         like += 2. * (dm_events + sum(nu_events))
 
         # nu normalization contribution
-        for i in range(self.nu_spec):
-            if i not in skip_index:
-                like += self.nu_gaussian(self.nu_names[i], nu_norm[i])
-            # else:
-            #     if nu_norm[i] > 0.:
-            #         like += self.nu_gaussian(self.nu_names[i], nu_norm[i], err_multiply=False)
+        if not SkipPnlty:
+            for i in range(self.nu_spec):
+                if i not in skip_index:
+                    like += self.nu_gaussian(self.nu_names[i], nu_norm[i])
 
         if self.element == 'Fluorine':
             return like
@@ -175,7 +172,8 @@ class Likelihood_analysis(object):
         sig_dm = norms[-1]
         return self.like_gradi(nu_norm, sig_dm, ret_just_nu=False)
 
-    def like_gradi(self, nu_norm, sig_dm, skip_index=np.array([]), ret_just_nu=True, ret_just_dm=False):
+    def like_gradi(self, nu_norm, sig_dm, skip_index=np.array([]), ret_just_nu=True,
+                    ret_just_dm=False, SkipPnlty=False):
         grad_x = 0.
         diff_nu = np.zeros(len(nu_norm), dtype=object)
         grad_nu = np.zeros(len(nu_norm))
@@ -187,12 +185,10 @@ class Likelihood_analysis(object):
         for i in range(len(nu_norm)):
             grad_nu[i] += 2. * np.log(10.) * 10.**nu_norm[i] * self.exposure * self.nu_int_resp[i]
 
-        for i in range(len(nu_norm)):
-            if i not in skip_index:
-                grad_nu[i] += self.nu_gaussian(self.nu_names[i], nu_norm[i], return_deriv=True)
-            # else:
-            #     if nu_norm[i] > 0.:
-            #         grad_nu[i] += self.nu_gaussian(self.nu_names[i], nu_norm[i], err_multiply=False)
+        if not SkipPnlty:
+            for i in range(len(nu_norm)):
+                if i not in skip_index:
+                    grad_nu[i] += self.nu_gaussian(self.nu_names[i], nu_norm[i], return_deriv=True)
 
         if self.element != 'fluorine':
             diff_dm = self.dm_recoils * self.exposure
