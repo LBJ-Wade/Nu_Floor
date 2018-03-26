@@ -75,7 +75,7 @@ def make_bound(element='Xenon', model='sigma_si', Eth=-1.,
         er_list = np.logspace(np.log10(5.), np.log10(40.), 1000)
         efficiency = np.ones_like(er_list)
         file_eff = 'DARWIN_'
-        exposure = (40000.*2.) / (1000.)
+        exposure = (40000.*5.) / (1000.)
         ngoal = 2.7
     else:
         efficiency = np.zeros_like(er_list)
