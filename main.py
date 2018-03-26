@@ -560,8 +560,8 @@ def nu_floor_Bound(sig_low, sig_high, n_sigs=10,
             bnd = fsolve(lambda x: like_init_dm.like_nu_bound(x, np.zeros(nu_contrib)) - max_dm.fun - 2.7, -43.)
         except:
             continue
-        print bnd, max_dm
-        exit()
+        
+        
         #print R(Qmin=Qmin, Qmax=Qmax, **drdq_params) * 10. ** 3. * s_to_yr
         
         #print 'Minimizaiton Success: ', max_nodm.success, max_dm.success
