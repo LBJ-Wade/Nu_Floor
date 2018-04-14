@@ -99,18 +99,16 @@ def dRdQSI(Er, time, V0, v_lag, v_esc, mx, sigp, fnfp, elt, rho_x=0.3, delta=0.,
     for i in range(npts):
         q = Er[i]*10**-6. #converting Er from keV-->GeV.
         y_harm = weight*mN*q*b_harm**2/2. #this takes q in [GeV].
-
         #v_min = ((2.*weight*mN*q))**0.5/(2.*weight*mN*mx/(weight*mN+mx)) *3.*10.**5
         v_min = 1./np.sqrt(2.*weight*mN*q)*np.abs(weight*mN*q/(weight*mN*mx/(weight*mN+mx))+delta*10**-6.)*3.*10.**5
-
         ff = formUV.factor_SI(element_name,y_harm,fnfp)
-
         if not GF:
             val_eta = eta(v_min, v_esc, V0, v_lag_pass)
         elif GF:
             val_eta = eta_GF(v_min, time, time_info)
         tot = v_independent * val_eta * ff
         out[i] = tot
+        
         if out[i] < 0.:
             out[i] = 0.
     return out

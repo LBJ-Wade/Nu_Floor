@@ -91,6 +91,12 @@ def Element_Info(element):
         Z = 32.
         Atope = np.array([70., 72., 73., 74., 76.])
         mfrac = np.array([0.212, 0.277, 0.077, 0.359, 0.074])
+    elif element == 'FutureNEWS_G':
+        Qmin = 0.1
+        Qmax = 10.
+        Z = 2
+        Atope = np.array([4.])
+        mfrac = np.array([1.])
     else:
         raise ValueError
 

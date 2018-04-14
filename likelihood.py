@@ -378,6 +378,12 @@ class Nu_spec(object):
 
     def helm_ff(self, er, A, Z, mT):
         q = np.sqrt(2. * mT * er) * MeVtofm
-        rn = np.sqrt((1.2 * A**(1./3.))**2. - 5.)
-        return (3. * np.exp(- q**2. / 2.) * (np.sin(q * rn) - q * rn * np.cos(q * rn)) / (q*rn)**3.)**2.
+        if ((1.23*A**0.33 - 0.6)**2. +7*np.pi/3.*0.52**2. - 5*0.9**2.) <= 0:
+            R1 = 1.
+        else:
+            R1 = np.sqrt((1.23*A**0.33 - 0.6)**2. +7*np.pi/3.*0.52**2. - 5*0.9**2.)
+        j1 = np.sin(q*R1)/(q*R1)**2. - np.cos(q*R1)/(q*R1)
+        ff = (3*j1/(q*R1))**2.*np.exp(-(q*5*0.9**2.)**2)
+        return ff
+
 
