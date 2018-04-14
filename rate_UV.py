@@ -1241,6 +1241,8 @@ def dRdQ(Q, T, mass=50., sigma_si=0., sigma_sd=0., sigma_sd_neutron=0.,
         element = 'Fluorine'
     if element == 'FutureGe':
         element = 'Germanium'
+    if element == 'FutureNEWS_G':
+        element = 'Helium'
 
 
     sum = np.zeros(len(Q))
