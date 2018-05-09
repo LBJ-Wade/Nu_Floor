@@ -21,7 +21,7 @@ def Element_Info(element):
     if element == 'Germanium':
         #Qmin = 0.04
         #Qmax = 50.
-        Qmin = 50.
+        Qmin = 10.
         Qmax = 300.
         Z = 32.
         Atope = np.array([70., 72., 73., 74., 76.])
@@ -30,7 +30,7 @@ def Element_Info(element):
     elif element == 'Xenon':
         #Qmin = 0.1
         #Qmax = 50.
-        Qmin = 50.
+        Qmin = 10.
         Qmax = 300.
         Z = 54.
         Atope = np.array([128., 129., 130., 131., 132., 134., 136.])
@@ -39,7 +39,7 @@ def Element_Info(element):
     elif element == 'Argon':
         #Qmin = 1.
         #Qmax = 50.
-        Qmin = 50.
+        Qmin = 10.
         Qmax = 300.
         Z = 18.
         Atope = np.array([40.])
@@ -48,7 +48,7 @@ def Element_Info(element):
     elif element == 'Sodium':
         #Qmin = 1.
         #Qmax = 50.
-        Qmin = 50.
+        Qmin = 10.
         Qmax = 300.
         Z = 11.
         Atope = np.array([23.])
@@ -57,7 +57,7 @@ def Element_Info(element):
     elif element == 'Iodine':
         #Qmin = 1.
         #Qmax = 50.
-        Qmin = 50.
+        Qmin = 10.
         Qmax = 300.
         Z = 53.
         Atope = np.array([127.])
