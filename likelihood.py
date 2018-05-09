@@ -84,6 +84,26 @@ class Likelihood_analysis(object):
             self.dm_recoils = np.zeros_like(energies)
             self.dm_integ = 0.
 
+    def like_nu_bound(self, normsDM, normsNu):
+        nu_norm = np.zeros(self.nu_spec, dtype=object)
+        for i in range(self.nu_spec):
+            nu_norm[i] = normsNu[i]
+        sig_dm = normsDM
+        likeDM = self.likelihood(nu_norm, sig_dm, SkipPnlty=True)
+        return likeDM
+    
+    def like_nu_bnd_jac(self, norms, noDML, qval=2.7):
+        nu_norm = np.zeros(self.nu_spec, dtype=object)
+        for i in range(self.nu_spec):
+            nu_norm[i] = norms[i]
+        sig_dm = norms[-1]
+        likeDM = self.likelihood(nu_norm, sig_dm)
+        jacTerm = self.likegrad_multi_wrapper(norms)
+        termX = likeDM - noDML - qval
+        if termX > 0:
+            return jacTerm
+        else:
+            return -jacTerm
 
     def like_multi_wrapper(self, norms, grad=False):
         nu_norm = np.zeros(self.nu_spec, dtype=object)
@@ -107,7 +127,7 @@ class Likelihood_analysis(object):
             print 'Events from ' + self.nu_names[i] + ': ', nu_events
         return
 
-    def likelihood(self, nu_norm, sig_dm, skip_index=np.array([])):
+    def likelihood(self, nu_norm, sig_dm, skip_index=np.array([]), SkipPnlty=False):
         # - 2 log likelihood
         # nu_norm in units of cm^-2 s^-1, sig_dm in units of cm^2
 
@@ -121,17 +141,14 @@ class Likelihood_analysis(object):
         dm_events = 10. ** sig_dm * self.dm_integ * self.exposure
         for i in range(self.nu_spec):
             nu_events[i] = 10. ** nu_norm[i] * self.exposure * self.nu_int_resp[i]
-            #print self.nu_names[i], nu_norm[i], nu_events[i]
-        # print 'Nobs {:.0f}, Nu Events: {:.2f}'.format(n_obs, np.sum(nu_events))
+
         like += 2. * (dm_events + sum(nu_events))
 
         # nu normalization contribution
-        for i in range(self.nu_spec):
-            if i not in skip_index:
-                like += self.nu_gaussian(self.nu_names[i], nu_norm[i])
-            # else:
-            #     if nu_norm[i] > 0.:
-            #         like += self.nu_gaussian(self.nu_names[i], nu_norm[i], err_multiply=False)
+        if not SkipPnlty:
+            for i in range(self.nu_spec):
+                if i not in skip_index:
+                    like += self.nu_gaussian(self.nu_names[i], nu_norm[i])
 
         if self.element == 'Fluorine':
             return like
@@ -155,7 +172,8 @@ class Likelihood_analysis(object):
         sig_dm = norms[-1]
         return self.like_gradi(nu_norm, sig_dm, ret_just_nu=False)
 
-    def like_gradi(self, nu_norm, sig_dm, skip_index=np.array([]), ret_just_nu=True, ret_just_dm=False):
+    def like_gradi(self, nu_norm, sig_dm, skip_index=np.array([]), ret_just_nu=True,
+                    ret_just_dm=False, SkipPnlty=False):
         grad_x = 0.
         diff_nu = np.zeros(len(nu_norm), dtype=object)
         grad_nu = np.zeros(len(nu_norm))
@@ -167,12 +185,10 @@ class Likelihood_analysis(object):
         for i in range(len(nu_norm)):
             grad_nu[i] += 2. * np.log(10.) * 10.**nu_norm[i] * self.exposure * self.nu_int_resp[i]
 
-        for i in range(len(nu_norm)):
-            if i not in skip_index:
-                grad_nu[i] += self.nu_gaussian(self.nu_names[i], nu_norm[i], return_deriv=True)
-            # else:
-            #     if nu_norm[i] > 0.:
-            #         grad_nu[i] += self.nu_gaussian(self.nu_names[i], nu_norm[i], err_multiply=False)
+        if not SkipPnlty:
+            for i in range(len(nu_norm)):
+                if i not in skip_index:
+                    grad_nu[i] += self.nu_gaussian(self.nu_names[i], nu_norm[i], return_deriv=True)
 
         if self.element != 'fluorine':
             diff_dm = self.dm_recoils * self.exposure
@@ -362,6 +378,12 @@ class Nu_spec(object):
 
     def helm_ff(self, er, A, Z, mT):
         q = np.sqrt(2. * mT * er) * MeVtofm
-        rn = np.sqrt((1.2 * A**(1./3.))**2. - 5.)
-        return (3. * np.exp(- q**2. / 2.) * (np.sin(q * rn) - q * rn * np.cos(q * rn)) / (q*rn)**3.)**2.
+        if ((1.23*A**0.33 - 0.6)**2. +7*np.pi/3.*0.52**2. - 5*0.9**2.) <= 0:
+            R1 = 1.
+        else:
+            R1 = np.sqrt((1.23*A**0.33 - 0.6)**2. +7*np.pi/3.*0.52**2. - 5*0.9**2.)
+        j1 = np.sin(q*R1)/(q*R1)**2. - np.cos(q*R1)/(q*R1)
+        ff = (3*j1/(q*R1))**2.*np.exp(-(q*5*0.9**2.)**2)
+        return ff
+
 

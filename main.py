@@ -30,6 +30,7 @@ import time
 from test_plots import *
 from constants import *
 from scipy.stats import gaussian_kde
+from scipy.optimize import fsolve
 
 path = os.getcwd()
 Sv_dir = path + '/NeutrinoSims/'
@@ -362,4 +363,223 @@ def nu_floor(sig_low, sig_high, n_sigs=10, model="sigma_si", mass=6., fnfp=1.,
                 np.savetxt(file_info, np.array([np.log10(sigmap), testq]))
 
 
+    return
+
+
+def nu_floor_Bound(sig_low, sig_high, n_sigs=10,
+             model="sigma_si", mass=6., fnfp=1.,
+             element='Germanium', exposure=1., delta=0., GF=False, time_info=False,
+             file_tag='', n_runs=20, Eth=''):
+
+    #start_time = time.time()
+    testq = 0.
+    sim_files_exist = True
+    sim_dm_file_exist = True
+    file_info = path + '/FutureProjBound/'
+    file_info += 'DerivedBound_'
+
+    print 'Run Info:'
+    print 'Experiment: ', element
+    print 'Model: ', model
+    coupling = "fnfp" + model[5:]
+    print 'Coupling: ', coupling, fnfp
+    print 'Mass: {:.2f}'.format(mass)
+
+    print '\n'
+
+    experiment_info, Qmin, Qmax = Element_Info(element)
+    labor = laboratory(element, xen=xenLAB)
+    if Eth > 0:
+        Qmin = Eth
+
+    file_info += element + '_' + model + '_' + coupling + '_{:.2f}'.format(fnfp)
+    file_info += '_Exposure_{:.2f}_tonyr_DM_Mass_{:.2f}_GeV'.format(exposure, mass)
+    file_info += '_Eth_{:.2f}_'.format(Qmin) + labor + '_delta_{:.2f}'.format(delta)
+    file_info += file_tag + '.dat'
+    print 'Output File: ', file_info
+    print '\n'
+
+
+    mindm = np.zeros(len(experiment_info[:, 0]))
+    for i, iso in enumerate(experiment_info):
+        mindm[i] = MinDMMass(iso[0], delta, Qmin, vesc=533.+232.)
+    MinDM = np.min(mindm)
+    print 'Minimum DM mass: ', MinDM
+    if mass < MinDM + 0.5:
+        print 'Mass too small...'
+        return
+    # 3\sigma for Chi-square Dist with 1 DoF means q = 9.0
+    q_goal = 2.7
+
+    # make sure there are enough points for numerical accuracy/stability
+
+
+    nu_comp = ['b8', 'b7l1', 'b7l2', 'pepl1', 'hep', 'pp', 'o15', 'n13', 'f17', 'atm',
+                'dsnb3mev', 'dsnb5mev', 'dsnb8mev', 'reactor', 'geoU', 'geoTh', 'geoK']
+
+    keep_nus = []
+    max_es = np.zeros(len(nu_comp))
+    for i in range(len(nu_comp)):
+        max_es[i] = Nu_spec(labor).max_er_from_nu(NEUTRINO_EMAX[nu_comp[i]], experiment_info[0][0])
+        if max_es[i] > Qmin:
+            keep_nus.append(i)
+            if max_es[i] > Qmax:
+                max_es[i] = Qmax
+
+    nu_comp = [x for i,x in enumerate(nu_comp) if i in keep_nus]
+    max_es = max_es[keep_nus]
+    nu_contrib = len(nu_comp)
+    print 'Neutrinos Considered: ', nu_comp
+    NERG = 300
+    er_list = np.logspace(np.log10(Qmin), np.log10(Qmax), NERG)
+    time_list = np.zeros_like(er_list)
+    er_nu = np.zeros(nu_contrib, dtype=object)
+
+    nuspec = np.zeros(nu_contrib, dtype=object)
+    nu_rate = np.zeros(nu_contrib, dtype=object)
+    Nu_events_sim = np.zeros(nu_contrib)
+
+    nu_events = np.zeros(nu_contrib, dtype=object)
+    for i in range(nu_contrib):
+        nuspec[i] = np.zeros_like(er_list)
+        try:
+            nu_sim = Sv_dir + 'Simulate_' + nu_comp[i] + '_' + element
+            nu_sim += '_Eth_{:.2f}_Emax_{:.2f}_'.format(Qmin, Qmax) + labor + '_'
+            nu_sim += '_.dat'
+            nu_events[i] = np.loadtxt(nu_sim)
+        except IOError:
+            print 'No pre-simulated files...'
+            sim_files_exist = False
+            exit()
+
+    for i in range(nu_contrib):
+        er_nu[i] = np.logspace(np.log10(Qmin), np.log10(max_es[i]), NERG)
+        for iso in experiment_info:
+            nuspec[i] += Nu_spec(labor).nu_rate(nu_comp[i], er_nu[i], iso)
+        nu_rate[i] = np.trapz(nuspec[i], er_nu[i])
+        print nu_comp[i], nu_rate[i]
+
+        if nu_rate[i] > 0.:
+            Nu_events_sim[i] = int(nu_rate[i] * exposure)
+
+    nevts_n = np.zeros(nu_contrib, dtype='int')
+    print '\n \n'
+
+    drdq_params = default_rate_parameters.copy()
+    drdq_params['element'] = element
+    drdq_params['mass'] = mass
+    drdq_params[coupling] = fnfp
+    drdq_params['delta'] = delta
+    drdq_params['GF'] = GF
+    drdq_params['time_info'] = time_info
+    arbitrary_norm = 1e-40
+    drdq_params[model] = arbitrary_norm
+
+    dm_rate = 0.
+    dm_events_sim = 0.
+
+    tstat_arr = np.zeros(n_runs)
+    nn = 0
+    
+    fails = np.array([])
+    sigLIST = []
+    while nn < n_runs:
+        for i in range(nu_contrib):
+            try:
+                print int(Nu_events_sim[i])
+                nevts_n[i] = poisson.rvs(int(Nu_events_sim[i]))
+            except ValueError:
+                nevts_n[i] = 0
+
+        Nevents = int(sum(nevts_n))
+
+        if sim_files_exist:
+            e_sim = np.array([])
+            for i in range(nu_contrib):
+                u = random.rand(nevts_n[i]) * len(nu_events[i])
+                e_sim = np.append(e_sim, nu_events[i][u.astype(int)])
+
+        else:
+            u = random.rand(Nevents)
+            e_sim = np.zeros(Nevents)
+            sum_nu_evts = np.zeros(nu_contrib)
+            for i in range(nu_contrib):
+                sum_nu_evts[i] = np.sum(nevts_n[:i + 1])
+            sum_nu_evts = np.insert(sum_nu_evts, 0, -1)
+
+            for i in range(Nevents):
+                if i < sum(nevts_n):
+                    for j in range(nu_contrib + 1):
+                        if sum_nu_evts[j] <= i < sum_nu_evts[j + 1]:
+                            e_sim[i] = er_nu[i][np.absolute(cdf_nu[j] - u[i]).argmin()]
+
+        print 'Run {:.0f} of {:.0f}'.format(nn + 1, n_runs)
+        
+        nevts_dm = 0
+
+        if not QUIET:
+            print 'Predicted Number of Nu events: {}'.format(int(sum(Nu_events_sim)))
+
+        # Simulate events
+        print('Evaluated Events: Neutrino {:.0f}'.format(int(sum(nevts_n))))
+        times = np.zeros_like(e_sim)
+
+        if not QUIET:
+            print 'Running Likelihood Analysis...'
+        # Minimize likelihood -- MAKE SURE THIS MINIMIZATION DOESNT FAIL. CONSIDER USING GRADIENT INFO
+        nu_bnds = [(-5.0, 3.0)] * nu_contrib
+        dm_bnds = nu_bnds + [(-60., -30.)]
+
+        # if nn > 1:
+        #     print("--- %s seconds ---" % (time.time() - start_time))
+        # start_time = time.time()
+#        like_init_nodm = Likelihood_analysis(model, coupling, mass, 0., fnfp,
+#                                             exposure, element, experiment_info,
+#                                             e_sim, times, nu_comp, labor,
+#                                             nu_contrib, er_nu, nuspec, nu_rate,
+#                                             Qmin, Qmax, delta=delta, time_info=time_info,
+#                                             GF=False, DARK=False)
+#
+#        max_nodm = minimize(like_init_nodm.likelihood, np.zeros(nu_contrib),
+#                            args=(np.array([-100.]), [], True), tol=1e-2, method='SLSQP',
+#                            options={'maxiter': 100}, bounds=nu_bnds,
+#                            jac=like_init_nodm.like_gradi)
+
+
+        like_init_dm = Likelihood_analysis(model, coupling, mass, 1., fnfp,
+                                           exposure, element, experiment_info, e_sim, times, nu_comp, labor,
+                                           nu_contrib, er_nu, nuspec, nu_rate,
+                                           Qmin, Qmax, delta, time_info=time_info, GF=False)
+
+        max_dm = minimize(like_init_dm.like_nu_bound, [-60], args=(np.zeros(nu_contrib)), tol=1e-5,
+                          bounds=[(-70, -30)], options={'maxiter': 100})
+#        max_dm = minimize(like_init_dm.like_nu_bound,
+#                          np.concatenate((np.zeros(nu_contrib), np.array([np.log10(1e-45)]))),
+#                          args=(max_nodm.fun), tol=1e-4, method='SLSQP', bounds=dm_bnds,
+#                          options={'maxiter': 100})#, jac=like_init_dm.like_nu_bnd_jac)
+        try:
+            bnd = fsolve(lambda x: like_init_dm.like_nu_bound(x, np.zeros(nu_contrib)) - max_dm.fun - 2.7, -41.)
+        except:
+            continue
+
+        
+        #print R(Qmin=Qmin, Qmax=Qmax, **drdq_params) * 10. ** 3. * s_to_yr
+        
+        #print 'Minimizaiton Success: ', max_nodm.success, max_dm.success
+#        if not max_nodm.success or not max_dm.success:
+#            fails = np.append(fails, nn)
+#            continue
+
+        #sigLIM = max_dm.x[-1]
+        sigLIST.append(bnd)
+        nn += 1
+    
+    sigLIST.sort()
+    totpts = float(len(sigLIST))
+    keyval = int(0.9*totpts)
+    
+    sigLIST.sort()
+    sigVAL =sigLIST[keyval]
+    #print sigVAL, file_info
+    np.savetxt(file_info, [sigVAL])
     return

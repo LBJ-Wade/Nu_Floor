@@ -43,7 +43,8 @@ default_rate_parameters = dict(mass=50., sigma_si=0., sigma_sd=0., sigma_anapole
                                 fnfp_sd_massless=1., fnfp_anapole_massless=1.,  fnfp_magdip_massless=1.,
                                 fnfp_elecdip_massless=1., fnfp_LS_massless=1.,  fnfp_f1_massless=1.,
                                 fnfp_f2_massless=1.,  fnfp_f3_massless=1., fnfp_scalar_o7=1.,
-                                fnfp_scalar_o7_massless=1., fnfp_anapole_real=1.,
+                                fnfp_scalar_o7_massless=1., fnfp_anapole_real=1., sigma_BmL=0.,
+                                fnfp_BmL=1.,
                                 v_lag=220.,  v_rms=220.,
                                 v_esc=533.,  rho_x=0.3, delta=0., GF=False, time_info=False)
 

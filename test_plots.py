@@ -163,6 +163,65 @@ def neutrino_recoils(Emin=0.001, Emax=100., element='Germanium', fs=18, save=Tru
     return
 
 
+def DM_DiffRate(Emin=0.001, Emax=100., element='Germanium', fs=18, save=True,
+                    mass=6., sigmap=4.*10**-45., model='sigma_si', fnfp=1.,
+                    delta=0., GF=False, time_info=False, xenlab='LZ'):
+    coupling = "fnfp" + model[5:]
+
+    filename = test_plots + 'DM_DiffRate_Recoils_in_' + element + '_'
+    filename += model + '_' + coupling + '_{:.2f}'.format(fnfp)
+    filename += '_DM_mass_{:.2f}_CSec_{:.2e}_Delta_{:.2f}'.format(mass, sigmap, delta)
+    if element == 'xenon':
+        filename += xenlab + '_'
+    filename += '.pdf'
+
+    er_list = np.logspace(np.log10(Emin), np.log10(Emax), 500)
+
+    experiment_info, Qmin, Qmax = Element_Info(element)
+    lab = laboratory(element, xen=xenlab)
+
+    color_list = ['#800080', '#000080', '#000080', '#8A2BE2', '#A52A2A', '#A0522D', '#DC143C', '#B8860B',
+                  '#8B008B', '#556B2F', '#FF8C00', '#9932CC', '#E9967A', '#FF1493', '#696969', '#228B22',
+                  '#40E0D0', '#CD5C5C', '#90EE90','#90EE90']
+    line_list = ['-', '--', '--', '-', '-','-', '-','-', '-','-', '-','-', '-','-', '-','-', '-','-', '-','-']
+
+
+    coupling = "fnfp" + model[5:]
+
+    drdq_params = default_rate_parameters.copy()
+    drdq_params['element'] = element
+    drdq_params['mass'] = mass
+    drdq_params[model] = sigmap
+    drdq_params[coupling] = fnfp
+    drdq_params['delta'] = delta
+    drdq_params['GF'] = GF
+    drdq_params['time_info'] = time_info
+
+    time_list = np.zeros_like(er_list)
+    dm_spec = dRdQ(er_list, time_list, **drdq_params) * 10. ** 3. * s_to_yr
+
+    pl.figure()
+    ax = pl.gca()
+
+    ax.set_xlabel(r'Recoil Energy  [keV]', fontsize=fs)
+    ax.set_ylabel(r'Event Rate  [${\rm ton}^{-1} {\rm yr}^{-1} {\rm keV}^{-1}$]', fontsize=fs)
+
+    pl.plot(er_list, dm_spec, 'b', lw=1, label='Dark Matter')
+    print 'Number of dark matter events: ', np.trapz(dm_spec, er_list)
+    plt.tight_layout()
+
+    plt.xlim(xmin=Emin, xmax=Emax)
+    plt.ylim(ymin=10.**-5., ymax=10.**8.)
+    ax.set_xscale("log")
+    ax.set_yscale("log")
+
+    plt.legend(loc=1, frameon=True, framealpha=0.5, fontsize=9, ncol=1, fancybox=True)
+
+    if save:
+        plt.savefig(filename)
+    return
+
+
 def test_sims(esim, e_list, dm, nu):
     pl.figure()
     ax = pl.gca()

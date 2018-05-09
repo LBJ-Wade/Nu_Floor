@@ -36,7 +36,8 @@ ELEMENT_INFO = {"Xenon":{128:0.0192,129:0.2644,130:0.0408,131:0.2118,132:0.2689,
                 "Helium":{4:1.,'weight':4.},
                 "He3":{3:1.,'weight':3.},
                 "Nitrogen":{14:1.,'weight':14.},
-                "Neon":{20:1.,'weight':20.}}
+                "Neon":{20:1.,'weight':20.},
+}
 
 b8nu = np.loadtxt(path + '/Nu_Flux/B8NeutrinoFlux.dat')
 b8nu_spectrum = interp1d(b8nu[:,0], b8nu[:,1], kind='cubic', fill_value=0., bounds_error=False)
