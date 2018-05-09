@@ -30,7 +30,6 @@ def make_bound(element='Xenon', model='sigma_si', Eth=-1.,
     drdq_params['GF'] = GF
     drdq_params['time_info'] = time_info
 
-
     if eff == 'Perfect':
         er_list = np.logspace(np.log10(Qmin), np.log10(Qmax), 1000)
         efficiency = np.ones(len(er_list))
