@@ -52,7 +52,7 @@ else:
     DARK = False
 
 # normally set to false
-BOUND_DERIVE = True
+BOUND_DERIVE = False
 
 if DARK:
     if not BOUND_DERIVE:
