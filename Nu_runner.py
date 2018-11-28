@@ -75,21 +75,22 @@ if DARK:
 
 
 else:
-    #identify = np.array(['geoU', 'geoTh', 'geoK'])
-    identify = np.array(['b7l2'])
+
+    identify = np.array(['geoU', 'geoTh', 'geoK'])
+    #identify = np.array(['b7l2'])
     maxE = 0.
     uncert = 1.
     
     if not Electronic:
         for i in identify:
             elem, Qmax, Qmin = Element_Info(args.element)
-            maxER = Nu_spec(lab='Snolab').max_er_from_nu(NEUTRINO_EMAX[i], elem[0,0])
+            maxER = Nu_spec(lab='JP').max_er_from_nu(NEUTRINO_EMAX[i], elem[0,0])
             if maxER > maxE:
                 maxE = maxER
         print 'Maximum Energy:', maxE
         print 'Uncertainty Multiplier', uncert
         identify_nu(exposure_low=1., exposure_high=50., expose_num=20, element=args.element,
-                    file_tag=args.file_tag, n_runs=200, Eth=args.e_th, Ehigh=maxE,
+                    file_tag=args.file_tag, n_runs=250, Eth=args.e_th, Ehigh=maxE,
                     identify=identify, red_uncer=uncert)
     else:
         for i in identify:
