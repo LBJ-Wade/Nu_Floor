@@ -9,29 +9,31 @@ import numpy as np
 
 path = os.getcwd()
 
-mass_arr = np.concatenate((np.linspace(1., 8.5, 13), np.linspace(9., 25., 8),
-                           np.logspace(np.log10(30.), 3., 20)))
+#mass_arr = np.concatenate((np.linspace(1., 8.5, 13), np.linspace(9., 25., 8),
+#                           np.logspace(np.log10(30.), 3., 20)))
+mass_arr = np.logspace(0,5,100)
 
 parser = argparse.ArgumentParser()
 
 parser.add_argument('--sig_high', type=float, default=10.**-42.)  # x-sec range
 parser.add_argument('--sig_low', type=float, default=10.**-48.)  # x-sec range
 parser.add_argument('--n_sigs', type=int, default=50)  # number of cross-section tests in x-sec range
-parser.add_argument('--model', default="sigma_si")
+parser.add_argument('--model', default="sigma_sd")
 parser.add_argument('--masses', nargs='+', default=mass_arr, type=float,)
 #parser.add_argument('--masses', nargs='+', default=np.array([9.]), type=float,)
 parser.add_argument('--fnfp', type=float, default=1.)
-parser.add_argument('--element', nargs='+', default=['Germanium'])
-parser.add_argument('--exposure', type=float, default=0.1)  # Ton-yr
+parser.add_argument('--element', nargs='+', default=['Argon'])
+parser.add_argument('--exposure', type=float, default=2.)  # Ton-yr
 parser.add_argument('--ethresh', type=float, default=-1.)
-parser.add_argument('--delta', type=float, default=-30.)  # FIX for now
+parser.add_argument('--delta', type=float, default=0.)  # FIX for now
 parser.add_argument('--time_info',default='F')  # FIX for now
 parser.add_argument('--GF', default='F')  # FIX for now
 parser.add_argument('--file_tag',default='_')
 parser.add_argument('--n_runs', type=int, default=200)  # number of realizations of data
 parser.add_argument('--tag', default='')
 parser.add_argument('--runner_start', default=0)
-parser.add_argument('--DARK', default='T')
+parser.add_argument('--DARK', default='F') # Dark matter or Neutrino
+parser.add_argument('--Electronic', default='T')
 
 args = parser.parse_args()
 sig_h = args.sig_high
@@ -48,6 +50,7 @@ n_runs = args.n_runs
 TAG = args.tag
 ethresh = args.ethresh
 DARK = args.DARK
+Electronic = args.Electronic
 runner_start = args.runner_start
 
 
@@ -70,7 +73,7 @@ for experiment in SINGLE_EXPERIMENTS:
               '--model {} --mass {} --fnfp {} --element {} '.format(model, mass, fnfp, experiment) +\
               '--exposure {} --delta {} --time_info {} --GF {} '.format(exposure, delta, time_info, GF) +\
               '--file_tag {} --n_runs {} --e_th {} '.format(file_tag, n_runs, ethresh) +\
-              '--DARK {}'.format(DARK)
+              '--DARK {} --Electronic {}'.format(DARK, Electronic)
 
         cmds.append(cmd)
         count += 1
