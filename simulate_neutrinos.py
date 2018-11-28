@@ -1,6 +1,7 @@
 import numpy as np
 import os
 from likelihood import *
+from constants import *
 from helpers import *
 from rate_UV import *
 import numpy.random as random
@@ -73,6 +74,84 @@ def simulate_neutrino_recoils(number=100000, element='Germanium', file_tag='_', 
             cdf_nu[j] = np.trapz(nu_pdf[:j],er_list[:j])
         cdf_nu /= cdf_nu.max()
 
+        u = random.rand(number)
+        for j in range(number):
+            recoils[j] = er_list[np.absolute(cdf_nu - u[j]).argmin()]
+        np.savetxt(file_info, recoils)
+
+    return
+
+def simulate_electronic_neutrino_recoils(number=100000, element='Germanium', file_tag='_', xenLAB='LZ',
+                              Emax=None, Emin=None):
+
+    experiment_info, Qmin, Qmax = Element_Info(element, electronic=True)
+    labor = laboratory(element, xen=xenLAB)
+    if Emax:
+        Qmax = Emax
+    if Emin:
+        Qmin = Emin
+    
+    bkg_list = bkg_electron_specs(element)
+
+    Ner = 10000
+    nu_comp = ['b8', 'b7l1', 'b7l2', 'pepl1', 'hep', 'pp', 'o15', 'n13', 'f17', 'atm',
+               'dsnb3mev', 'dsnb5mev', 'dsnb8mev', 'reactor', 'geoU', 'geoTh', 'geoK']
+
+    keep_nus = []
+    max_es = np.zeros(len(nu_comp))
+    for i in range(len(nu_comp)):
+        print nu_comp[i]
+        max_es[i] = Nu_spec(labor).max_er_from_nu(NEUTRINO_EMAX[nu_comp[i]], 5.11e-4)
+        if max_es[i] > Qmin:
+            keep_nus.append(i)
+            if max_es[i] > Qmax:
+                max_es[i] = Qmax
+    
+    nu_comp = [x for i, x in enumerate(nu_comp) if i in keep_nus]
+    max_es = max_es[keep_nus]
+    nu_contrib = len(nu_comp)
+    print 'Neutrinos Considered: ', nu_comp
+
+    for i,nu_name in enumerate(nu_comp):
+        file_info = Sv_dir + 'Simulate_Electronic_' + nu_name + '_' + element
+        file_info += '_Eth_{:.2f}_Emax_{:.2f}_'.format(Qmin,Qmax) + labor + '_'
+        file_info += file_tag + '.dat'
+        print 'Output File: ', file_info
+
+        if os.path.isfile(file_info):
+            continue
+        
+        recoils = np.zeros(number)
+        er_list = np.logspace(np.log10(Qmin), np.log10(max_es[i]), Ner)
+        
+        nuspectrum = np.zeros(Ner)
+        for iso in experiment_info:
+            nuspectrum += Nu_spec(labor).nu_rate_electronic(nu_name, er_list, iso, element)
+
+        nu_pdf = nuspectrum
+        cdf_nu = np.zeros_like(nu_pdf)
+        for j in range(len(nu_pdf)):
+            cdf_nu[j] = np.trapz(nu_pdf[:j], er_list[:j])
+        cdf_nu /= cdf_nu.max()
+
+        u = random.rand(number)
+        for j in range(number):
+            recoils[j] = er_list[np.absolute(cdf_nu - u[j]).argmin()]
+        np.savetxt(file_info, recoils)
+
+    for j,nme in enumerate(bkg_list):
+        file_info = Sv_dir + 'Simulate_Electronic_' + nme + '_' + element
+        file_info += '_Eth_{:.2f}_Emax_{:.2f}_'.format(Qmin,Qmax) + labor + '_'
+        file_info += file_tag + '.dat'
+        print 'Output File: ', file_info
+        
+        er_list = np.logspace(np.log10(Qmin), np.log10(Qmax), Ner)
+        nuspectrum = NEUTRINO_SPEC[nme](er_list/1e3)
+        for j in range(len(nu_pdf)):
+            cdf_nu[j] = np.trapz(nu_pdf[:j],er_list[:j])
+        cdf_nu /= cdf_nu.max()
+
+        recoils = np.zeros(number)
         u = random.rand(number)
         for j in range(number):
             recoils[j] = er_list[np.absolute(cdf_nu - u[j]).argmin()]

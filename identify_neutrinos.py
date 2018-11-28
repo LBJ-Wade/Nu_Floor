@@ -23,7 +23,7 @@ Sv_dir = path + '/NeutrinoSims/'
 
 def identify_nu(exposure_low=1., exposure_high=100., expose_num=30, element='Germanium',
                 file_tag='', n_runs=20, Eth='', Ehigh=6., identify=np.array(['reactor']),
-                red_uncer=1.):
+                red_uncer=1., geo_analysis=True):
 
     exposure_list = np.logspace(np.log10(exposure_low), np.log10(exposure_high), expose_num)
 
@@ -36,7 +36,7 @@ def identify_nu(exposure_low=1., exposure_high=100., expose_num=30, element='Ger
     print '\n'
 
     experiment_info, Qmin, Qmax = Element_Info(element)
-    labor = laboratory(element, xen=xenLAB)
+    labor = laboratory(element, xen=xenLAB, geo_analysis=geo_analysis)
     if Eth > 0:
         Qmin = Eth
     Qmax = Ehigh

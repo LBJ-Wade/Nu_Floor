@@ -99,6 +99,21 @@ geoU_spectrum = interp1d(geo_u[:,0], geo_u[:,1], kind='linear', fill_value=0., b
 geoTh_spectrum = interp1d(geo_th[:,0], geo_th[:,1], kind='linear', fill_value=0., bounds_error=False)
 geoK_spectrum = interp1d(geo_k[:,0], geo_k[:,1], kind='linear', fill_value=0., bounds_error=False)
 
+# Xenon electronic bkg
+xe_elec_KR = np.loadtxt(path + '/Nu_Flux/Xe_elecBk_Kr.dat')
+xe_elec_2nu2beta = np.loadtxt(path + '/Nu_Flux/Xe_elecBkg_2nu2beta.dat')
+xe_elec_RN = np.loadtxt(path + '/Nu_Flux/Xe_elecBkg_Rn.dat')
+xe_elec_Kr_spectrum = interp1d(xe_elec_KR[:,0], xe_elec_KR[:,1], kind='linear', fill_value=0., bounds_error=False)
+xe_elec_2N2B_spectrum = interp1d(xe_elec_2nu2beta[:,0], xe_elec_2nu2beta[:,1], kind='linear', fill_value=0., bounds_error=False)
+xe_elec_Rn_spectrum = interp1d(xe_elec_RN[:,0], xe_elec_RN[:,1], kind='linear', fill_value=0., bounds_error=False)
+
+# Argon electronic bkg
+ar_elec_p = np.loadtxt(path + '/Nu_Flux/Argon_elecBkg_P.dat')
+ar_elec_Rn = np.loadtxt(path + '/Nu_Flux/Argon_elecBkg_Rn.dat')
+ar_elec_Cosmo = np.loadtxt(path + '/Nu_Flux/Argon_elecBkg_cosmo.dat')
+ar_elec_P_spectrum = interp1d(ar_elec_p[:,0], ar_elec_p[:,1], kind='linear', fill_value='extrapolate', bounds_error=False)
+ar_elec_Rn_spectrum = interp1d(ar_elec_Rn[:,0], ar_elec_Rn[:,1], kind='linear', fill_value='extrapolate', bounds_error=False)
+ar_elec_Cos_spectrum = interp1d(ar_elec_Cosmo[:,0], ar_elec_Cosmo[:,1], kind='linear', fill_value='extrapolate', bounds_error=False)
 
 def atm_spectrum(x):
     return atmnue_spectrum(x) + atmnumu_spectrum(x) + atmnumubar_spectrum(x) + atmnuebar_spectrum(x)
@@ -181,11 +196,24 @@ NEUTRINO_SPEC = {"b8": b8nu_spectrum,
                   "geoU": geoU_spectrum,
                   "geoTh": geoTh_spectrum,
                   "geoK": geoK_spectrum,
-                  "atm": atm_spectrum
+                  "atm": atm_spectrum,
+                  "Xe_Kr": xe_elec_Kr_spectrum,
+                  "Xe_2N2B": xe_elec_2N2B_spectrum,
+                  "Xe_Rn": xe_elec_Rn_spectrum,
+                  "Ar_P": ar_elec_P_spectrum,
+                  "Ar_Rn": ar_elec_Rn_spectrum,
+                  "Ar_Cos": ar_elec_Cos_spectrum,
                   }
 
 nu_lines = ['b7l1', 'b7l2', 'pepl1']
 line_flux = [(0.1) * 5.00 * 10. ** 9., (0.9) * 5.00 * 10. ** 9., 1.44 * 10. ** 8.]
 e_lines = [0.380, 0.860, 1.440]
 
-
+ELEC_BKG_TAG = {
+                "Xe_Kr": 'Kr',
+                "Xe_2N2B": r'$2\nu 2\beta$',
+                "Xe_Rn": 'Rn',
+                "Ar_P": 'P',
+                "Ar_Rn": 'Rn',
+                "Ar_Cos": 'Cosmogenic'
+}

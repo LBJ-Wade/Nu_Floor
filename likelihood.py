@@ -30,7 +30,7 @@ class Likelihood_analysis(object):
     def __init__(self, model, coupling, mass, dm_sigp, fnfp, exposure, element, isotopes,
                  energies, times, nu_names, lab, nu_spec, er_nu, nu_d_response, nu_response,
                  Qmin, Qmax, delta=0., time_info=False, GF=False,
-                 DARK=True, reduce_uncer=1.):
+                 DARK=True, reduce_uncer=1., uncertain_dict={}):
 
         self.nu_lines = ['b7l1', 'b7l2', 'pepl1']
         self.line = [0.380, 0.860, 1.440]
@@ -84,6 +84,9 @@ class Likelihood_analysis(object):
             self.dm_recoils = np.zeros_like(energies)
             self.dm_integ = 0.
 
+        for i in uncertain_dict:
+            NEUTRINO_SIG[i] = uncertain_dict[i]
+
     def like_nu_bound(self, normsDM, normsNu):
         nu_norm = np.zeros(self.nu_spec, dtype=object)
         for i in range(self.nu_spec):
@@ -112,13 +115,13 @@ class Likelihood_analysis(object):
         sig_dm = norms[-1]
         return self.likelihood(nu_norm, sig_dm)
 
-    def like_multi_wrapper2(self, norms1, norms2, normdm):
+    def like_multi_wrapper2(self, norms1, norms2, normdm, skip_index=np.array([])):
         sig_dm = normdm
         nu_norm = np.concatenate((norms1, norms2))
-        return self.likelihood(nu_norm, sig_dm)
+        return self.likelihood(nu_norm, sig_dm, skip_index=skip_index)
 
-    def like_multi_wrapper2_grad(self, norms1, norms2, normdm):
-        return self.like_gradi(norms1, normdm)
+    def like_multi_wrapper2_grad(self, norms1, norms2, normdm, skip_index=np.array([])):
+        return self.like_gradi(norms1, normdm, skip_index=skip_index)
 
     def test_num_events(self, nu_norm, sig_dm):
         print 'DM events Predicted: ', 10. ** sig_dm * self.dm_integ * self.exposure
@@ -128,6 +131,47 @@ class Likelihood_analysis(object):
         return
 
     def likelihood(self, nu_norm, sig_dm, skip_index=np.array([]), SkipPnlty=False):
+        # - 2 log likelihood
+        # nu_norm in units of cm^-2 s^-1, sig_dm in units of cm^2
+
+        like = 0.
+        diff_nu = np.zeros(self.nu_spec, dtype=object)
+        nu_events = np.zeros(self.nu_spec, dtype=object)
+
+        n_obs = len(self.events)
+        # total rate contribution
+
+        dm_events = 10. ** sig_dm * self.dm_integ * self.exposure
+        
+        for i in range(self.nu_spec):
+            nu_events[i] = 10. ** nu_norm[i] * self.exposure * self.nu_int_resp[i]
+#            print self.nu_names[i], nu_events[i]
+#        print 'DM Events: ', dm_events
+
+        like += 2. * (dm_events + sum(nu_events))
+
+        # nu normalization contribution
+        if not SkipPnlty:
+            for i in range(self.nu_spec):
+                if i not in skip_index:
+                    like += self.nu_gaussian(self.nu_names[i], nu_norm[i])
+
+        if self.element == 'Fluorine':
+            return like
+
+        # Differential contribution
+        diff_dm = self.dm_recoils * self.exposure
+
+        lg_vle = (10. ** sig_dm * diff_dm)
+        for i in range(self.nu_spec):
+            diff_nu[i] = self.nu_diff_evals[i] * self.exposure * 10.**nu_norm[i]
+            lg_vle += diff_nu[i]
+
+        for i in range(len(lg_vle)):
+            like += -2. * np.log(lg_vle[i])
+        return like
+    
+    def likelihood_electronic(self, nu_norm, sig_dm, skip_index=np.array([]), SkipPnlty=False):
         # - 2 log likelihood
         # nu_norm in units of cm^-2 s^-1, sig_dm in units of cm^2
 
@@ -351,6 +395,50 @@ class Nu_spec(object):
             diff_rate[i] *= nu_mean_f * conversion_factor
 
         return diff_rate
+    
+    def nu_rate_electronic(self, nu_component, er, element_info, elem):
+
+        mT, Z, A, xi = element_info
+        
+        mass_e = 5.11e-4
+        conversion_factor = Z * xi / mT * s_to_yr * (0.938 / (1.66 * 10.**-27.)) \
+                            * 10**-3. / (0.51 * 10.**14.)**2.
+
+        diff_rate = np.zeros_like(er)
+        for i,e in enumerate(er):
+            if 'atm' in nu_component:
+                e_nu_min = 13.
+            elif nu_component == 'reactor':
+                e_nu_min = 0.5
+            else:
+                e_nu_min = 0.5*(e*1e-3 + np.sqrt((e*1e-3)**2. + 2.*mass_e * e))
+
+            # WHAT TO DO WITH THIS
+            e_nu_max = NEUTRINO_EMAX[nu_component]
+            
+            if nu_component == "reactor":
+                nu_mean_f = reactor_flux(loc=self.lab)[0]
+            elif nu_component == "geoU":
+                nu_mean_f = geo_flux(loc=self.lab, el='U')[0]
+            elif nu_component == "geoTh":
+                nu_mean_f = geo_flux(loc=self.lab, el='Th')[0]
+            elif nu_component == "geoK":
+                nu_mean_f = geo_flux(loc=self.lab, el='K')[0]
+            else:
+                nu_mean_f = NEUTRINO_MEANF[nu_component]
+
+            if nu_component not in self.nu_lines:
+                ergs = np.logspace(np.log10(e_nu_min), np.log10(e_nu_max), 600)
+                diff_rate[i] = np.trapz(self.nu_electron_recoil_spec(ergs, e, nu_component), ergs)
+
+            else:
+                for j in range(len(self.line)):
+                    if nu_component == self.nu_lines[j]:
+                        diff_rate[i] = self.nu_electron_recoil_spec(self.line[j], e, nu_component)
+            
+            diff_rate[i] *= nu_mean_f * conversion_factor
+        
+        return diff_rate
 
     def max_er_from_nu(self, enu, mT):
         return 2. * enu**2. / (mT + 2. * enu * 1e-3)
@@ -363,6 +451,13 @@ class Nu_spec(object):
         else:
             return self.nu_csec(enu, er, mT, Z, A) * NEUTRINO_SPEC[nu_comp](enu)
 
+    def nu_electron_recoil_spec(self, enu, er, nu_comp):
+        if nu_comp in self.nu_lines:
+            for i in range(len(self.line)):
+                if enu == self.line[i] and nu_comp == self.nu_lines[i]:
+                    return self.nu_electron_xsec(enu, er)
+        else:
+            return self.nu_electron_xsec(enu, er) * NEUTRINO_SPEC[nu_comp](enu)
 
     def nu_csec(self, enu, er, mT, Z, A):
         # enu can be array, er cannot be
@@ -386,4 +481,23 @@ class Nu_spec(object):
         ff = (3*j1/(q*R1))**2.*np.exp(-(q*5*0.9**2.)**2)
         return ff
 
+    def nu_electron_xsec(self, enu, er):
+        mass_e = 5.11e-4
+
+        if type(enu) is not np.ndarray:
+            enu = np.array([enu])
+        ret = np.zeros_like(enu)
+        
+        fracSV = [0.55, 1. - 0.55]
+        couplings_x = [[2. * sw + 1./2., 3./2.] , [2. * sw - 1./2., 1./2.]]
+        
+        for j in range(2):
+            ge_vec = couplings_x[j][0]
+            ge_ax = couplings_x[j][1]
+            
+            for i,en in enumerate(enu):
+                if er < self.max_er_from_nu(en, mass_e):
+                    ret[i] += fracSV[j] * gF ** 2. / (2. * np.pi) * mass_e * ((ge_vec + ge_ax)**2. +
+                            (ge_vec - ge_ax)**2.*(1. - er/en*1e-3)**2. + (ge_ax**2. - ge_vec**2.)*mass_e*er/en**2.)
+        return ret
 
