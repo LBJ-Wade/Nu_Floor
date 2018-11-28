@@ -112,13 +112,22 @@ class Likelihood_analysis(object):
         sig_dm = norms[-1]
         return self.likelihood(nu_norm, sig_dm)
 
-    def like_multi_wrapper2(self, norms1, norms2, normdm):
+    def like_multi_wrapper2(self, norms1, norms2, normdm, idnu=False):
         sig_dm = normdm
         nu_norm = np.concatenate((norms1, norms2))
-        return self.likelihood(nu_norm, sig_dm)
+        if idnu:
+            skparr = np.asarray(range(len(norms1), len(norms1)+len(norms2)))
+        else:
+            skparr = np.array([])
+        return self.likelihood(nu_norm, sig_dm, skip_index=skparr, SkipPnlty=True)
 
-    def like_multi_wrapper2_grad(self, norms1, norms2, normdm):
-        return self.like_gradi(norms1, normdm)
+    def like_multi_wrapper2_grad(self, norms1, norms2, normdm, idnu=False):
+        if idnu:
+            skparr = np.asarray(range(len(norms1), len(norms1)+len(norms2)))
+        else:
+            skparr = np.array([])
+
+        return self.like_gradi(norms1, normdm, skip_index=skparr)
 
     def test_num_events(self, nu_norm, sig_dm):
         print 'DM events Predicted: ', 10. ** sig_dm * self.dm_integ * self.exposure
@@ -160,7 +169,7 @@ class Likelihood_analysis(object):
         for i in range(self.nu_spec):
             diff_nu[i] = self.nu_diff_evals[i] * self.exposure * 10.**nu_norm[i]
             lg_vle += diff_nu[i]
-
+        
         for i in range(len(lg_vle)):
             like += -2. * np.log(lg_vle[i])
         return like
@@ -265,6 +274,7 @@ class Likelihood_analysis(object):
             nu_mean_f = NEUTRINO_MEANF[nu_component]
             nu_sig = NEUTRINO_SIG[nu_component]
         if err_multiply:
+            #print nu_component, nu_sig, nu_sig*self.reduce_uncer
             nu_sig *= self.reduce_uncer
         if return_deriv:
             return nu_mean_f**2./nu_sig**2.*(10.**flux_n - 1.) * \

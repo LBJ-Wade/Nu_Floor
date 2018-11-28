@@ -19,10 +19,10 @@ ft_to_m = 0.3048
 def Element_Info(element):
     print element
     if element == 'Germanium':
-        #Qmin = 0.04
-        #Qmax = 50.
-        Qmin = 10.
-        Qmax = 300.
+        Qmin = 0.04
+        Qmax = 10.
+        #Qmin = 10.
+        #Qmax = 300.
         Z = 32.
         Atope = np.array([70., 72., 73., 74., 76.])
         mfrac = np.array([0.212, 0.277, 0.077, 0.359, 0.074])
@@ -198,7 +198,6 @@ def geo_flux(loc='Snolab', el='U'):
         elif el == 'K':
             flux = 21.88 * 10 ** 6.
             flx_err = 3.67 * 10 ** 6.
-        return flux, flx_err
     elif loc == 'SURF':
         if el == 'U':
             flux = 5.26 * 10**6.
@@ -209,7 +208,6 @@ def geo_flux(loc='Snolab', el='U'):
         elif el == 'K':
             flux = 22.68 * 10 ** 6.
             flx_err = 4.37 * 10 ** 6.
-        return flux, flx_err
     elif loc == 'GS':
         if el == 'U':
             flux = 4.34 * 10**6.
@@ -220,5 +218,6 @@ def geo_flux(loc='Snolab', el='U'):
         elif el == 'K':
             flux = 20.54 * 10 ** 6.
             flx_err = 3.99 * 10 ** 6.
-        return flux, flx_err
 
+    #return flux, flx_err
+    return flux*4., flx_err
