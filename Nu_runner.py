@@ -51,7 +51,7 @@ if args.DARK == 'T':
 else:
     DARK = False
 
-# normally set to false
+# normally set to false except for Carlos Blanco project
 BOUND_DERIVE = False
 
 if DARK:
@@ -69,9 +69,9 @@ if DARK:
 
 
 else:
-    identify = np.array(['geoU','geoTh','geoK'])
+    identify = np.array(['geoU', 'geoTh', 'geoK'])
     maxE = 0.
-    uncert = 0.1
+    uncert = 0.5
     for i in identify:
         elem, Qmax, Qmin = Element_Info(args.element)
         maxER = Nu_spec(lab='Snolab').max_er_from_nu(NEUTRINO_EMAX[i], elem[0,0])
@@ -79,7 +79,7 @@ else:
             maxE = maxER
     print 'Maximum Energy:', maxE
     print 'Uncertainty Multiplier', uncert
-    identify_nu(exposure_low=1., exposure_high=50., expose_num=20, element=args.element,
-                file_tag=args.file_tag, n_runs=250, Eth=args.e_th, Ehigh=maxE,
-                identify=identify, red_uncer=uncert)
+    identify_nu(exposure_low=0.1, exposure_high=50., expose_num=13, element=args.element,
+                file_tag=args.file_tag, n_runs=500, Eth=args.e_th, Ehigh=maxE,
+                identify=identify, red_uncer=uncert, shotnoise=True)
 
