@@ -486,7 +486,6 @@ def nu_floor_Bound(sig_low, sig_high, n_sigs=10,
     while nn < n_runs:
         for i in range(nu_contrib):
             try:
-                print int(Nu_events_sim[i])
                 nevts_n[i] = poisson.rvs(int(Nu_events_sim[i]))
             except ValueError:
                 nevts_n[i] = 0

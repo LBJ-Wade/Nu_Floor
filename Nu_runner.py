@@ -9,6 +9,7 @@ matplotlib.use('agg')
 import argparse
 from main import *
 from identify_neutrinos import *
+from id_nu_electronic import *
 from constants import *
 from experiments import *
 import numpy as np
@@ -35,6 +36,7 @@ parser.add_argument('--GF')
 parser.add_argument('--file_tag')
 parser.add_argument('--n_runs', type=int)
 parser.add_argument('--DARK',default='T')
+parser.add_argument('--Electronic',default='F')
 
 args = parser.parse_args()
 
@@ -50,6 +52,10 @@ if args.DARK == 'T':
     DARK = True
 else:
     DARK = False
+if args.Electronic == 'F':
+    Electronic = False
+else:
+    Electronic = True
 
 # normally set to false except for Carlos Blanco project
 BOUND_DERIVE = False
@@ -69,17 +75,31 @@ if DARK:
 
 
 else:
-    identify = np.array(['geoU', 'geoTh', 'geoK'])
-    maxE = 0.
-    uncert = 0.5
-    for i in identify:
-        elem, Qmax, Qmin = Element_Info(args.element)
-        maxER = Nu_spec(lab='Snolab').max_er_from_nu(NEUTRINO_EMAX[i], elem[0,0])
-        if maxER > maxE:
-            maxE = maxER
-    print 'Maximum Energy:', maxE
-    print 'Uncertainty Multiplier', uncert
-    identify_nu(exposure_low=0.1, exposure_high=50., expose_num=13, element=args.element,
-                file_tag=args.file_tag, n_runs=500, Eth=args.e_th, Ehigh=maxE,
-                identify=identify, red_uncer=uncert, shotnoise=True)
 
+    identify = np.array(['geoU', 'geoTh', 'geoK'])
+    #identify = np.array(['b7l2'])
+    maxE = 0.
+    uncert = 1.
+    
+    if not Electronic:
+        for i in identify:
+            elem, Qmax, Qmin = Element_Info(args.element)
+            maxER = Nu_spec(lab='JP').max_er_from_nu(NEUTRINO_EMAX[i], elem[0,0])
+            if maxER > maxE:
+                maxE = maxER
+        print 'Maximum Energy:', maxE
+        print 'Uncertainty Multiplier', uncert
+        identify_nu(exposure_low=0.1, exposure_high=50., expose_num=13, element=args.element,
+                    file_tag=args.file_tag, n_runs=250, Eth=args.e_th, Ehigh=maxE,
+                    identify=identify, red_uncer=uncert)
+    else:
+        for i in identify:
+            elem, Qmax, Qmin = Element_Info(args.element, electronic=True)
+#            maxER = Nu_spec(lab='Snolab').max_er_from_nu(NEUTRINO_EMAX[i], 5.11e-4)
+#            if maxER > maxE:
+#                maxE = maxER
+#        print 'Maximum Energy:', maxE
+        print 'Uncertainty Multiplier', uncert
+        identify_nu_electronic(exposure_low=100., exposure_high=1000., expose_num=2, element=args.element,
+                    file_tag=args.file_tag, n_runs=200, Eth=args.e_th, Ehigh=Qmax,
+                    identify=identify, red_uncer=uncert)

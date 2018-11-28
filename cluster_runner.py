@@ -35,7 +35,8 @@ parser.add_argument('--file_tag',default='_Plty_ShotN_')
 parser.add_argument('--n_runs', type=int, default=3000)  # number of realizations of data
 parser.add_argument('--tag', default='')
 parser.add_argument('--runner_start', default=0)
-parser.add_argument('--DARK', default='F')
+parser.add_argument('--DARK', default='F') # Dark matter or Neutrino
+parser.add_argument('--Electronic', default='F')
 
 args = parser.parse_args()
 sig_h = args.sig_high
@@ -52,6 +53,7 @@ n_runs = args.n_runs
 TAG = args.tag
 ethresh = args.ethresh
 DARK = args.DARK
+Electronic = args.Electronic
 runner_start = args.runner_start
 
 
@@ -74,7 +76,7 @@ for experiment in SINGLE_EXPERIMENTS:
               '--model {} --mass {} --fnfp {} --element {} '.format(model, mass, fnfp, experiment) +\
               '--exposure {} --delta {} --time_info {} --GF {} '.format(exposure, delta, time_info, GF) +\
               '--file_tag {} --n_runs {} --e_th {} '.format(file_tag, n_runs, ethresh) +\
-              '--DARK {}'.format(DARK)
+              '--DARK {} --Electronic {}'.format(DARK, Electronic)
 
         cmds.append(cmd)
         count += 1
