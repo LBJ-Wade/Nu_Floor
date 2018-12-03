@@ -182,7 +182,7 @@ reactors_JP = [['Fangchengang', 998.16, 12110.],
                 ['Taishan', 1318., 9180.],
                 ['Ling Ao', 1422., 11620.],
                 ['Fuqing', 1763., 17740.],
-                ['Hanbit', 2443., 16874.]]
+                ['Hanbit', 2463., 16874.]]
 
 Nfiss = 6.
 reac_runtime = 0.75
@@ -212,9 +212,9 @@ def reactor_flux(loc='Snolab'):
     for reactor in reactor_list:
         flux += Nfiss * reactor[2] * joule_to_MeV * 1e6/Efiss * reac_runtime / \
                 (4. * np.pi * (reactor[1]*1e5 + depth*1e2)**2.)
-        err += Nfiss * reactor[2] * joule_to_MeV * 1e6/Efiss * reac_runtime / \
-            (4. * np.pi * (reactor[1]*1e5 + depth*1e2)**2.)*np.sqrt((0.6/Efiss)**2. + (rntime_err/reac_runtime)**2. + (10./reactor[1])**2.)
-
+#        err += Nfiss * reactor[2] * joule_to_MeV * 1e6/Efiss * reac_runtime / \
+#            (4. * np.pi * (reactor[1]*1e5 + depth*1e2)**2.)*np.sqrt((0.6/Efiss)**2. + (rntime_err/reac_runtime)**2. + (10./reactor[1])**2.)
+    err = 0.1 * flux
     return flux, err
 
 def geo_flux(loc='Snolab', el='U'):
@@ -275,36 +275,47 @@ def bkg_electron_specs(elem='Xenon'):
     return file_list
 
 def geo_uncertainty():
-    extrafactor = 1
+    
     geo_flux = {}
-    geo_flux['GS_U'] = extrafactor*4.34e6
+    geo_flux['GS_U'] = 4.34e6
     geo_flux['GS_U_high'] = 0.96e6
     geo_flux['GS_U_low'] = 0.75e6
-    geo_flux['GS_Th'] = extrafactor*4.23e6
+    geo_flux['GS_Th'] = 4.23e6
     geo_flux['GS_Th_high'] = 1.26e6
     geo_flux['GS_Th_low'] = 0.8e6
-    geo_flux['GS_K'] = extrafactor*20.54e6
+    geo_flux['GS_K'] = 20.54e6
     geo_flux['GS_K_high'] = 3.99e6
     geo_flux['GS_K_low'] = 2.96e6
     
-    geo_flux['SURF_U'] = extrafactor*5.26e6
+    geo_flux['SURF_U'] = 5.26e6
     geo_flux['SURF_U_high'] = 1.17e6
     geo_flux['SURF_U_low'] = 0.97e6
-    geo_flux['SURF_Th'] = extrafactor*4.9e6
+    geo_flux['SURF_Th'] = 4.9e6
     geo_flux['SURF_Th_high'] = 1.34e6
     geo_flux['SURF_Th_low'] = 0.87e6
-    geo_flux['SURF_K'] = extrafactor*22.68e6
+    geo_flux['SURF_K'] = 22.68e6
     geo_flux['SURF_K_high'] = 4.37e6
     geo_flux['SURF_K_low'] = 3.13e6
     
-    geo_flux['Snolab_U'] = extrafactor*4.9e6
+    geo_flux['Snolab_U'] = 4.9e6
     geo_flux['Snolab_U_high'] = 0.98e6
     geo_flux['Snolab_U_low'] = 0.78e6
-    geo_flux['Snolab_Th'] = extrafactor*4.55e6
+    geo_flux['Snolab_Th'] = 4.55e6
     geo_flux['Snolab_Th_high'] = 1.17e6
     geo_flux['Snolab_Th_low'] = 0.73e6
-    geo_flux['Snolab_K'] = extrafactor*21.88e6
+    geo_flux['Snolab_K'] = 21.88e6
     geo_flux['Snolab_K_high'] = 3.67e6
     geo_flux['Snolab_K_low'] = 2.76e6
+    
+    extrafactor = 2.5
+    geo_flux['JP_U'] = extrafactor*4.9e6
+    geo_flux['JP_U_high'] = 0.98e6
+    geo_flux['JP_U_low'] = 0.78e6
+    geo_flux['JP_Th'] = extrafactor*4.55e6
+    geo_flux['JP_Th_high'] = 1.17e6
+    geo_flux['JP_Th_low'] = 0.73e6
+    geo_flux['JP_K'] = extrafactor*21.88e6
+    geo_flux['JP_K_high'] = 3.67e6
+    geo_flux['JP_K_low'] = 2.76e6
     
     return geo_flux

@@ -88,8 +88,34 @@ dsnb8mevnu = np.loadtxt(path + '/Nu_Flux/dsnb_8mev_flux_norm.dat')
 dsnb8mevnu_spectrum = interp1d(dsnb8mevnu[:,0], dsnb8mevnu[:,1], kind='cubic', fill_value=0., bounds_error=False)
 
 # Reactor Nus
-reactor_nu = np.loadtxt(path + '/Nu_Flux/Reactor_Spectrum.dat')
-reactor_nu_spectrum = interp1d(reactor_nu[:,0], reactor_nu[:,1], kind='cubic', fill_value=0., bounds_error=False)
+#reactor_nu = np.loadtxt(path + '/Nu_Flux/Reactor_Spectrum.dat')
+#reactor_nu_spectrum = interp1d(reactor_nu[:,0], reactor_nu[:,1], kind='cubic', fill_value=0., bounds_error=False)
+
+def reactor_nu_spectrum(E_nu):
+    en_use = np.ones_like(E_nu) * 1.8
+    en_use = np.max(np.column_stack((en_use, E_nu)), axis=1)
+    
+    fk = [0.58, 0.07, 0.30, 0.05] # U235, U238, P239, P241
+#    fk = [0., 1., 0., 0.]
+#    k_list = [[3.217, -3.111, 1.395, -0.3690, 0.04445, -0.002053],
+#               [0.4833, 0.1927, -0.1283, -0.006762, 0.002233, -0.0001536],
+#               [6.413, -7.432, 3.535, -0.8820, 0.1025, -0.004550],
+#               [3.251, -3.204, 1.428, -0.3675, 0.04252, -0.001896]]
+    k_list = [[3.217, -3.111, 1.395, -0.3690, 0.04445, -0.002053],
+               [0.4833, 0.1927, -0.1283, -0.006762, 0.002233, -0.0001536],
+               [6.413, -7.432, 3.535, -0.8820, 0.1025, -0.004550],
+               [3.251, -3.204, 1.428, -0.3675, 0.04252, -0.001896]]
+
+    spec = np.zeros_like(E_nu)
+    
+    for i in range(len(k_list)):
+        exp_factor = 0.
+        for j in range(len(k_list[i])):
+            
+            exp_factor += k_list[i][j] * en_use ** j
+    
+        spec += fk[i] * np.exp(exp_factor)
+    return spec / 4.52462 # this norm is added by hand such that integral over all energy range gives 1
 
 # Geo nus
 geo_u = np.loadtxt(path + '/Nu_Flux/GeoU.dat')
@@ -142,15 +168,25 @@ NEUTRINO_EMAX = {"b8": 16.18,
                  }
 
 
-NEUTRINO_MEANF = {"b8": 5.58 * 10. ** 6.,
-                  "b7l1": 0.1 * 5.00 * 10. ** 9.,
-                  "b7l2": 0.9 * 5.00 * 10. ** 9.,
-                  "pepl1": 1.44 * 10. ** 8.,
-                  "hep": 8.04 * 10. ** 3.,
-                  "pp": 5.98 * 10. ** 10.,
-                  "o15": 2.23 * 10. ** 8.,
-                  "n13": 2.96 * 10. ** 8.,
-                  "f17": 5.52 * 10. ** 6.,
+NEUTRINO_MEANF = {
+#                  "b8": 5.58 * 10. ** 6.,
+                  "b8": 4.59 * 10. ** 6.,
+#                  "b7l1": 0.1 * 5.00 * 10. ** 9.,
+#                  "b7l2": 0.9 * 5.00 * 10. ** 9.,
+                  "b7l1": 0.1 * 4.56 * 10. ** 9.,
+                  "b7l2": 0.9 * 4.56 * 10. ** 9.,
+#                  "pepl1": 1.44 * 10. ** 8.,
+                  "pepl1": 1.47 * 10. ** 8.,
+#                  "hep": 8.04 * 10. ** 3.,
+                  "hep": 8.31 * 10. ** 3.,
+#                  "pp": 5.98 * 10. ** 10.,
+                  "pp": 6.03 * 10. ** 10.,
+#                  "o15": 2.23 * 10. ** 8.,
+                  "o15": 1.56 * 10. ** 8.,
+#                  "n13": 2.96 * 10. ** 8.,
+                  "n13": 2.17 * 10. ** 8.,
+#                  "f17": 5.52 * 10. ** 6.,
+                  "f17": 3.40 * 10. ** 6.,
                   "atmnue": 1.27 * 10. ** 1,
                   "atmnuebar": 1.17 * 10. ** 1,
                   "atmnumu": 2.46 * 10. ** 1,

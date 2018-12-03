@@ -81,7 +81,7 @@ def neutrino_spectrum(lab='Snolab', Emin=0.1, Emax=1000., fs=18, save=True, sve_
 
 def neutrino_recoils(Emin=0.001, Emax=100., element='Germanium', fs=18, save=True,
                      mass=6., sigmap=4.*10**-45., model='sigma_si', fnfp=1.,
-                     delta=0., GF=False, time_info=False, xenlab='LZ', sve_data=False):
+                     delta=0., GF=False, time_info=False, xenlab='LZ', sve_data=False, geo_analysis=False):
     coupling = "fnfp" + model[5:]
 
     filename = test_plots + 'Recoils_in_' + element + '_'
@@ -94,7 +94,8 @@ def neutrino_recoils(Emin=0.001, Emax=100., element='Germanium', fs=18, save=Tru
     er_list = np.logspace(np.log10(Emin), np.log10(Emax), 500)
 
     experiment_info, Qmin, Qmax = Element_Info(element)
-    lab = laboratory(element, xen=xenlab)
+
+    lab = laboratory(element, xen=xenlab, geo_analysis=geo_analysis)
 
     nu_comp = ['b8', 'b7l1', 'b7l2', 'pepl1', 'hep', 'pp', 'o15', 'n13', 'f17', 'atmnue',
                'atmnuebar', 'atmnumu', 'atmnumubar', 'dsnb3mev', 'dsnb5mev', 'dsnb8mev',
@@ -166,7 +167,7 @@ def neutrino_recoils(Emin=0.001, Emax=100., element='Germanium', fs=18, save=Tru
         plt.savefig(filename)
     return
 
-def geo_recoil_rate(Emin=1., Emax=2000., fs=18, type='K', electronic=False, sve_data=False):
+def geo_recoil_rate(Emin=1., Emax=2000., fs=18, type='K', electronic=False, sve_data=False, geo_analysis=False):
     filename = test_plots + 'GeoRecoils_'
     if electronic:
         filename += 'Electronic_'
@@ -189,7 +190,7 @@ def geo_recoil_rate(Emin=1., Emax=2000., fs=18, type='K', electronic=False, sve_
     
     for i,tar in enumerate(targets):
         experiment_info, Qmin, Qmax = Element_Info(tar)
-        lab = laboratory(tar)
+        lab = laboratory(tar, geo_analysis=geo_analysis)
         nuspec = np.zeros_like(er_list)
         for iso in experiment_info:
             if electronic:
@@ -212,7 +213,7 @@ def geo_recoil_rate(Emin=1., Emax=2000., fs=18, type='K', electronic=False, sve_
     
     return
 
-def neutrino_electronic_recoils(Emin=10., Emax=3000., element='Xenon', fs=18, save=True, xenlab='LZ', sve_data=False):
+def neutrino_electronic_recoils(Emin=10., Emax=3000., element='Xenon', fs=18, save=True, xenlab='LZ', sve_data=False, geo_analysis=False):
     #coupling = "fnfp" + model[5:]
 
     filename = test_plots + 'ELECTRONIC_Recoils_in_' + element + '_'
@@ -225,7 +226,7 @@ def neutrino_electronic_recoils(Emin=10., Emax=3000., element='Xenon', fs=18, sa
     er_list = np.logspace(np.log10(Emin), np.log10(Emax), 2000)
 
     experiment_info, Qmin, Qmax = Element_Info(element)
-    lab = laboratory(element, xen=xenlab)
+    lab = laboratory(element, xen=xenlab, geo_analysis=geo_analysis)
 
     nu_comp = ['b8', 'b7l1', 'b7l2', 'pepl1', 'hep', 'pp', 'o15', 'n13', 'f17',
                'reactor']
@@ -332,7 +333,7 @@ def neutrino_electronic_recoils(Emin=10., Emax=3000., element='Xenon', fs=18, sa
 
 def DM_DiffRate(Emin=0.001, Emax=100., element='Germanium', fs=18, save=True,
                     mass=6., sigmap=4.*10**-45., model='sigma_si', fnfp=1.,
-                    delta=0., GF=False, time_info=False, xenlab='LZ'):
+                    delta=0., GF=False, time_info=False, xenlab='LZ', geo_analysis=False):
     coupling = "fnfp" + model[5:]
 
     filename = test_plots + 'DM_DiffRate_Recoils_in_' + element + '_'
@@ -345,7 +346,7 @@ def DM_DiffRate(Emin=0.001, Emax=100., element='Germanium', fs=18, save=True,
     er_list = np.logspace(np.log10(Emin), np.log10(Emax), 500)
 
     experiment_info, Qmin, Qmax = Element_Info(element)
-    lab = laboratory(element, xen=xenlab)
+    lab = laboratory(element, xen=xenlab, geo_analysis=geo_analysis)
 
     color_list = ['#800080', '#000080', '#000080', '#8A2BE2', '#A52A2A', '#A0522D', '#DC143C', '#B8860B',
                   '#8B008B', '#556B2F', '#FF8C00', '#9932CC', '#E9967A', '#FF1493', '#696969', '#228B22',
