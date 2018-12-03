@@ -20,8 +20,10 @@ def Element_Info(element, electronic=False):
     print element
     if element == 'Germanium':
         Qmin = 0.04
-        Qmax = 50.
-
+        Qmax = 10.
+        #Qmin = 10.
+        #Qmax = 300.
+        #Qmax = 50.
         Z = 32.
         Atope = np.array([70., 72., 73., 74., 76.])
         mfrac = np.array([0.212, 0.277, 0.077, 0.359, 0.074])
@@ -263,7 +265,7 @@ def geo_flux(loc='Snolab', el='U'):
         elif el == 'K':
             flux = extrafactor * 21.88 * 10 ** 6.
             flx_err = 3.67 * 10 ** 6.
-    return extrafactor*flux, flx_err
+    return flux, flx_err
 
 
 def bkg_electron_specs(elem='Xenon'):

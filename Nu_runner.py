@@ -57,8 +57,8 @@ if args.Electronic == 'F':
 else:
     Electronic = True
 
-# normally set to false
-BOUND_DERIVE = True
+# normally set to false except for Carlos Blanco project
+BOUND_DERIVE = False
 
 if DARK:
     if not BOUND_DERIVE:
@@ -89,7 +89,7 @@ else:
                 maxE = maxER
         print 'Maximum Energy:', maxE
         print 'Uncertainty Multiplier', uncert
-        identify_nu(exposure_low=1., exposure_high=50., expose_num=20, element=args.element,
+        identify_nu(exposure_low=0.1, exposure_high=50., expose_num=13, element=args.element,
                     file_tag=args.file_tag, n_runs=250, Eth=args.e_th, Ehigh=maxE,
                     identify=identify, red_uncer=uncert)
     else:
@@ -103,4 +103,3 @@ else:
         identify_nu_electronic(exposure_low=100., exposure_high=1000., expose_num=2, element=args.element,
                     file_tag=args.file_tag, n_runs=200, Eth=args.e_th, Ehigh=Qmax,
                     identify=identify, red_uncer=uncert)
-

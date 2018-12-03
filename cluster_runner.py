@@ -8,32 +8,35 @@ import numpy as np
 
 
 path = os.getcwd()
-
+# nufloor
 #mass_arr = np.concatenate((np.linspace(1., 8.5, 13), np.linspace(9., 25., 8),
 #                           np.logspace(np.log10(30.), 3., 20)))
-mass_arr = np.logspace(0,5,100)
+
+#bnd
+mass_arr = np.logspace(-1, 4, 140)
+#mass_arr = np.logspace(-2, 2, 100)
 
 parser = argparse.ArgumentParser()
 
-parser.add_argument('--sig_high', type=float, default=10.**-42.)  # x-sec range
-parser.add_argument('--sig_low', type=float, default=10.**-48.)  # x-sec range
+parser.add_argument('--sig_high', type=float, default=10.**-34.)  # x-sec range
+parser.add_argument('--sig_low', type=float, default=10.**-43.)  # x-sec range
 parser.add_argument('--n_sigs', type=int, default=50)  # number of cross-section tests in x-sec range
-parser.add_argument('--model', default="sigma_sd")
+parser.add_argument('--model', default="sigma_anapole")
 parser.add_argument('--masses', nargs='+', default=mass_arr, type=float,)
 #parser.add_argument('--masses', nargs='+', default=np.array([9.]), type=float,)
 parser.add_argument('--fnfp', type=float, default=1.)
-parser.add_argument('--element', nargs='+', default=['Argon'])
-parser.add_argument('--exposure', type=float, default=2.)  # Ton-yr
+parser.add_argument('--element', nargs='+', default=['Germanium'])
+parser.add_argument('--exposure', type=float, default=5.)  # Ton-yr
 parser.add_argument('--ethresh', type=float, default=-1.)
 parser.add_argument('--delta', type=float, default=0.)  # FIX for now
 parser.add_argument('--time_info',default='F')  # FIX for now
 parser.add_argument('--GF', default='F')  # FIX for now
-parser.add_argument('--file_tag',default='_')
-parser.add_argument('--n_runs', type=int, default=200)  # number of realizations of data
+parser.add_argument('--file_tag',default='_Plty_ShotN_')
+parser.add_argument('--n_runs', type=int, default=3000)  # number of realizations of data
 parser.add_argument('--tag', default='')
 parser.add_argument('--runner_start', default=0)
 parser.add_argument('--DARK', default='F') # Dark matter or Neutrino
-parser.add_argument('--Electronic', default='T')
+parser.add_argument('--Electronic', default='F')
 
 args = parser.parse_args()
 sig_h = args.sig_high
@@ -68,7 +71,7 @@ cmds = []
 count = 0
 for experiment in SINGLE_EXPERIMENTS:
     for mass in MASSES:
-        cmd = 'cd '+ path + '\n' + 'python Nu_runner.py ' +\
+        cmd = 'cd '+ path + '\n' + 'source activate py27 \n' + 'python Nu_runner.py ' +\
               '--sig_high {} --sig_low {} --n_sigs {} '.format(sig_h, sig_l, nsig) +\
               '--model {} --mass {} --fnfp {} --element {} '.format(model, mass, fnfp, experiment) +\
               '--exposure {} --delta {} --time_info {} --GF {} '.format(exposure, delta, time_info, GF) +\

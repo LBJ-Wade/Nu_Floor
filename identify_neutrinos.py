@@ -23,7 +23,7 @@ Sv_dir = path + '/NeutrinoSims/'
 
 def identify_nu(exposure_low=1., exposure_high=100., expose_num=30, element='Germanium',
                 file_tag='', n_runs=20, Eth='', Ehigh=6., identify=np.array(['reactor']),
-                red_uncer=1., geo_analysis=True):
+                red_uncer=1., shotnoise=True, geo_analysis=True):
 
     exposure_list = np.logspace(np.log10(exposure_low), np.log10(exposure_high), expose_num)
 
@@ -148,7 +148,7 @@ def identify_nu(exposure_low=1., exposure_high=100., expose_num=30, element='Ger
         else:
             nu_sig = NEUTRINO_SIG[identify[i]]
             nu_mean_f = NEUTRINO_MEANF[identify[i]]
-        nu_sig *= red_uncer
+        #nu_sig *= red_uncer
         add_chi += (nu_mean_f / nu_sig)**2.
 
     for i, MT in enumerate(exposure_list):
@@ -176,14 +176,20 @@ def identify_nu(exposure_low=1., exposure_high=100., expose_num=30, element='Ger
             for i in range(nu_contrib):
                 Nu_events_sim[i] = int(nu_rate[i] * MT)
                 try:
-                    nevts_n[i] = poisson.rvs(int(Nu_events_sim[i]))
+                    if shotnoise:
+                        nevts_n[i] = poisson.rvs(int(Nu_events_sim[i]))
+                    else:
+                        nevts_n[i] = int(Nu_events_sim[i])
                 except ValueError:
                     nevts_n[i] = 0
 
             for i in range(len(identify)):
                 Nu_events_simLOOK[i] = int(nu_rateLOOK[i] * MT)
                 try:
-                    nevts_nLOOK[i] = poisson.rvs(int(Nu_events_simLOOK[i]))
+                    if shotnoise:
+                        nevts_nLOOK[i] = poisson.rvs(int(Nu_events_simLOOK[i]))
+                    else:
+                        nevts_nLOOK[i] = int(Nu_events_simLOOK[i])
                 except ValueError:
                     nevts_nLOOK[i] = 0
 
@@ -229,7 +235,7 @@ def identify_nu(exposure_low=1., exposure_high=100., expose_num=30, element='Ger
             #                     options={'maxiter': 100}, bounds=nu_bnds,
             #                     jac=like_init_bkg.like_gradi)
 
-            like_init_tot = Likelihood_analysis('sigma_si', 'fnfp_si', 10., 0., 1.,
+            like_init_tot = Likelihood_analysis('sigma_si', 'fnfp_si', 1e6, -100., 1.,
                                                 MT, element, experiment_info, e_sim, np.zeros_like(e_sim),
                                                 np.concatenate((nu_comp, identify)), labor,
                                                 (nu_contrib+len(identify)),
@@ -239,19 +245,25 @@ def identify_nu(exposure_low=1., exposure_high=100., expose_num=30, element='Ger
                                                 Qmin, Qmax, reduce_uncer=red_uncer, DARK=False)
 
             max_tot = minimize(like_init_tot.likelihood, np.zeros(nu_contrib + len(identify)),
-                               args=(np.array([-100.])),
-                               tol=1e-4, method='SLSQP',
-                               options={'maxiter': 100}, bounds=full_bnds,
+                               args=(np.array([-100.],), np.asarray(range(nu_contrib, nu_contrib+len(identify)))),
+                               tol=1e-6, method='SLSQP',
+                               options={'maxiter': 150}, bounds=full_bnds,
                                jac=like_init_tot.like_gradi)
+            #print max_tot
+            #print minimize(like_init_tot.likelihood, np.zeros(nu_contrib + len(identify)),
+            #                   args=(np.array([-100.]), np.asarray(range(nu_contrib, nu_contrib+len(identify)))),
+            #                   tol=1e-6, method='SLSQP',
+            #                   options={'maxiter': 150}, bounds=full_bnds)
 
             def like_valuation(x, nu_contrib):
                 nu_bnds = [(-20.0, 3.0)] * nu_contrib
                 val = minimize(like_init_tot.like_multi_wrapper2, np.zeros(nu_contrib),
-                         args=(x, np.array([-100.])),
-                         tol=1e-4, method='SLSQP',
-                         options={'maxiter': 100}, bounds=nu_bnds,
+                         args=(x, np.array([-100.]), True),
+                         tol=1e-6, method='SLSQP',
+                         options={'maxiter': 150}, bounds=nu_bnds,
                          jac=like_init_tot.like_multi_wrapper2_grad)
-
+                
+                #print val
                 return val.fun
 
             # x = np.linspace(-3, 3, 50)
@@ -273,10 +285,11 @@ def identify_nu(exposure_low=1., exposure_high=100., expose_num=30, element='Ger
             # if not max_bkg.success or not max_tot.success:
             #     fails = np.append(fails, nn)
             # test_stat = np.max([max_bkg.fun - max_tot.fun, 0.])
-            set_zero = 10.**np.zeros(len(identify)) * -100.
+            set_zero = -100.*np.ones(len(identify)) 
             fix_to_zero = like_valuation(set_zero, nu_contrib)
-            test_stat = np.max([fix_to_zero - max_tot.fun - add_chi, 0.])
-
+            test_stat = np.max([fix_to_zero - max_tot.fun, 0.])
+            
+            #exit()
 
             pval = chi2.sf(test_stat, len(identify))
 
@@ -288,6 +301,7 @@ def identify_nu(exposure_low=1., exposure_high=100., expose_num=30, element='Ger
             nn += 1
 
         mask = np.array([(i in fails) for i in xrange(len(tstat_arr))])
+        
         tstat_arr = tstat_arr[~mask]
         print tstat_arr
 
