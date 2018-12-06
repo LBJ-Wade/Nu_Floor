@@ -162,7 +162,9 @@ class Likelihood_analysis(object):
         # nu normalization contribution
         if not SkipPnlty:
             for i in range(self.nu_spec):
-                if i not in skip_index:
+                test1 = i not in skip_index
+                test2 = nu_norm[i] > 0
+                if test1 or test2:
                     like += self.nu_gaussian(self.nu_names[i], nu_norm[i])
 
         if self.element == 'Fluorine':
@@ -240,7 +242,9 @@ class Likelihood_analysis(object):
 
         if not SkipPnlty:
             for i in range(len(nu_norm)):
-                if i not in skip_index:
+                test1 = i not in skip_index
+                test2 = nu_norm[i] > 0
+                if test1 or test2:
                     grad_nu[i] += self.nu_gaussian(self.nu_names[i], nu_norm[i], return_deriv=True)
 
         if self.element != 'fluorine':
