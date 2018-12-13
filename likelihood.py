@@ -469,13 +469,10 @@ class Nu_spec(object):
         if nu_comp in self.nu_lines:
             for i in range(len(self.line)):
                 if enu == self.line[i] and nu_comp == self.nu_lines[i]:
-                    return self.nu_electron_xsec(enu, er)
+                    return self.nu_electron_xsec(enu, er, nu_comp)
         else:
-            if nu_comp == 'b8':
-                survival = 0.35
-            else:
-                survival = 0.55
-            return self.nu_electron_xsec(enu, er, SF=survival) * NEUTRINO_SPEC[nu_comp](enu)
+            
+            return self.nu_electron_xsec(enu, er, nu_comp) * NEUTRINO_SPEC[nu_comp](enu)
 
     def nu_csec(self, enu, er, mT, Z, A):
         # enu can be array, er cannot be
@@ -499,27 +496,31 @@ class Nu_spec(object):
         ff = (3*j1/(q*R1))**2.*np.exp(-(q*5*0.9**2.)**2)
         return ff
 
-    def nu_electron_xsec(self, enu, er, SF=None):
+    def nu_electron_xsec(self, enu, er, nu_comp):
+        if nu_comp == 'b8':
+            SF = 0.35
+            fracSV = [SF, 1. - SF]
+        else:
+            fracSV = [0.55, 1. - 0.55]
+    
         mass_e = 5.11e-4
 
         if type(enu) is not np.ndarray:
             enu = np.array([enu])
         ret = np.zeros_like(enu)
         
-        if SF is None:
-            fracSV = [0.55, 1. - 0.55]
+        if nu_comp == 'reactor' or 'geo' in nu_comp:
+            couplings_x = [[2. * sw, 2. * sw + 1.] , [2. * sw, 2. * sw - 1.]]
         else:
-            fracSV = [SF, 1. - SF]
-        
-        couplings_x = [[2. * sw + 1./2., 3./2.] , [2. * sw - 1./2., 1./2.]]
+            couplings_x = [[2. * sw + 1., 2. * sw] , [2. * sw - 1., 2. * sw]]
         
         for j in range(2):
-            ge_vec = couplings_x[j][0]
-            ge_ax = couplings_x[j][1]
+            ge_1 = couplings_x[j][0]
+            ge_2 = couplings_x[j][1]
             
             for i,en in enumerate(enu):
                 if er < self.max_er_from_nu(en, mass_e):
-                    ret[i] += fracSV[j] * gF ** 2. / (2. * np.pi) * mass_e * ((ge_vec + ge_ax)**2. +
-                            (ge_vec - ge_ax)**2.*(1. - er/en*1e-3)**2. + (ge_ax**2. - ge_vec**2.)*mass_e*er/en**2.)
+                    ret[i] += fracSV[j] * gF ** 2. / (2. * np.pi) * mass_e * (ge_1**2. +
+                            ge_2**2.*(1. - er/en*1e-3)**2. + ge_1*ge_2*mass_e*er/en**2.)
         return ret
 
