@@ -316,7 +316,8 @@ def identify_nu(exposure_low=1., exposure_high=100., expose_num=30, element='Ger
 
             pval_arr = np.zeros_like(tstat_arr)
             for i in range(len(tstat_arr)):
-                pval_arr[i] = chi2.sf(tstat_arr[i], len(identify))
+#                pval_arr[i] = chi2.sf(tstat_arr[i], len(identify))
+                pval_arr[i] = 1. - 0.5 * (1. - chi2.sf(tstat_arr[i], len(identify)))
 
             print 'Pvalue arr', pval_arr
             tot_entries = len(pval_arr)
